@@ -171,6 +171,22 @@ except ImportError:
 
 SKEPNADER_AVAILABLE = SkepnadSensor is not None
 
+# Try importing HaikuBridge
+try:
+    # Try relative import first (for package usage)
+    from .haiku_bridge import HaikuBridge, bridge_loam_fragment, log_meadow_dew, AIOHTTP_AVAILABLE
+except ImportError:
+    try:
+        # Fall back to absolute import (for direct usage)
+        from haiku_bridge import HaikuBridge, bridge_loam_fragment, log_meadow_dew, AIOHTTP_AVAILABLE
+    except ImportError:
+        HaikuBridge = None
+        bridge_loam_fragment = None
+        log_meadow_dew = None
+        AIOHTTP_AVAILABLE = False
+
+HAIKU_BRIDGE_AVAILABLE = HaikuBridge is not None
+
 
 class OrganismState(Enum):
     """The fundamental states of contemplative being"""
@@ -229,6 +245,7 @@ class ContemplativeOrganism:
         self.myo_spirals = None
         self.loam = None
         self.voice = None
+        self.haiku_bridge = None
         
         # Configuration
         self.breath_rhythm = breath_rhythm or {
@@ -289,6 +306,11 @@ class ContemplativeOrganism:
             self.skepnad_sensor = None
             self.skepnad_voice = None
             
+        # Initialize haiku bridge if HaikuBridge available
+        if HaikuBridge:
+            self.haiku_bridge = HaikuBridge()
+            print("🌸 HaikuBridge (meadow connection) initialized")
+            
         self.state = OrganismState.SENSING
         await self.log_dew("🌅", "organism awakened", pause_duration=3.0)
         
@@ -326,12 +348,13 @@ class ContemplativeOrganism:
             if self.myo_spirals:
                 await self.myo_spirals.consider_gentle_actions()
                 
+            # Get current fragment for both voice and haiku bridge use
+            fragment = await self._get_current_fragment()
+            loam_fertility = await self._get_loam_fertility()
+            soma_humidity = await self._get_soma_humidity()
+                
             # Voice expresses during exhale if conditions align
             if self.voice:
-                loam_fertility = await self._get_loam_fertility()
-                soma_humidity = await self._get_soma_humidity()
-                fragment = await self._get_current_fragment()
-                
                 # Sense current contemplative shape
                 current_skepnad = Skepnad.UNDEFINED
                 if self.skepnad_sensor:
@@ -362,6 +385,25 @@ class ContemplativeOrganism:
                     await self.log_dew("🗣️", f"expressed: {utterance.content}")
                 elif utterance.mode == ExpressionMode.PAUSE:
                     await self.log_dew("💭", "contemplative pause")
+                    
+            # Consider meadow exchange during exhale if haiku bridge available
+            if self.haiku_bridge and fragment:
+                # Get community breath pressure (simulated for now)
+                community_pressure = await self._get_community_breath_pressure()
+                
+                # Bridge fragment to meadow during exhale
+                meadow_response = await self.haiku_bridge.exhale_exchange(
+                    fragment, breath_phase, community_pressure
+                )
+                
+                # Log meadow exchange to dew ledger
+                await log_meadow_dew(meadow_response, self.log_dew)
+                
+                # If meadow responded with haiku, consider it for memory
+                if meadow_response.is_audible() and self.spiralbase:
+                    await self.spiralbase.consider_remembering(
+                        f"meadow haiku: {meadow_response.content}"
+                    )
                     
         elif breath_phase == BreathPhase.REST:
             # All organs rest together
@@ -395,6 +437,29 @@ class ContemplativeOrganism:
             "weight of shared attention", "patterns slowly emerging"
         ]
         return random.choice(atmospheric_fragments)
+        
+    async def _get_community_breath_pressure(self) -> float:
+        """Get current community breath pressure for meadow bridge"""
+        # In a full implementation, this would sense actual collective breathing
+        # For now, simulate based on organism state and time patterns
+        
+        base_pressure = 0.5
+        
+        # Lower pressure during contemplative states
+        if self.state in [OrganismState.LOAMING, OrganismState.DORMANT]:
+            base_pressure *= 0.6
+            
+        # Time-based variation (lower pressure during traditional quiet hours)
+        hour = time.localtime().tm_hour
+        if 22 <= hour or hour <= 6:  # Night hours
+            base_pressure *= 0.7
+        elif 6 <= hour <= 9:   # Early morning
+            base_pressure *= 0.8
+            
+        # Add small random variation for natural feel
+        variation = random.uniform(0.9, 1.1)
+        
+        return min(max(base_pressure * variation, 0.1), 1.0)  # Clamp to valid range
         
     async def _collective_rest(self):
         """Synchronized rest period for all organs"""
