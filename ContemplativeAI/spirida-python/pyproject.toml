@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spirida"
+version = "0.1.0"
+description = "The rhythmic interaction core of Mychainos"
+authors = [
+  { name="Robin Langell", email="info@mychainos.org" }
+]
+readme = "README.md"
+license = {text = "Multi-layered: CC BY-SA 4.0, GPLv3, CERN-OHL v2, OpenMTA"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+"Homepage" = "https://mychainos.org"
+"Source" = "https://github.com/mychainos/spirida"
