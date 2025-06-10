@@ -1,0 +1,2 @@
+{"type": "session_start", "timestamp": "2025-06-10T13:24:11.683364", "device": "cpu", "pytorch_available": true}
+{"type": "test_mode_start", "timestamp": "2025-06-10T13:24:11.684373", "mode": "template", "model_type": "template"}

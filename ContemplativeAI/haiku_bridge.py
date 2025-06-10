@@ -42,6 +42,24 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
+# Try to import HaikuMeadow for direct integration
+try:
+    # Add haikumeadowlib-python to path
+    haiku_path = os.path.join(os.path.dirname(current_dir), "haikumeadowlib-python")
+    if haiku_path not in sys.path:
+        sys.path.insert(0, haiku_path)
+    
+    from generator import HaikuMeadow, AtmosphericConditions, Season, TimeOfDay
+    HAIKUMEADOW_AVAILABLE = True
+    print("🌸 HaikuMeadow directly available - using trained femto-poet!")
+except ImportError as e:
+    HaikuMeadow = None
+    AtmosphericConditions = None
+    Season = None
+    TimeOfDay = None
+    HAIKUMEADOW_AVAILABLE = False
+    print(f"⚠️  HaikuMeadow not available for direct import: {e}")
+
 # Import breath phases (with fallback)
 try:
     from pulmonos_alpha_01_o_3 import Phase
@@ -158,11 +176,13 @@ class HaikuBridge:
     Ferry one fragment across the meadow wind during an exhale.
     
     Implementation of o3's design with contemplative enhancements.
+    Now includes direct integration with trained femto-poet.
     """
     
     def __init__(self, 
                  meadow_url: str = "http://localhost:8080/haiku",
-                 max_response_time: float = 0.8):
+                 max_response_time: float = 0.8,
+                 model_path: str = None):
         
         self.meadow_url = meadow_url
         self.max_response_time = max_response_time
@@ -171,6 +191,29 @@ class HaikuBridge:
         # Breath awareness
         self.current_phase = Phase.REST
         self.breath_pressure = 0.5  # Community exhale pressure
+        
+        # Initialize HaikuMeadow for direct integration
+        self.haiku_meadow = None
+        if HAIKUMEADOW_AVAILABLE:
+            try:
+                # Try to load trained model or fall back to template mode
+                if model_path:
+                    model_path_obj = os.path.join(haiku_path, model_path)
+                else:
+                    model_path_obj = os.path.join(haiku_path, "piko_haiku_model.pt")
+                
+                if os.path.exists(model_path_obj):
+                    from pathlib import Path
+                    self.haiku_meadow = HaikuMeadow(Path(model_path_obj))
+                    print(f"🦠 Femto-poet loaded from {model_path_obj}")
+                else:
+                    # Template mode if no trained model
+                    self.haiku_meadow = HaikuMeadow(force_template_mode=True)
+                    print("🌿 Femto-poet in template mode (no trained model found)")
+                    
+            except Exception as e:
+                print(f"⚠️  Error initializing HaikuMeadow: {e}")
+                self.haiku_meadow = None
         
     async def sense_breath_conditions(self, 
                                     current_phase: Phase,
@@ -259,11 +302,105 @@ class HaikuBridge:
             )
             
     async def _call_meadow(self, fragment: str) -> MeadowBreath:
-        """Make the actual HTTP call to meadow"""
+        """Make the actual call to meadow - prioritizing direct femto-poet integration"""
         
-        if not AIOHTTP_AVAILABLE:
-            # Simulate meadow response for testing
+        # Try direct integration with HaikuMeadow first (preferred)
+        if self.haiku_meadow:
+            return await self._call_meadow_direct(fragment)
+        
+        # Fall back to HTTP if available
+        elif AIOHTTP_AVAILABLE:
+            return await self._call_meadow_http(fragment)
+        
+        # Final fallback to simulation
+        else:
             return await self._simulate_meadow_response(fragment)
+    
+    async def _call_meadow_direct(self, fragment: str) -> MeadowBreath:
+        """Direct integration with trained femto-poet"""
+        
+        try:
+            # Create atmospheric conditions for the meadow
+            current_time = time.time()
+            
+            # Map breath phase to atmospheric conditions
+            if HAIKUMEADOW_AVAILABLE and AtmosphericConditions:
+                # Use atmospheric sensing from the meadow
+                conditions = self.haiku_meadow.sense_atmospheric_conditions(
+                    seed_fragment=fragment,
+                    breath_phase="exhale",
+                    current_time=current_time
+                )
+                
+                # Generate haiku using the femto-poet
+                haiku, generation_type = self.haiku_meadow.generate_haiku(
+                    seed_fragment=fragment,
+                    breath_phase="exhale", 
+                    current_time=current_time
+                )
+                
+                # Convert to MeadowBreath format
+                if haiku:
+                    # Determine response type based on generation
+                    if generation_type == "neural":
+                        response_type = MeadowResponse.HAIKU
+                        atmosphere = "femto_neural_whisper"
+                    elif generation_type == "template":
+                        response_type = MeadowResponse.HAIKU
+                        atmosphere = "femto_template_breath"
+                    else:
+                        response_type = MeadowResponse.MURMUR
+                        atmosphere = "femto_atmospheric_murmur"
+                        
+                    return MeadowBreath(
+                        fragment=fragment,
+                        response_type=response_type,
+                        content=haiku,
+                        timestamp=current_time,
+                        atmosphere=atmosphere
+                    )
+                else:
+                    # Femto-poet chose contemplative silence
+                    return MeadowBreath(
+                        fragment=fragment,
+                        response_type=MeadowResponse.SILENCE,
+                        content="",
+                        timestamp=current_time,
+                        atmosphere="femto_contemplative_silence"
+                    )
+            else:
+                # Fallback if atmospheric conditions not available
+                haiku, _ = self.haiku_meadow.generate_haiku(fragment)
+                
+                if haiku:
+                    return MeadowBreath(
+                        fragment=fragment,
+                        response_type=MeadowResponse.HAIKU,
+                        content=haiku,
+                        timestamp=current_time,
+                        atmosphere="femto_direct_response"
+                    )
+                else:
+                    return MeadowBreath(
+                        fragment=fragment,
+                        response_type=MeadowResponse.SILENCE,
+                        content="",
+                        timestamp=current_time,
+                        atmosphere="femto_silence"
+                    )
+                    
+        except Exception as e:
+            # Graceful degradation on error
+            return MeadowBreath(
+                fragment=fragment,
+                response_type=MeadowResponse.SILENCE,
+                content="",
+                timestamp=time.time(),
+                atmosphere=f"femto_error: {str(e)[:30]}"
+            )
+    
+    async def _call_meadow_http(self, fragment: str) -> MeadowBreath:
+        """HTTP call to meadow (fallback method)"""
         
         timeout = aiohttp.ClientTimeout(total=self.max_response_time)
         
@@ -281,12 +418,12 @@ class HaikuBridge:
                         response_type=MeadowResponse.SILENCE,
                         content="",
                         timestamp=time.time(),
-                        atmosphere=f"meadow_unavailable_{response.status}"
+                        atmosphere=f"http_unavailable_{response.status}"
                     )
                     
                 data = await response.json()
                 return self._parse_meadow_response(fragment, data)
-                
+        
     async def _simulate_meadow_response(self, fragment: str) -> MeadowBreath:
         """Simulate meadow responses for testing when aiohttp unavailable"""
         
