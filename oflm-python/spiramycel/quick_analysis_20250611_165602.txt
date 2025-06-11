@@ -1,0 +1,58 @@
+🍄 SPIRAMYCEL COMPARATIVE ANALYSIS REPORT
+================================================================================
+Generated: 2025-06-11 16:56:02
+
+🔬 SPIRAMYCEL PERFORMANCE COMPARISON MATRIX
+======================================================================
+
+📊 MODEL OVERVIEW:
+------------------------------
+Ecological           | 25,636 params | 0 samples | 0.0s
+Abstract             | 25,636 params | 0 samples | 0.0s
+
+📈 LOSS COMPARISON:
+------------------------------
+Model                | Glyph Loss   | Effectiveness | Silence     
+-----------------------------------------------------------------
+Ecological           | 0.000        | 0.0000       | 0.0000      
+Abstract             | 0.000        | 0.0000       | 0.0000      
+
+
+🧘 CONTEMPLATIVE PHILOSOPHY ANALYSIS
+==================================================
+
+🌱 ECOLOGICAL MODEL:
+------------------------------
+Silence Ratio: 0.0%
+Category Focus: network
+Crisis Style: active_crisis_management
+Adaptation: active_intervention
+Contemplative Tendency: 0.000
+Top Glyphs:
+  🌿12 - reroute north-east neighbor
+  🌻35 - mesh healing active
+
+🌱 ABSTRACT MODEL:
+------------------------------
+Silence Ratio: 40.0%
+Category Focus: network
+Crisis Style: contemplative_crisis_management
+Adaptation: contemplative_withdrawal
+Contemplative Tendency: 0.000
+Top Glyphs:
+  🌿12 - reroute north-east neighbor
+  ✨ - sparkle moment
+  🌌 - cosmic silence
+
+🤫 TYSTNADSMAJORITET ADHERENCE:
+----------------------------------------
+Ecological: 0.0% adherence to contemplative principles
+Abstract: 45.7% adherence to contemplative principles
+
+
+🎯 KEY INSIGHTS:
+--------------------
+• Abstract training shows higher contemplative adherence
+• Silence ratio difference: 40.0%
+• Training approach significantly affects glyph philosophy
+• Model behavior reflects training paradigm

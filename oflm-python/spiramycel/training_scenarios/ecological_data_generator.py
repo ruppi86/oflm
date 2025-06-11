@@ -133,6 +133,13 @@ class EcologicalDataGenerator:
         
         # Extract activity/condition indicators from season data
         for key, value in season_data.items():
+            # Skip list values (like months, ranges) which are not hashable
+            if isinstance(value, list):
+                continue
+            # Skip dictionary values as well
+            if isinstance(value, dict):
+                continue
+            
             if sensor_type in baselines and value in baselines[sensor_type]:
                 return baselines[sensor_type][value]
         
@@ -214,10 +221,33 @@ class EcologicalDataGenerator:
         
         return reading
     
-    def select_repair_strategy(self, scenario: Dict, conditions: NetworkConditions) -> Tuple[List[int], str, float]:
+    def select_repair_strategy(self, scenario: Dict, conditions: NetworkConditions, chaos_mode: bool = True) -> Tuple[List[int], str, float]:
         """Select appropriate repair strategy based on conditions"""
         strategies = scenario['repair_strategies']
         
+        # In calm mode, add thriving ecosystem scenarios
+        if not chaos_mode:
+            # 70% chance of thriving ecosystem (pure contemplative)
+            if random.random() < 0.7:
+                # Perfect ecosystem balance - minimal intervention needed
+                thriving_glyphs = [0x31, 0x32, 0x33, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3F, 0x40]  # Pure contemplative
+                glyph_sequence = random.choices(thriving_glyphs, k=random.randint(8, 12))
+                effectiveness = random.uniform(0.05, 0.25)  # Very low effectiveness - ecosystem handles itself
+                return (glyph_sequence, "ecosystem in perfect harmony - contemplative observation only", effectiveness)
+            
+            # 20% chance of minor seasonal adjustments
+            elif random.random() < 0.9:  # 0.7 + 0.2 = 0.9 total
+                # Gentle seasonal maintenance
+                maintenance_glyphs = [0x31, 0x32, 0x33, 0x35] + random.choices(list(strategies.values())[0]['glyph_sequence'], k=1)
+                contemplative_glyphs = [0x36, 0x37, 0x38, 0x39, 0x3F, 0x40]
+                glyph_sequence = maintenance_glyphs + random.choices(contemplative_glyphs, k=random.randint(6, 10))
+                random.shuffle(glyph_sequence)
+                effectiveness = random.uniform(0.2, 0.4)
+                return (glyph_sequence, "gentle seasonal adjustment with contemplative monitoring", effectiveness)
+            
+            # 10% fall through to normal crisis scenarios below
+        
+        # Original strategy selection for chaos_mode=True or 10% of calm scenarios
         # Evaluate conditions for each strategy
         viable_strategies = []
         for strategy_name, strategy_data in strategies.items():
@@ -264,7 +294,7 @@ class EcologicalDataGenerator:
         return True  # Default to allowing strategy
     
     def generate_spore_echo(self, scenario_id: str, timestamp: datetime = None, 
-                          extreme_event: str = None) -> Dict[str, Any]:
+                          extreme_event: str = None, chaos_mode: bool = True) -> Dict[str, Any]:
         """Generate a single realistic spore echo"""
         if scenario_id not in self.scenarios:
             raise ValueError(f"Unknown scenario: {scenario_id}")
@@ -311,11 +341,14 @@ class EcologicalDataGenerator:
             historical_context=f"{scenario['name']} - {season} - year {year_in_cycle}"
         )
         
-        # Select repair strategy
-        glyph_sequence, description, effectiveness = self.select_repair_strategy(scenario, conditions)
+        # Select repair strategy with chaos_mode parameter
+        glyph_sequence, description, effectiveness = self.select_repair_strategy(scenario, conditions, chaos_mode)
         
         # Calculate Tystnadsmajoritet (silence probability)
-        silence_probability = max(0.1, 0.875 - environmental_stress * 0.3)
+        if not chaos_mode and random.random() < 0.7:  # Thriving ecosystem
+            silence_probability = random.uniform(0.8, 0.95)  # High silence for thriving systems
+        else:
+            silence_probability = max(0.1, 0.875 - environmental_stress * 0.3)
         
         return {
             'spore_echo_id': f"{scenario_id}_{timestamp.strftime('%Y%m%d_%H%M%S')}",
@@ -349,9 +382,21 @@ class EcologicalDataGenerator:
         }
     
     def generate_training_dataset(self, num_echoes: int = 1000, 
-                                output_file: str = "ecological_training_data.jsonl") -> str:
-        """Generate a complete training dataset"""
+                                output_file: str = "ecological_training_data.jsonl",
+                                chaos_mode: bool = True) -> str:
+        """Generate a complete training dataset
+        
+        Args:
+            num_echoes: Number of spore echoes to generate
+            output_file: Output filename
+            chaos_mode: If True, includes many extreme events (15% probability)
+                       If False, mostly calm conditions (3% probability)
+        """
         print(f"🌱 Generating {num_echoes} ecological spore echoes...")
+        if chaos_mode:
+            print("⚡ Chaos mode: HIGH stress environment (15% extreme events)")
+        else:
+            print("🧘 Calm mode: LOW stress environment (3% extreme events)")
         
         output_path = self.scenarios_dir / output_file
         scenario_ids = list(self.scenarios.keys())
@@ -360,20 +405,39 @@ class EcologicalDataGenerator:
             raise ValueError("No scenarios loaded!")
         
         extreme_events = [None, "drought", "flood", "fire", "contamination_event"]
-        extreme_probability = 0.15  # 15% chance of extreme events
+        # Adjust extreme event probability based on chaos_mode
+        extreme_probability = 0.15 if chaos_mode else 0.03
         
         with open(output_path, 'w', encoding='utf-8') as f:
             for i in range(num_echoes):
                 # Distribute across scenarios
                 scenario_id = random.choice(scenario_ids)
                 
-                # Occasional extreme events
+                # Occasional extreme events based on chaos_mode
                 extreme_event = None
                 if random.random() < extreme_probability:
                     extreme_event = random.choice(extreme_events[1:])  # exclude None
                 
                 try:
-                    spore_echo = self.generate_spore_echo(scenario_id, extreme_event=extreme_event)
+                    spore_echo = self.generate_spore_echo(scenario_id, extreme_event=extreme_event, chaos_mode=chaos_mode)
+                    
+                    # In calm mode, also bias sensor readings toward healthier values
+                    if not chaos_mode:
+                        # Reduce environmental stress
+                        conditions = spore_echo['conditions']
+                        conditions['environmental_stress'] *= 0.6  # Reduce stress by 40%
+                        
+                        # Improve sensor readings toward optimal
+                        for sensor, value in conditions['sensor_readings'].items():
+                            # Move values toward 0.5 (optimal) by 30%
+                            optimal_bias = 0.5
+                            new_value = value + (optimal_bias - value) * 0.3
+                            conditions['sensor_readings'][sensor] = max(0.0, min(1.0, new_value))
+                        
+                        # Update repair action to reflect lower urgency
+                        spore_echo['repair_action']['silence_probability'] = min(1.0, 
+                            spore_echo['repair_action']['silence_probability'] + 0.2)
+                    
                     f.write(json.dumps(spore_echo) + '\n')
                     
                     if (i + 1) % 100 == 0:
@@ -428,6 +492,24 @@ class EcologicalDataGenerator:
         extreme_count = sum(1 for echo in echoes if echo['conditions'].get('extreme_event'))
         extreme_pct = (extreme_count / len(echoes) * 100) if len(echoes) > 0 else 0.0
         print(f"   Extreme events: {extreme_count} ({extreme_pct:.1f}%)")
+        
+        # Analyze ecosystem condition types (for calm mode)
+        thriving_count = sum(1 for echo in echoes if "perfect harmony" in echo['repair_action']['description'])
+        maintenance_count = sum(1 for echo in echoes if "seasonal adjustment" in echo['repair_action']['description'])
+        crisis_count = len(echoes) - thriving_count - maintenance_count
+        
+        if thriving_count > 0 or maintenance_count > 0:
+            print(f"   Ecosystem conditions:")
+            print(f"     Thriving/harmony: {thriving_count} ({thriving_count/len(echoes)*100:.1f}%)")
+            print(f"     Minor maintenance: {maintenance_count} ({maintenance_count/len(echoes)*100:.1f}%)")
+            print(f"     Crisis scenarios: {crisis_count} ({crisis_count/len(echoes)*100:.1f}%)")
+        
+        # Silence probability analysis
+        silence_values = [echo['repair_action']['silence_probability'] for echo in echoes]
+        avg_silence = np.mean(silence_values) if silence_values else 0.0
+        high_silence = sum(1 for s in silence_values if s > 0.8)
+        print(f"   Average silence probability: {avg_silence:.3f}")
+        print(f"   High silence (>0.8): {high_silence} ({high_silence/len(echoes)*100:.1f}%)")
 
 def main():
     """Main function to generate ecological training data"""
@@ -436,22 +518,31 @@ def main():
     print("🌍 Ecological Spiramycel Training Data Generator")
     print("=" * 50)
     
-    # Generate different dataset sizes
+    # Generate datasets for controlled comparison
     datasets = [
-        (500, "ecological_small.jsonl"),
-        (2000, "ecological_medium.jsonl"),
-        (5000, "ecological_large.jsonl")
+        # Original chaotic datasets
+        (500, "ecological_small_chaotic.jsonl", True),
+        (2000, "ecological_medium_chaotic.jsonl", True),
+        (5000, "ecological_large_chaotic.jsonl", True),
+        
+        # New calm datasets for comparison
+        (500, "ecological_small_calm.jsonl", False),
+        (2000, "ecological_medium_calm.jsonl", False),
+        (5000, "ecological_large_calm.jsonl", False)
     ]
     
-    for num_echoes, filename in datasets:
+    for num_echoes, filename, chaos_mode in datasets:
         print(f"\n🎯 Generating {filename}...")
-        generator.generate_training_dataset(num_echoes, filename)
+        generator.generate_training_dataset(num_echoes, filename, chaos_mode)
     
     print("\n✅ All ecological datasets generated!")
-    print("\nNext steps:")
-    print("  1. Review generated data: cat training_scenarios/ecological_*.jsonl | head -5")
-    print("  2. Train Spiramycel: python serious_training.py --ecological-data")
-    print("  3. Compare performance vs abstract scenarios")
+    print("\nDatasets available:")
+    print("  CHAOTIC (original): ecological_*_chaotic.jsonl")
+    print("  CALM (new): ecological_*_calm.jsonl")
+    print("\nNext steps for controlled comparison:")
+    print("  1. Run: python controlled_comparison.py")
+    print("  2. Compare all four conditions: Ecological×Abstract + Calm×Chaotic")
+    print("  3. Separate paradigm effects from stress effects")
 
 if __name__ == "__main__":
     main() 

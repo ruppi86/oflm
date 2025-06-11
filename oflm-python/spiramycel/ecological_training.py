@@ -103,14 +103,15 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
         print("❌ No training data loaded!")
         return None
     
-    # Use SpiramycelNeuralModel with force_cpu_mode
+    # Use SpiramycelNeuralModel with femto to match original abstract training on CPU
     device = torch.device("cpu")  # Force CPU for compatibility
     model = SpiramycelNeuralModel(force_cpu_mode=True).to(device)
     
-    print(f"🧠 Model: femto ({model.count_parameters():,} parameters)")
+    # Print actual model type that was selected
+    print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
     
-    # Training setup
-    batch_size = 4  # Small batch for CPU
+    # Training setup - match abstract training parameters
+    batch_size = 8  # Match abstract training batch size
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
@@ -178,7 +179,7 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
     print(f"⏱ Training completed in {training_time:.1f} seconds")
     
     # Save model
-    model_path = f"ecological_spiramycel_femto.pt"
+    model_path = f"ecological_spiramycel_piko.pt"
     torch.save(model.state_dict(), model_path)
     
     print(f"💾 Model saved to {model_path}")

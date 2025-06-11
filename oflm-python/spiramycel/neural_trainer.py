@@ -372,69 +372,113 @@ class SpiramycelTrainer:
         
         return final_path
     
-    def create_enhanced_training_data(self, num_examples: int = 5000) -> SporeMapLedger:
-        """Create enhanced training data with more diversity and realism"""
+    def create_enhanced_training_data(self, num_examples: int = 5000, chaos_mode: bool = False) -> SporeMapLedger:
+        """Create enhanced training data with more diversity and realism
+        
+        Args:
+            num_examples: Number of spore echoes to generate
+            chaos_mode: If True, emphasizes stressed/problematic scenarios
+                       If False, emphasizes healthy/optimal scenarios
+        """
         
         print(f"🧪 Creating {num_examples} enhanced spore echoes for serious training...")
+        if chaos_mode:
+            print("⚡ Chaos mode: HIGH stress environment (more problems)")
+        else:
+            print("🧘 Calm mode: LOW stress environment (more optimal conditions)")
         
         spore_ledger = SporeMapLedger("enhanced_training_spores.jsonl")
         
-        # Enhanced network scenarios with more variety
-        scenarios = [
-            # Network issues
-            {"name": "high_latency", "latency_range": (0.2, 1.0), "repair_glyphs": [0x01, 0x02, 0x0A], "effectiveness": (0.6, 0.95)},
-            {"name": "packet_loss", "error_range": (0.05, 0.3), "repair_glyphs": [0x05, 0x03, 0x04], "effectiveness": (0.7, 0.9)},
-            {"name": "bandwidth_congestion", "bandwidth_range": (0.1, 0.4), "repair_glyphs": [0x01, 0x03, 0x05], "effectiveness": (0.5, 0.8)},
+        # 3 DISTINCT ABSTRACT SCENARIOS (matching ecological complexity)
+        abstract_scenarios = {
+            "urban_fiber": {
+                "name": "Urban Fiber Network Infrastructure",
+                "description": "High-bandwidth metro networks with thermal and congestion challenges",
+                "problem_types": {
+                    "thermal_overload": {"sensor_ranges": {"temperature": (35, 65)}, "repair_glyphs": [0x17, 0x03, 0x16], "effectiveness": (0.4, 0.8)},
+                    "bandwidth_saturation": {"sensor_ranges": {"bandwidth": (0.0, 0.3)}, "repair_glyphs": [0x01, 0x03, 0x05], "effectiveness": (0.5, 0.85)},
+                    "power_grid_fluctuation": {"sensor_ranges": {"voltage": (2.8, 3.8)}, "repair_glyphs": [0x11, 0x12, 0x16], "effectiveness": (0.6, 0.9)},
+                    "optimal_conditions": {"repair_glyphs": [0x31, 0x32, 0x37], "effectiveness": (0.05, 0.3)}
+                },
+                "bioregions": ["downtown_core", "residential_fiber", "business_district", "metro_junction", "data_center"],
+                "seasonal_patterns": {"summer": "thermal_stress", "winter": "stable_cool", "spring": "moderate", "autumn": "optimal"}
+            },
             
-            # Power issues  
-            {"name": "low_voltage", "voltage_range": (2.0, 3.0), "repair_glyphs": [0x12, 0x14, 0x18], "effectiveness": (0.4, 0.8)},
-            {"name": "power_fluctuation", "voltage_range": (2.8, 3.8), "repair_glyphs": [0x11, 0x12, 0x16], "effectiveness": (0.6, 0.85)},
-            {"name": "battery_drain", "voltage_range": (2.5, 3.0), "repair_glyphs": [0x12, 0x14, 0x19], "effectiveness": (0.5, 0.8)},
+            "satellite_remote": {
+                "name": "Satellite & Remote Network",
+                "description": "Long-distance wireless with latency, power, and weather challenges", 
+                "problem_types": {
+                    "signal_degradation": {"sensor_ranges": {"error_rate": (0.05, 0.4)}, "repair_glyphs": [0x05, 0x03, 0x04], "effectiveness": (0.6, 0.85)},
+                    "power_constraints": {"sensor_ranges": {"voltage": (2.0, 2.8)}, "repair_glyphs": [0x12, 0x14, 0x18], "effectiveness": (0.4, 0.75)},
+                    "weather_disruption": {"sensor_ranges": {"latency": (0.3, 1.0), "error_rate": (0.1, 0.5)}, "repair_glyphs": [0x01, 0x05, 0x25], "effectiveness": (0.3, 0.7)},
+                    "optimal_conditions": {"repair_glyphs": [0x33, 0x35, 0x38], "effectiveness": (0.1, 0.4)}
+                },
+                "bioregions": ["mountain_station", "island_node", "polar_research", "remote_relay", "satellite_ground"],
+                "seasonal_patterns": {"summer": "solar_optimal", "winter": "power_limited", "spring": "weather_variable", "autumn": "stable"}
+            },
             
-            # Thermal issues
-            {"name": "overheating", "temp_range": (35, 60), "repair_glyphs": [0x17, 0x03, 0x16], "effectiveness": (0.4, 0.75)},
-            {"name": "thermal_cycling", "temp_range": (15, 45), "repair_glyphs": [0x17, 0x1C, 0x03], "effectiveness": (0.6, 0.8)},
-            
-            # System health
-            {"name": "memory_pressure", "repair_glyphs": [0x25, 0x28, 0x22], "effectiveness": (0.5, 0.8)},
-            {"name": "process_hanging", "repair_glyphs": [0x24, 0x25, 0x29], "effectiveness": (0.7, 0.9)},
-            {"name": "disk_errors", "repair_glyphs": [0x23, 0x24, 0x2F], "effectiveness": (0.4, 0.7)},
-            
-            # Good conditions (mostly contemplative)
-            {"name": "healthy_system", "repair_glyphs": [0x31, 0x32, 0x33, 0x35, 0x36], "effectiveness": (0.1, 0.4)},
-            {"name": "optimal_conditions", "repair_glyphs": [0x37, 0x38, 0x39, 0x3F, 0x40], "effectiveness": (0.05, 0.3)},
-        ]
+            "industrial_iot": {
+                "name": "Industrial IoT Network",
+                "description": "Harsh industrial environments with thousands of devices and reliability demands",
+                "problem_types": {
+                    "electromagnetic_interference": {"sensor_ranges": {"error_rate": (0.08, 0.3)}, "repair_glyphs": [0x23, 0x24, 0x2F], "effectiveness": (0.5, 0.8)},
+                    "device_overload": {"sensor_ranges": {"latency": (0.2, 0.8)}, "repair_glyphs": [0x25, 0x28, 0x22], "effectiveness": (0.6, 0.85)},
+                    "environmental_stress": {"sensor_ranges": {"temperature": (25, 50), "voltage": (2.5, 3.2)}, "repair_glyphs": [0x17, 0x12, 0x24], "effectiveness": (0.4, 0.75)},
+                    "optimal_conditions": {"repair_glyphs": [0x36, 0x39, 0x3F], "effectiveness": (0.08, 0.35)}
+                },
+                "bioregions": ["factory_floor", "refinery_network", "logistics_hub", "smart_city", "mining_operation"],
+                "seasonal_patterns": {"summer": "heat_stress", "winter": "heating_costs", "spring": "maintenance_season", "autumn": "production_peak"}
+            }
+        }
         
-        # Enhanced bioregional diversity
-        bioregions = [
-            "forest_meadow", "mountain_node", "coastal_sensor", "urban_mesh", "desert_relay",
-            "arctic_station", "tropical_hub", "suburban_gateway", "rural_repeater", "industrial_node",
-            "academic_cluster", "healthcare_network", "transport_junction", "energy_grid", "backup_site"
-        ]
+        # Enhanced network scenarios with more variety
+        if chaos_mode:
+            # More stressed scenarios, higher proportions (70% problems, 30% optimal)
+            scenario_weights = [0.4, 0.4, 0.4]  # Equal weight to all 3 scenarios
+            problem_vs_optimal_ratio = 0.7  # 70% problems
+        else:
+            # More calm scenarios, peaceful proportions (40% problems, 60% optimal)
+            scenario_weights = [0.33, 0.33, 0.34]  # Equal weight to all 3 scenarios  
+            problem_vs_optimal_ratio = 0.4  # 40% problems
+        
+        scenario_names = list(abstract_scenarios.keys())
         
         for i in range(num_examples):
-            scenario = random.choice(scenarios)
-            bioregion = random.choice(bioregions)
+            # Select one of the 3 scenarios (like ecological picks Australia/China/Sweden)
+            scenario_name = random.choices(scenario_names, weights=scenario_weights, k=1)[0]
+            scenario = abstract_scenarios[scenario_name]
             
-            # Generate sensor deltas based on scenario
+            # Select bioregion within this scenario
+            bioregion = random.choice(scenario["bioregions"])
+            
+            # Choose problem type vs optimal based on chaos_mode
+            problem_types = list(scenario["problem_types"].keys())
+            optimal_types = [pt for pt in problem_types if "optimal" in pt]
+            problem_types_only = [pt for pt in problem_types if "optimal" not in pt]
+            
+            if random.random() < problem_vs_optimal_ratio:
+                # Select a problem type
+                problem_type_name = random.choice(problem_types_only)
+            else:
+                # Select optimal conditions
+                problem_type_name = random.choice(optimal_types)
+            
+            problem_type = scenario["problem_types"][problem_type_name]
+            
+            # Generate sensor deltas based on scenario-specific ranges
             sensor_deltas = {"latency": 0.0, "voltage": 0.0, "temperature": 0.0, "error_rate": 0.0, "bandwidth": 0.0}
             
-            if "latency_range" in scenario:
-                latency = random.uniform(*scenario["latency_range"])
-                sensor_deltas["latency"] = latency - 0.15
-            elif "voltage_range" in scenario:
-                voltage = random.uniform(*scenario["voltage_range"])
-                sensor_deltas["voltage"] = voltage - 3.3
-            elif "temp_range" in scenario:
-                temp = random.uniform(*scenario["temp_range"])
-                sensor_deltas["temperature"] = temp - 25.0
-            elif "error_range" in scenario:
-                error = random.uniform(*scenario["error_range"])
-                sensor_deltas["error_rate"] = error
-            elif "bandwidth_range" in scenario:
-                bandwidth = random.uniform(*scenario["bandwidth_range"])
-                sensor_deltas["bandwidth"] = bandwidth - 0.8
-            else:  # Good conditions
+            if "sensor_ranges" in problem_type:
+                for sensor, (min_val, max_val) in problem_type["sensor_ranges"].items():
+                    if sensor == "voltage":
+                        sensor_deltas[sensor] = random.uniform(min_val, max_val) - 3.3
+                    elif sensor == "temperature":
+                        sensor_deltas[sensor] = random.uniform(min_val, max_val) - 25.0
+                    elif sensor == "bandwidth":
+                        sensor_deltas[sensor] = random.uniform(min_val, max_val) - 0.8
+                    else:  # latency, error_rate
+                        sensor_deltas[sensor] = random.uniform(min_val, max_val)
+            else:  # Optimal conditions
                 sensor_deltas = {
                     "latency": random.uniform(-0.05, 0.01),
                     "voltage": random.uniform(0.0, 0.1),
@@ -443,15 +487,15 @@ class SpiramycelTrainer:
                     "bandwidth": random.uniform(-0.1, 0.1)
                 }
             
-            # Select repair glyphs with realistic patterns
-            primary_glyphs = random.choices(scenario["repair_glyphs"], k=random.randint(1, 3))
+            # Select repair glyphs from this scenario's problem type
+            primary_glyphs = random.choices(problem_type["repair_glyphs"], k=random.randint(1, 3))
             
             # Add contemplative glyphs (Tystnadsmajoritet)
             contemplative_glyphs = self.codec.get_contemplative_glyphs()
             
-            # Ensure contemplative majority - more silence for healthy systems
-            if scenario["name"] in ["healthy_system", "optimal_conditions"]:
-                silence_count = random.randint(8, 12)  # Heavy silence
+            # Ensure contemplative majority - more silence for optimal conditions
+            if "optimal" in problem_type_name:
+                silence_count = random.randint(8, 12)  # Heavy silence like ecological
             else:
                 silence_count = random.randint(4, 8)   # Moderate silence
             
@@ -462,17 +506,26 @@ class SpiramycelTrainer:
             random.shuffle(glyph_sequence)
             
             # Effectiveness based on scenario with some randomness
-            effectiveness = random.uniform(*scenario["effectiveness"])
+            effectiveness = random.uniform(*problem_type["effectiveness"])
             
-            # Add small amount of seasonal variation
+            # Add seasonal variation based on scenario
             season = random.choice(list(Season))
             
-            # Add to ledger
+            # Modify effectiveness slightly based on seasonal patterns
+            seasonal_pattern = scenario["seasonal_patterns"].get(season.value.lower(), "moderate")
+            if seasonal_pattern in ["thermal_stress", "heat_stress", "power_limited"]:
+                effectiveness *= random.uniform(0.8, 1.0)  # Slightly reduce effectiveness
+            elif seasonal_pattern in ["optimal", "stable", "solar_optimal"]:
+                effectiveness *= random.uniform(1.0, 1.1)  # Slightly boost effectiveness
+            
+            effectiveness = min(1.0, max(0.0, effectiveness))  # Clamp to [0,1]
+            
+            # Add to ledger with scenario context
             spore_ledger.add_spore_echo(
                 sensor_deltas=sensor_deltas,
                 glyph_sequence=glyph_sequence,
                 repair_effectiveness=effectiveness,
-                bioregion=bioregion,
+                bioregion=f"{scenario_name}_{bioregion}",  # Include scenario in bioregion
                 season=season
             )
             
@@ -480,9 +533,12 @@ class SpiramycelTrainer:
                 print(f"   Generated {i}/{num_examples} enhanced spore echoes...")
         
         print(f"✅ Created {len(spore_ledger.spores)} enhanced spore echoes")
-        print(f"   Scenarios: {len(scenarios)} different types")
-        print(f"   Bioregions: {len(bioregions)} locations")
-        print(f"   Seasonal variation: All 4 seasons represented")
+        print(f"   Scenarios: {len(abstract_scenarios)} distinct abstract scenarios")
+        print(f"   • Urban Fiber: {len(abstract_scenarios['urban_fiber']['bioregions'])} bioregions")
+        print(f"   • Satellite/Remote: {len(abstract_scenarios['satellite_remote']['bioregions'])} bioregions") 
+        print(f"   • Industrial IoT: {len(abstract_scenarios['industrial_iot']['bioregions'])} bioregions")
+        print(f"   Total bioregions: {sum(len(s['bioregions']) for s in abstract_scenarios.values())}")
+        print(f"   Seasonal variation: All 4 seasons with scenario-specific patterns")
         
         return spore_ledger
     
