@@ -53,12 +53,18 @@ try:
     HAIKUMEADOW_AVAILABLE = True
     print("🌸 HaikuMeadow directly available - using trained femto-poet!")
 except ImportError as e:
-    HaikuMeadow = None
-    AtmosphericConditions = None
-    Season = None
-    TimeOfDay = None
-    HAIKUMEADOW_AVAILABLE = False
-    print(f"⚠️  HaikuMeadow not available for direct import: {e}")
+    # Try local stub as fallback
+    try:
+        from generator_stub import HaikuMeadow, AtmosphericConditions, Season, TimeOfDay
+        HAIKUMEADOW_AVAILABLE = True
+        print("🌿 Using local HaikuMeadow stub - contemplative template mode")
+    except ImportError:
+        HaikuMeadow = None
+        AtmosphericConditions = None
+        Season = None
+        TimeOfDay = None
+        HAIKUMEADOW_AVAILABLE = False
+        print(f"⚠️  HaikuMeadow not available (full or stub): {e}")
 
 # Import breath phases (with fallback)
 try:
