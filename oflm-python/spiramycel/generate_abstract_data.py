@@ -13,7 +13,8 @@ from typing import Dict, List, Any
 from dataclasses import dataclass
 
 # Import existing components
-from glyph_codec import SpiramycelGlyphCodec, Season
+from glyph_codec import SpiramycelGlyphCodec
+from spore_map import Season
 from neural_trainer import SporeMapLedger, SpiramycelTrainer
 
 class AbstractDataGenerator:

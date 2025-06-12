@@ -15,9 +15,11 @@ from pathlib import Path
 from typing import List, Tuple, Dict, Any
 import time
 from datetime import datetime
+import shutil
 
 # Import from existing modules
 from glyph_codec import SpiramycelGlyphCodec
+from spore_map import Season
 from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel
 
 class AbstractDataset(Dataset):
@@ -186,10 +188,22 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
     print(f"⏱ Training completed in {training_time:.1f} seconds")
     
     # Save model
-    model_path = f"abstract_spiramycel_piko.pt"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_path = f"abstract_spiramycel_{timestamp}.pt"
     torch.save(model.state_dict(), model_path)
     
     print(f"💾 Model saved to {model_path}")
+    
+    # Also create a "latest" symlink for easy access
+    latest_path = "abstract_spiramycel_latest.pt"
+    try:
+        if Path(latest_path).exists():
+            Path(latest_path).unlink()
+        # On Windows, copy instead of symlink
+        shutil.copy2(model_path, latest_path)
+        print(f"📎 Latest model link: {latest_path}")
+    except Exception as e:
+        print(f"⚠ Could not create latest link: {e}")
     
     # Test abstract inference
     print("\n🔬 Testing abstract inference:")
