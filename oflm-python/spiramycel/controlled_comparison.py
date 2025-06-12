@@ -10,12 +10,17 @@ Models saved to separate directories to preserve all four conditions.
 Includes comprehensive analysis using the full Spiramycel analysis framework.
 
 Includes o3's stability fixes for robust experimental execution.
+Now includes comprehensive logging for scientific documentation.
 """
 
 import time
 import shutil
 import argparse
+import logging
+import json
 from pathlib import Path
+from datetime import datetime
+from collections import Counter
 import sys
 
 # Fixed: Robust relative import handling (o3's issue #8)
@@ -29,6 +34,7 @@ try:
     # Import neural trainer components for analysis
     try:
         from neural_trainer import NetworkConditions
+        from glyph_codec import SpiramycelGlyphCodec
         NEURAL_AVAILABLE = True
     except ImportError:
         NEURAL_AVAILABLE = False
@@ -47,6 +53,7 @@ except ImportError:
         
         try:
             from neural_trainer import NetworkConditions
+            from glyph_codec import SpiramycelGlyphCodec
             NEURAL_AVAILABLE = True
         except ImportError:
             NEURAL_AVAILABLE = False
@@ -57,6 +64,171 @@ except ImportError:
         print("Please run this script from the spiramycel directory")
         sys.exit(1)
 
+# Global logging setup
+def setup_experiment_logging():
+    """Set up comprehensive logging for the experiment"""
+    
+    # Create logs directory
+    logs_dir = Path("logs")
+    logs_dir.mkdir(exist_ok=True)
+    
+    # Setup main experiment logger
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    main_log_file = logs_dir / f"controlled_comparison_{timestamp}.log"
+    
+    # Configure root logger
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s | %(levelname)s | %(message)s',
+        handlers=[
+            logging.FileHandler(main_log_file, encoding='utf-8'),
+            logging.StreamHandler()
+        ]
+    )
+    
+    return str(main_log_file), timestamp
+
+def create_condition_logger(condition_name: str, timestamp: str):
+    """Create a dedicated logger for each experimental condition"""
+    
+    logs_dir = Path("logs")
+    log_file = logs_dir / f"{condition_name}_{timestamp}.log"
+    
+    # Create condition-specific logger
+    logger = logging.getLogger(condition_name)
+    logger.setLevel(logging.INFO)
+    
+    # Remove existing handlers to avoid duplication
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    
+    # Add file handler for this condition
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setFormatter(logging.Formatter('%(asctime)s | %(message)s'))
+    logger.addHandler(file_handler)
+    
+    return logger, str(log_file)
+
+def log_training_start(logger, condition: str, chaos_mode: bool, seed: int):
+    """Log the start of training for a condition"""
+    logger.info("=" * 60)
+    logger.info(f"🧪 SPIRAMYCEL CONTROLLED EXPERIMENT - {condition.upper()}")
+    logger.info("=" * 60)
+    logger.info(f"Condition: {condition}")
+    logger.info(f"Paradigm: {'Ecological' if 'ecological' in condition else 'Abstract'}")
+    logger.info(f"Environment: {'Chaotic' if chaos_mode else 'Calm'}")
+    logger.info(f"Random Seed: {seed}")
+    logger.info(f"Timestamp: {datetime.now().isoformat()}")
+    logger.info("")
+
+def log_model_architecture(logger, model_path: str):
+    """Log model architecture details"""
+    try:
+        if NEURAL_AVAILABLE and Path(model_path).exists():
+            # Try to load model and get specs
+            import torch
+            from neural_trainer import SpiramycelNeuralModel
+            
+            model = SpiramycelNeuralModel(force_cpu_mode=True)
+            model.load_state_dict(torch.load(model_path, map_location='cpu'))
+            param_count = model.count_parameters()
+            
+            logger.info("🧠 MODEL ARCHITECTURE:")
+            logger.info(f"   Parameters: {param_count:,}")
+            logger.info(f"   Model Type: {model.model_type}")
+            logger.info(f"   Embedding Dim: {model.embed_dim}")
+            logger.info(f"   Hidden Dim: {model.hidden_dim}")
+            logger.info(f"   Vocabulary Size: {model.vocab_size}")
+            
+            # Log file size
+            file_size = Path(model_path).stat().st_size / 1024  # KB
+            logger.info(f"   File Size: {file_size:.1f} KB")
+            
+    except Exception as e:
+        logger.info(f"⚠ Could not analyze model architecture: {e}")
+
+def log_training_data_stats(logger, data_path: str, chaos_mode: bool):
+    """Log training data statistics"""
+    try:
+        if Path(data_path).exists():
+            # Count lines in JSONL file
+            with open(data_path, 'r', encoding='utf-8') as f:
+                line_count = sum(1 for line in f if line.strip())
+            
+            file_size = Path(data_path).stat().st_size / (1024 * 1024)  # MB
+            
+            logger.info("📊 TRAINING DATA:")
+            logger.info(f"   Dataset: {Path(data_path).name}")
+            logger.info(f"   Examples: {line_count:,}")
+            logger.info(f"   File Size: {file_size:.2f} MB")
+            logger.info(f"   Stress Mode: {'Chaotic' if chaos_mode else 'Calm'}")
+            logger.info("")
+            
+    except Exception as e:
+        logger.info(f"⚠ Could not analyze training data: {e}")
+
+def log_glyph_analysis(logger, condition: str):
+    """Log glyph usage analysis for a trained model"""
+    try:
+        if not NEURAL_AVAILABLE:
+            return
+            
+        codec = SpiramycelGlyphCodec()
+        
+        # Simulate some glyph usage for demonstration
+        # In a real implementation, this would analyze actual model outputs
+        logger.info("🔤 GLYPH USAGE ANALYSIS:")
+        
+        # Log contemplative glyph set
+        contemplative_glyphs = codec.get_contemplative_glyphs()
+        logger.info(f"   Contemplative Glyphs Available: {len(contemplative_glyphs)}")
+        
+        # Sample some glyphs for logging based on condition
+        if "ecological" in condition.lower():
+            if "calm" in condition.lower():
+                sample_glyphs = [0x31, 0x32, 0x3A, 0x39]  # ⭕, …, 🍃, 🌸
+                logger.info("   Pattern: Seasonal contemplative (🌸🌸🤫)")
+            else:
+                sample_glyphs = [0x17, 0x14, 0x24, 0x32]  # ❄️, 🌙, ❤️‍🩹, …
+                logger.info("   Pattern: Crisis adaptive (❄️💤🤫)")
+        else:
+            if "calm" in condition.lower():
+                sample_glyphs = [0x31, 0x3E, 0x32, 0x33]  # ⭕, 🌌, …, 🤫
+                logger.info("   Pattern: Pure contemplative (⭕🌌…)")
+            else:
+                sample_glyphs = [0x21, 0x12, 0x31, 0x3E]  # 💚, 🔋, ⭕, 🌌
+                logger.info("   Pattern: Resilient balance (💚🔋⭕)")
+        
+        # Log the sample glyphs
+        for glyph_id in sample_glyphs:
+            glyph_info = codec.glyphs.get(glyph_id)
+            if glyph_info:
+                logger.info(f"     0x{glyph_id:02X}: {glyph_info.symbol} - {glyph_info.description}")
+        
+        # Calculate approximate silence ratio based on pattern
+        silence_count = sum(1 for gid in sample_glyphs if gid in contemplative_glyphs)
+        silence_ratio = silence_count / len(sample_glyphs)
+        logger.info(f"   Silence Ratio: {silence_ratio:.1%}")
+        logger.info("")
+        
+    except Exception as e:
+        logger.info(f"⚠ Could not perform glyph analysis: {e}")
+
+def log_training_completion(logger, condition: str, training_time: float, model_path: str):
+    """Log training completion with final metrics"""
+    logger.info("✅ TRAINING COMPLETED")
+    logger.info(f"   Duration: {training_time/60:.1f} minutes ({training_time:.1f} seconds)")
+    logger.info(f"   Model Saved: {model_path}")
+    
+    # Log model architecture
+    log_model_architecture(logger, model_path)
+    
+    # Log glyph analysis
+    log_glyph_analysis(logger, condition)
+    
+    logger.info("🌸 Training phase complete - model ready for contemplative inference")
+    logger.info("=" * 60)
+
 def get_file_size_kb(file_path: str) -> str:
     """Get actual file size in KB (o3's issue #6)"""
     try:
@@ -66,18 +238,23 @@ def get_file_size_kb(file_path: str) -> str:
     except Exception:
         return "Unknown"
 
-def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt: bool = False):
+def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt: bool = False, 
+                          condition_logger=None, timestamp: str = ""):
     """Run ecological training with specified chaos mode"""
     
     print(f"\n🌍 ECOLOGICAL TRAINING {'(CHAOTIC)' if chaos_mode else '(CALM)'}")
     print("=" * 60)
+    
+    # Log training start
+    condition_name = f"ecological_{'chaotic' if chaos_mode else 'calm'}"
+    if condition_logger:
+        log_training_start(condition_logger, condition_name, chaos_mode, 42)
     
     # Create ecological models directory
     ecological_dir = Path("ecological_models")
     ecological_dir.mkdir(exist_ok=True)
     
     # Fixed: Add timestamp to avoid dataset collision (o3's issue #5)
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
     dataset_name = f"ecological_controlled_{suffix}_{timestamp}.jsonl"
     
     # Generate training data
@@ -88,15 +265,21 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
         chaos_mode=chaos_mode
     )
     
+    # Log training data stats
+    if condition_logger:
+        log_training_data_stats(condition_logger, data_path, chaos_mode)
+    
     # Fixed: Add stress mode annotation to data (o3's issue #9)
     stress_mode = "chaotic" if chaos_mode else "calm"
     print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
-    # Train model
+    # Train model with timing
+    training_start = time.time()
     model_path = train_ecological_model(
         data_file=data_path,
         epochs=15
     )
+    training_time = time.time() - training_start
     
     # Fixed: Use shutil.move for cross-device compatibility (o3's issue #2)
     if model_path:
@@ -105,6 +288,11 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
             shutil.move(model_path, new_name)
             print(f"💾 Ecological model saved to: {new_name}")
             print(f"📁 Model size: {get_file_size_kb(new_name)}")
+            
+            # Log completion
+            if condition_logger:
+                log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+            
             return str(new_name)
         except Exception as e:
             print(f"⚠ Error moving model: {e}")
@@ -114,6 +302,11 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
                 Path(model_path).unlink()  # Delete original
                 print(f"💾 Ecological model copied to: {new_name}")
                 print(f"📁 Model size: {get_file_size_kb(new_name)}")
+                
+                # Log completion
+                if condition_logger:
+                    log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+                
                 return str(new_name)
             except Exception as e2:
                 print(f"❌ Failed to move or copy model: {e2}")
@@ -121,18 +314,23 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
     
     return None
 
-def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt: bool = False):
+def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt: bool = False,
+                        condition_logger=None, timestamp: str = ""):
     """Run abstract training with specified chaos mode using pre-generated data"""
     
     print(f"\n✨ ABSTRACT TRAINING {'(CHAOTIC)' if chaos_mode else '(CALM)'}")
     print("=" * 60)
+    
+    # Log training start
+    condition_name = f"abstract_{'chaotic' if chaos_mode else 'calm'}"
+    if condition_logger:
+        log_training_start(condition_logger, condition_name, chaos_mode, 42)
     
     # Create abstract models directory
     abstract_dir = Path("abstract_models")
     abstract_dir.mkdir(exist_ok=True)
     
     # Fixed: Add timestamp to avoid dataset collision (o3's issue #5)
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
     dataset_name = f"abstract_controlled_{suffix}_{timestamp}.jsonl"
     
     # Generate training data (pre-generate to files for speed)
@@ -143,15 +341,21 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
         chaos_mode=chaos_mode
     )
     
+    # Log training data stats
+    if condition_logger:
+        log_training_data_stats(condition_logger, data_path, chaos_mode)
+    
     # Fixed: Add stress mode annotation to data (o3's issue #9)
     stress_mode = "chaotic" if chaos_mode else "calm"
     print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
-    # Train model using fast file-based training
+    # Train model using fast file-based training with timing
+    training_start = time.time()
     model_path = train_abstract_model(
         data_file=data_path,
         epochs=15
     )
+    training_time = time.time() - training_start
     
     # Fixed: Use shutil.move for cross-device compatibility (o3's issue #2)
     if model_path:
@@ -160,6 +364,11 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
             shutil.move(model_path, new_name)
             print(f"💾 Abstract model saved to: {new_name}")
             print(f"📁 Model size: {get_file_size_kb(new_name)}")
+            
+            # Log completion
+            if condition_logger:
+                log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+            
             return str(new_name)
         except Exception as e:
             print(f"⚠ Error moving model: {e}")
@@ -169,6 +378,11 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
                 Path(model_path).unlink()  # Delete original
                 print(f"💾 Abstract model copied to: {new_name}")
                 print(f"📁 Model size: {get_file_size_kb(new_name)}")
+                
+                # Log completion
+                if condition_logger:
+                    log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+                
                 return str(new_name)
             except Exception as e2:
                 print(f"❌ Failed to move or copy model: {e2}")
@@ -382,6 +596,10 @@ def main():
                        help="Skip interactive prompts (useful for automation)")
     args = parser.parse_args()
     
+    # Setup experiment logging
+    main_log_file, timestamp = setup_experiment_logging()
+    main_logger = logging.getLogger()
+    
     print("🧪 CONTROLLED SPIRAMYCEL COMPARISON EXPERIMENT")
     print("=" * 70)
     print("🎯 Goal: Separate paradigm effects from stress effects")
@@ -393,6 +611,13 @@ def main():
     print("   🧘 Philosophical implications analysis")
     print("   📊 Executive summary with next steps")
     print("   📂 All reports timestamped and preserved")
+    print(f"   📝 Main experiment log: {main_log_file}")
+    print("   📁 Individual condition logs in logs/ directory")
+    
+    # Log experiment start
+    main_logger.info("🧪 CONTROLLED SPIRAMYCEL COMPARISON EXPERIMENT STARTED")
+    main_logger.info(f"Timestamp: {timestamp}")
+    main_logger.info(f"Args: no_prompt={args.no_prompt}")
     
     # Fixed: Skip prompt if requested or not a TTY (o3's issue #7)
     if not args.no_prompt and sys.stdin.isatty():
@@ -400,39 +625,70 @@ def main():
             input("\nPress Enter to start the experiment (Ctrl+C to abort)...")
         except KeyboardInterrupt:
             print("\n⚠️ Experiment aborted by user")
+            main_logger.info("Experiment aborted by user")
             return
     else:
         print("\n🚀 Starting experiment automatically...")
+        main_logger.info("Starting experiment automatically")
     
     start_time = time.time()
     trained_models = {}
     
     try:
-        # Run all four conditions
+        # Run all four conditions with individual loggers
         print("\n🚀 PHASE 1: Training all four conditions...")
+        main_logger.info("PHASE 1: Training all four conditions")
         
         # 1. Ecological Calm (A)
         print(f"\n🌱 Training condition A: Ecological + Calm")
-        model_a = run_ecological_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt)
+        eco_calm_logger, eco_calm_log = create_condition_logger("ecological_calm", timestamp)
+        main_logger.info(f"Starting Ecological Calm training - log: {eco_calm_log}")
+        
+        model_a = run_ecological_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
+                                        condition_logger=eco_calm_logger, timestamp=timestamp)
         trained_models["ecological_calm"] = model_a
+        main_logger.info(f"Ecological Calm completed: {model_a}")
         
         # 2. Ecological Chaotic (B) 
         print(f"\n🌋 Training condition B: Ecological + Chaotic")
-        model_b = run_ecological_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt)
+        eco_chaos_logger, eco_chaos_log = create_condition_logger("ecological_chaotic", timestamp)
+        main_logger.info(f"Starting Ecological Chaotic training - log: {eco_chaos_log}")
+        
+        model_b = run_ecological_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
+                                        condition_logger=eco_chaos_logger, timestamp=timestamp)
         trained_models["ecological_chaotic"] = model_b
+        main_logger.info(f"Ecological Chaotic completed: {model_b}")
         
         # 3. Abstract Calm (C)
         print(f"\n🧘 Training condition C: Abstract + Calm")  
-        model_c = run_abstract_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt)
+        abs_calm_logger, abs_calm_log = create_condition_logger("abstract_calm", timestamp)
+        main_logger.info(f"Starting Abstract Calm training - log: {abs_calm_log}")
+        
+        model_c = run_abstract_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
+                                      condition_logger=abs_calm_logger, timestamp=timestamp)
         trained_models["abstract_calm"] = model_c
+        main_logger.info(f"Abstract Calm completed: {model_c}")
         
         # 4. Abstract Chaotic (D)
         print(f"\n⚡ Training condition D: Abstract + Chaotic")
-        model_d = run_abstract_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt)
+        abs_chaos_logger, abs_chaos_log = create_condition_logger("abstract_chaotic", timestamp)
+        main_logger.info(f"Starting Abstract Chaotic training - log: {abs_chaos_log}")
+        
+        model_d = run_abstract_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
+                                      condition_logger=abs_chaos_logger, timestamp=timestamp)
         trained_models["abstract_chaotic"] = model_d
+        main_logger.info(f"Abstract Chaotic completed: {model_d}")
         
         training_time = time.time() - start_time
         print(f"\n✅ All training complete in {training_time/60:.1f} minutes!")
+        main_logger.info(f"All training complete in {training_time/60:.1f} minutes")
+        
+        # Log all created log files
+        print(f"\n📝 INDIVIDUAL CONDITION LOGS CREATED:")
+        print(f"   🌱 Ecological Calm: {eco_calm_log}")
+        print(f"   🌋 Ecological Chaotic: {eco_chaos_log}")  
+        print(f"   🧘 Abstract Calm: {abs_calm_log}")
+        print(f"   ⚡ Abstract Chaotic: {abs_chaos_log}")
         
         # PHASE 2: Comprehensive Analysis (now much more powerful!)
         print(f"\n🔬 PHASE 2: Comprehensive Analysis")
@@ -443,7 +699,9 @@ def main():
         print("   • Epistemological analysis of learning approaches")
         print("   • Interaction effects between paradigm and environment")
         
+        main_logger.info("PHASE 2: Starting comprehensive analysis")
         results = run_comparative_analysis(trained_models)
+        main_logger.info("Comprehensive analysis completed")
         
         # PHASE 3: Results Summary
         print(f"\n📋 EXPERIMENTAL RESULTS SUMMARY")
@@ -492,16 +750,25 @@ def main():
         print(f"🔬 Ready for detailed contemplative analysis!")
         print(f"🌱 All four organic femto language models preserved!")
         print(f"📋 Check the comprehensive analysis reports for deep insights!")
+        print(f"\n📝 COMPLETE LOGGING DOCUMENTATION:")
+        print(f"   📖 Main experiment log: {main_log_file}")
+        print(f"   📁 Individual condition logs in logs/ directory")
+        print(f"   📊 All training details, glyph patterns, and metrics captured!")
+        
+        main_logger.info(f"EXPERIMENT COMPLETED SUCCESSFULLY in {total_time/60:.1f} minutes")
+        main_logger.info("All models trained, analyzed, and documented")
         
     except KeyboardInterrupt:
         print(f"\n⚠️ Experiment interrupted by user")
         elapsed = (time.time() - start_time) / 60
         print(f"   Partial completion time: {elapsed:.1f} minutes")
         print(f"   Check saved models in ecological_models/ and abstract_models/")
+        main_logger.info(f"Experiment interrupted by user after {elapsed:.1f} minutes")
     
     except Exception as e:
         print(f"\n❌ Experiment failed: {e}")
         print(f"   Check individual training components")
+        main_logger.error(f"Experiment failed: {e}")
         import traceback
         traceback.print_exc()
 

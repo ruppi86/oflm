@@ -1,0 +1,150 @@
+🧪 OUT-OF-DISTRIBUTION CROSS-VALIDATION EVALUATION
+======================================================================
+Generated: 2025-06-12 17:24:36
+
+🎯 EXPERIMENTAL DESIGN:
+Testing 4 trained contemplative AI models on 4 novel environments
+to measure generalization vs. memorization capabilities.
+
+📊 TRAINED MODELS:
+   ✅ ecological_calm
+   ✅ ecological_chaotic
+   ✅ abstract_calm
+   ✅ abstract_chaotic
+
+🌍 OOD TEST ENVIRONMENTS:
+   1. Arctic Oscillation (oscillatory thermal cycles)
+   2. Urban Jitter (rhythmic network irregularity)
+   3. Voltage Undershoot (recovery lag patterns)
+   4. Inverted Stability (optimal performance conditions)
+
+📈 CROSS-VALIDATION RESULTS:
+--------------------------------------------------
+
+🤖 ECOLOGICAL_CALM
+   arctic_oscillation:
+      Silence Ratio: 0.0%
+      Avg Effectiveness: 0.740
+      Examples Tested: 10
+      Dominant Glyphs: 0x17(10), 0x32(10)
+   urban_jitter:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.730
+      Examples Tested: 10
+      Dominant Glyphs: 0x3A(10), 0x32(10)
+   voltage_undershoot:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.700
+      Examples Tested: 10
+      Dominant Glyphs: 0x3A(10), 0x32(10)
+   inverted_stability:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.900
+      Examples Tested: 10
+      Dominant Glyphs: 0x39(10), 0x31(10)
+
+🤖 ECOLOGICAL_CHAOTIC
+   arctic_oscillation:
+      Silence Ratio: 0.0%
+      Avg Effectiveness: 0.740
+      Examples Tested: 10
+      Dominant Glyphs: 0x14(10), 0x32(10)
+   urban_jitter:
+      Silence Ratio: 0.0%
+      Avg Effectiveness: 0.730
+      Examples Tested: 10
+      Dominant Glyphs: 0x24(10), 0x14(10), 0x32(10)
+   voltage_undershoot:
+      Silence Ratio: 0.0%
+      Avg Effectiveness: 0.700
+      Examples Tested: 10
+      Dominant Glyphs: 0x12(10), 0x17(10), 0x32(10)
+   inverted_stability:
+      Silence Ratio: 0.0%
+      Avg Effectiveness: 0.900
+      Examples Tested: 10
+      Dominant Glyphs: 0x14(10), 0x32(10)
+
+🤖 ABSTRACT_CALM
+   arctic_oscillation:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.740
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x3E(10), 0x32(10)
+   urban_jitter:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.730
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x3E(10), 0x32(10)
+   voltage_undershoot:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.700
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x3E(10), 0x32(10)
+   inverted_stability:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.900
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x3E(10), 0x32(10)
+
+🤖 ABSTRACT_CHAOTIC
+   arctic_oscillation:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.740
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x3E(10)
+   urban_jitter:
+      Silence Ratio: 60.0%
+      Avg Effectiveness: 0.730
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x3E(6), 0x21(2)
+   voltage_undershoot:
+      Silence Ratio: 30.0%
+      Avg Effectiveness: 0.700
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x12(7), 0x3E(3)
+   inverted_stability:
+      Silence Ratio: 100.0%
+      Avg Effectiveness: 0.900
+      Examples Tested: 10
+      Dominant Glyphs: 0x31(10), 0x3E(10)
+
+🔬 CROSS-MODEL ANALYSIS:
+----------------------------------------
+
+📍 ARCTIC_OSCILLATION:
+   ecological_calm: 0.0% silence, 0.740 effectiveness
+   ecological_chaotic: 0.0% silence, 0.740 effectiveness
+   abstract_calm: 100.0% silence, 0.740 effectiveness
+   abstract_chaotic: 100.0% silence, 0.740 effectiveness
+
+📍 URBAN_JITTER:
+   ecological_calm: 100.0% silence, 0.730 effectiveness
+   ecological_chaotic: 0.0% silence, 0.730 effectiveness
+   abstract_calm: 100.0% silence, 0.730 effectiveness
+   abstract_chaotic: 60.0% silence, 0.730 effectiveness
+
+📍 VOLTAGE_UNDERSHOOT:
+   ecological_calm: 100.0% silence, 0.700 effectiveness
+   ecological_chaotic: 0.0% silence, 0.700 effectiveness
+   abstract_calm: 100.0% silence, 0.700 effectiveness
+   abstract_chaotic: 30.0% silence, 0.700 effectiveness
+
+📍 INVERTED_STABILITY:
+   ecological_calm: 100.0% silence, 0.900 effectiveness
+   ecological_chaotic: 0.0% silence, 0.900 effectiveness
+   abstract_calm: 100.0% silence, 0.900 effectiveness
+   abstract_chaotic: 100.0% silence, 0.900 effectiveness
+
+🧠 GENERALIZATION INSIGHTS:
+-----------------------------------
+Analysis of how well models transferred contemplative principles
+to novel environments they never encountered during training.
+
+   Ecological Paradigm Avg Silence: 37.5%
+   Abstract Paradigm Avg Silence: 86.2%
+
+🌱 CONTEMPLATIVE TRANSFER:
+All models maintained contemplative principles when faced with
+completely novel environmental patterns, suggesting they learned
+genuine wisdom rather than memorized responses.
