@@ -2,59 +2,49 @@
 """
 Spiramycel Neural Trainer
 
-Adapts the HaikuMeadowLib training infrastructure for mycelial network repair.
-Trains on spore echoes to learn glyph patterns for network healing.
+Adapts HaikuMeadowLib's training approach for mycelial network repair learning.
+Trains femto-scale models on spore echo datasets with contemplative principles.
 
-Based on the proven femto/piko architecture but for infrastructure repair
-rather than poetry generation.
+Part of the Organic Femto Language Model (OFLM) framework.
 """
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+import time
 import json
 import random
-import time
-import numpy as np
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Any
 from pathlib import Path
-from typing import Optional, Dict, List, Tuple, Iterator
-from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime
 
-# Try to import torch
+# Handle PyTorch availability gracefully
 try:
     import torch
     import torch.nn as nn
-    import torch.nn.functional as F
     import torch.optim as optim
     from torch.utils.data import Dataset, DataLoader
     TORCH_AVAILABLE = True
-    
-    # Detect device like HaikuMeadowLib
-    if torch.cuda.is_available():
-        DEVICE = torch.device("cuda")
-        print(f"🚀 GPU detected for Spiramycel training: {torch.cuda.get_device_name(0)}")
-    else:
-        DEVICE = torch.device("cpu") 
-        print("💻 Spiramycel using CPU (consider installing CUDA for GPU acceleration)")
-        
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 except ImportError:
-    torch = None
-    nn = None
-    F = None
-    optim = None
-    Dataset = None
-    DataLoader = None
     TORCH_AVAILABLE = False
     DEVICE = None
-    print("⚠️  PyTorch not available - Spiramycel will use template-based glyph generation")
+    print("⚠️ PyTorch not available - neural training disabled")
 
-# Import Spiramycel components
+# Handle both relative and direct imports
 try:
-    from .glyph_codec import SpiramycelGlyphCodec, GlyphCategory
+    from .glyph_codec import SpiramycelGlyphCodec
     from .spore_map import SporeMapLedger, SporeEcho, Season
 except ImportError:
-    # Handle direct execution
-    from glyph_codec import SpiramycelGlyphCodec, GlyphCategory
+    from glyph_codec import SpiramycelGlyphCodec
     from spore_map import SporeMapLedger, SporeEcho, Season
+
+# Constants for improved pad/start token handling
+START_TOKEN = 0x00    # Reserved for sequence start
+END_TOKEN = 0x41      # After our 64-glyph vocabulary  
+PAD_TOKEN = 0x42      # Dedicated padding token (avoids START collision)
 
 @dataclass
 class NetworkConditions:
@@ -78,27 +68,23 @@ class NetworkConditions:
         else:  # Winter maps to same as spring for compression
             season_encoding[0] = 0.5
             
-        # Network metrics
+        # Network metrics (already normalized in [0,1] range)
         return season_encoding + [self.latency, self.voltage, self.temperature, self.error_rate, self.bandwidth]
 
 class SpiramycelDataset(Dataset if TORCH_AVAILABLE else object):
-    """Dataset for training Spiramycel on spore echoes (adapts HaikuDataset)"""
+    """Dataset for spore echo training (adapts HaikuMeadowLib's dataset approach)"""
     
     def __init__(self, spore_ledger: SporeMapLedger, codec: SpiramycelGlyphCodec, max_length: int = 16):
-        
-        if not TORCH_AVAILABLE:
-            raise RuntimeError("PyTorch not available for training")
-            
         self.codec = codec
         self.max_length = max_length
         
-        # Load spore echoes from ledger
-        self.spores = spore_ledger.spores
+        # Filter for quality spores (like dew-ledger quality filtering)
+        self.quality_spores = [
+            spore for spore in spore_ledger.spores
+            if spore.spore_quality > 0.3 and len(spore.glyph_sequence) > 0
+        ]
         
-        # Filter for high-quality repair patterns
-        self.quality_spores = [s for s in self.spores if s.repair_effectiveness > 0.5 and s.spore_quality > 0.4]
-        
-        print(f"🍄 Loaded {len(self.spores)} spore echoes, {len(self.quality_spores)} high-quality for training")
+        print(f"📊 Spiramycel dataset: {len(self.quality_spores)}/{len(spore_ledger.spores)} quality spores")
     
     def __len__(self):
         return len(self.quality_spores)
@@ -109,15 +95,12 @@ class SpiramycelDataset(Dataset if TORCH_AVAILABLE else object):
         # Convert glyph sequence to tokens (like haiku tokenization)
         glyph_tokens = spore.glyph_sequence.copy()
         
-        # Add START and END tokens (using special glyph IDs)
-        start_token = 0x00  # Reserved for START
-        end_token = 0x41    # After our 64-glyph vocabulary
-        glyph_tokens = [start_token] + glyph_tokens + [end_token]
+        # Add START and END tokens (using dedicated token IDs)
+        glyph_tokens = [START_TOKEN] + glyph_tokens + [END_TOKEN]
         
-        # Pad to max_length
+        # Pad to max_length (using dedicated PAD token)
         if len(glyph_tokens) < self.max_length:
-            pad_token = 0x00  # Use START token for padding
-            glyph_tokens.extend([pad_token] * (self.max_length - len(glyph_tokens)))
+            glyph_tokens.extend([PAD_TOKEN] * (self.max_length - len(glyph_tokens)))
         else:
             glyph_tokens = glyph_tokens[:self.max_length]
         
@@ -125,11 +108,18 @@ class SpiramycelDataset(Dataset if TORCH_AVAILABLE else object):
         input_tokens = torch.tensor(glyph_tokens[:-1], dtype=torch.long)
         target_tokens = torch.tensor(glyph_tokens[1:], dtype=torch.long)
         
-        # Network conditions (adapting atmospheric conditions)
+        # Network conditions (consistent normalization with condition vector)
+        # Convert absolute values to normalized 0-1 range
+        abs_voltage = spore.sensor_deltas.get("voltage", 0.0) + 3.3
+        voltage_norm = abs_voltage / 5.0  # 3.3V nominal, 5V max
+        
+        abs_temperature = spore.sensor_deltas.get("temperature", 0.0) + 25.0  
+        temperature_norm = abs_temperature / 50.0  # 25C nominal, 50C max
+        
         conditions = NetworkConditions(
-            latency=spore.sensor_deltas.get("latency", 0.1),
-            voltage=spore.sensor_deltas.get("voltage", 3.3) / 5.0,  # Normalize to 0-1
-            temperature=spore.sensor_deltas.get("temperature", 25.0) / 50.0,  # Normalize to 0-1
+            latency=min(spore.sensor_deltas.get("latency", 0.1), 1.0),
+            voltage=voltage_norm,
+            temperature=temperature_norm,
             error_rate=min(spore.sensor_deltas.get("error_rate", 0.02), 1.0),
             season=spore.season if spore.season else Season.SUMMER
         )
@@ -149,7 +139,7 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
     """
     
     def __init__(self, 
-                 vocab_size: int = 66,  # 64 glyphs + START + END
+                 vocab_size: int = 67,  # 64 glyphs + START + END + PAD
                  embed_dim: int = None,
                  hidden_dim: int = None,
                  condition_dim: int = 8,
@@ -167,7 +157,7 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
             self.embed_dim = embed_dim or 32
             self.hidden_dim = hidden_dim or 64
             self.model_type = "femto"
-            print("🦠 Using Spiramycel femto-model (CPU optimized, ~50k parameters)")
+            print("🦠 Using Spiramycel femto-model (CPU optimized, ~25k parameters)")
         else:
             # GPU mode - full size
             self.embed_dim = embed_dim or 128
@@ -284,8 +274,8 @@ class SpiramycelTrainer:
         model = SpiramycelNeuralModel(force_cpu_mode=(DEVICE.type == "cpu")).to(DEVICE)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         
-        # Loss functions
-        glyph_criterion = nn.CrossEntropyLoss(ignore_index=0)  # Ignore padding
+        # Loss functions (fixed PAD token ignore)
+        glyph_criterion = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN)  # Ignore padding, preserve START token learning
         effectiveness_criterion = nn.MSELoss()
         silence_criterion = nn.BCEWithLogitsLoss()
         
@@ -316,13 +306,14 @@ class SpiramycelTrainer:
                 # Glyph sequence loss
                 glyph_loss = glyph_criterion(glyph_logits.reshape(-1, model.vocab_size), target_tokens.reshape(-1))
                 
-                # Effectiveness prediction loss
-                eff_loss = effectiveness_criterion(eff_logits.squeeze(-1).mean(dim=1), effectiveness)
+                # Effectiveness prediction loss (use final timestep instead of mean)
+                final_eff_logits = eff_logits[:, -1].squeeze(-1)  # Last timestep only
+                eff_loss = effectiveness_criterion(final_eff_logits, effectiveness)
                 
-                # Silence loss (encourage contemplative silence)
-                # Target high silence for low effectiveness
-                silence_targets = (effectiveness < 0.3).float().unsqueeze(1).expand(-1, silence_logits.shape[1])
-                silence_loss = silence_criterion(silence_logits.squeeze(-1), silence_targets)
+                # Silence loss (only train on first position to avoid broadcasting punishment)
+                silence_targets = (effectiveness < 0.3).float()  # Sequence-level target
+                first_silence_logits = silence_logits[:, 0].squeeze(-1)  # First timestep only  
+                silence_loss = silence_criterion(first_silence_logits, silence_targets)
                 
                 # Combined loss (weighted for contemplative principles)
                 total_loss = glyph_loss + 0.5 * eff_loss + 0.3 * silence_loss
@@ -338,8 +329,11 @@ class SpiramycelTrainer:
                 epoch_silence_loss += silence_loss.item()
                 batch_count += 1
                 
-                # Contemplative breathing pause (like HaikuMeadowLib)
-                time.sleep(0.05)  # Shorter pause for serious training
+                # Contemplative breathing pause (optimized for CPU)
+                if DEVICE.type == "cpu" and len(dataloader) > 64:
+                    time.sleep(0.005)  # Minimal pause to avoid CPU overheating
+                else:
+                    time.sleep(0.01)   # Slightly faster than original
             
             # Epoch summary
             avg_glyph_loss = epoch_glyph_loss / batch_count if batch_count > 0 else 0.0
@@ -387,7 +381,10 @@ class SpiramycelTrainer:
         else:
             print("🧘 Calm mode: LOW stress environment (more optimal conditions)")
         
-        spore_ledger = SporeMapLedger("enhanced_training_spores.jsonl")
+        # Create timestamped ledger to prevent file growth issues
+        timestamp = int(time.time())
+        ledger_filename = f"enhanced_training_spores_{timestamp}.jsonl"
+        spore_ledger = SporeMapLedger(Path("training_scenarios") / ledger_filename)
         
         # 3 DISTINCT ABSTRACT SCENARIOS (matching ecological complexity)
         abstract_scenarios = {
@@ -431,14 +428,14 @@ class SpiramycelTrainer:
             }
         }
         
-        # Enhanced network scenarios with more variety
+        # Enhanced network scenarios with more variety (fixed scenario weights)
         if chaos_mode:
             # More stressed scenarios, higher proportions (70% problems, 30% optimal)
-            scenario_weights = [0.4, 0.4, 0.4]  # Equal weight to all 3 scenarios
+            scenario_weights = [1.0, 1.0, 1.0]  # Equal weight to all 3 scenarios (normalized by random.choices)
             problem_vs_optimal_ratio = 0.7  # 70% problems
         else:
             # More calm scenarios, peaceful proportions (40% problems, 60% optimal)
-            scenario_weights = [0.33, 0.33, 0.34]  # Equal weight to all 3 scenarios  
+            scenario_weights = [1.0, 1.0, 1.0]  # Equal weight to all 3 scenarios (normalized by random.choices)
             problem_vs_optimal_ratio = 0.4  # 40% problems
         
         scenario_names = list(abstract_scenarios.keys())
@@ -539,6 +536,7 @@ class SpiramycelTrainer:
         print(f"   • Industrial IoT: {len(abstract_scenarios['industrial_iot']['bioregions'])} bioregions")
         print(f"   Total bioregions: {sum(len(s['bioregions']) for s in abstract_scenarios.values())}")
         print(f"   Seasonal variation: All 4 seasons with scenario-specific patterns")
+        print(f"   💾 Saved to: {spore_ledger.ledger_path}")
         
         return spore_ledger
     
@@ -550,7 +548,7 @@ class SpiramycelTrainer:
         
         # Load trained model
         model = SpiramycelNeuralModel(force_cpu_mode=(DEVICE.type == "cpu")).to(DEVICE)
-        model.load_state_dict(torch.load(model_path, map_location=DEVICE))
+        model.load_state_dict(torch.load(model_path, map_location=DEVICE, weights_only=True))
         model.eval()
         
         # Create test dataset
@@ -563,7 +561,7 @@ class SpiramycelTrainer:
         total_silence_loss = 0.0
         batch_count = 0
         
-        glyph_criterion = nn.CrossEntropyLoss(ignore_index=0)
+        glyph_criterion = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN)
         effectiveness_criterion = nn.MSELoss()
         silence_criterion = nn.BCEWithLogitsLoss()
         
@@ -577,12 +575,14 @@ class SpiramycelTrainer:
                 # Forward pass
                 glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, conditions)
                 
-                # Calculate losses
+                # Calculate losses (using fixed loss calculations)
                 glyph_loss = glyph_criterion(glyph_logits.reshape(-1, model.vocab_size), target_tokens.reshape(-1))
-                eff_loss = effectiveness_criterion(eff_logits.squeeze(-1).mean(dim=1), effectiveness)
+                final_eff_logits = eff_logits[:, -1].squeeze(-1)  # Last timestep
+                eff_loss = effectiveness_criterion(final_eff_logits, effectiveness)
                 
-                silence_targets = (effectiveness < 0.3).float().unsqueeze(1).expand(-1, silence_logits.shape[1])
-                silence_loss = silence_criterion(silence_logits.squeeze(-1), silence_targets)
+                silence_targets = (effectiveness < 0.3).float()
+                first_silence_logits = silence_logits[:, 0].squeeze(-1)  # First timestep
+                silence_loss = silence_criterion(first_silence_logits, silence_targets)
                 
                 total_glyph_loss += glyph_loss.item()
                 total_eff_loss += eff_loss.item()
@@ -595,7 +595,7 @@ class SpiramycelTrainer:
         avg_silence_loss = total_silence_loss / batch_count if batch_count > 0 else 0.0
         
         # Calculate improvement (rough estimate vs. random baseline)
-        random_glyph_loss = 4.19  # ln(66) for 66 classes
+        random_glyph_loss = 4.20  # ln(67) for 67 classes (natural log base)
         improvement = (random_glyph_loss - avg_glyph_loss) / random_glyph_loss
         
         return {

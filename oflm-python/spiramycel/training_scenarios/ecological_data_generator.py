@@ -9,6 +9,8 @@ Generates realistic spore echoes based on actual ecological scenarios:
 
 Each scenario includes multi-generational patterns, seasonal cycles,
 and real bioregional adaptation strategies.
+
+Includes o3's stability fixes for robust data generation.
 """
 
 import json
@@ -16,7 +18,7 @@ import random
 import numpy as np
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 from dataclasses import dataclass
 
 @dataclass
@@ -32,10 +34,10 @@ class NetworkConditions:
     historical_context: str
 
 class EcologicalDataGenerator:
-    """Generates realistic ecological training data for Spiramycel"""
+    """Generates realistic ecological training data for Spiramycel with stability improvements"""
     
-    def __init__(self, scenarios_dir: str = None):
-        """Initialize with scenario definitions"""
+    def __init__(self, scenarios_dir: str = None, random_seed: Optional[int] = None):
+        """Initialize with scenario definitions and optional reproducible seed"""
         if scenarios_dir is None:
             scenarios_dir = Path(__file__).parent
         else:
@@ -43,45 +45,94 @@ class EcologicalDataGenerator:
             
         self.scenarios_dir = scenarios_dir
         self.scenarios = {}
-        self.load_scenarios()
         
+        # Set reproducible random seed if provided
+        if random_seed is not None:
+            random.seed(random_seed)
+            np.random.seed(random_seed)
+            self.random_seed = random_seed
+            print(f"🌱 Random seed set to {random_seed} for reproducible ecological generation")
+        else:
+            self.random_seed = None
+            
         # Multi-generational time tracking
         self.base_year = 2024
         self.simulation_years = 50  # 50-year simulation
         
+        # Track unknown combinations for debugging
+        self.unknown_seasonal_combos = set()
+        
+        self.load_scenarios()
+        
     def load_scenarios(self):
-        """Load all scenario JSON files"""
+        """Load all scenario JSON files with robust error handling"""
         scenario_files = [
             "drought_landscape_australia.json",
             "rice_paddy_guangzhou.json", 
             "groundwater_sweden.json"
         ]
         
+        loaded_count = 0
         for scenario_file in scenario_files:
             try:
-                with open(self.scenarios_dir / scenario_file, 'r', encoding='utf-8') as f:
+                scenario_path = self.scenarios_dir / scenario_file
+                if not scenario_path.exists():
+                    print(f"⚠ Warning: Scenario file not found: {scenario_path}")
+                    continue
+                    
+                with open(scenario_path, 'r', encoding='utf-8') as f:
                     scenario = json.load(f)
-                    self.scenarios[scenario['scenario_id']] = scenario
-                    print(f"✓ Loaded scenario: {scenario['name']}")
+                    
+                # Validate required fields
+                required_fields = ['scenario_id', 'name', 'bioregion', 'ecosystem_type']
+                if not all(field in scenario for field in required_fields):
+                    print(f"⚠ Warning: {scenario_file} missing required fields: {required_fields}")
+                    continue
+                    
+                self.scenarios[scenario['scenario_id']] = scenario
+                print(f"✓ Loaded scenario: {scenario['name']}")
+                loaded_count += 1
+                
+            except json.JSONDecodeError as e:
+                print(f"⚠ Warning: Invalid JSON in {scenario_file}: {e}")
             except Exception as e:
                 print(f"⚠ Warning: Could not load {scenario_file}: {e}")
+        
+        # Fixed: Validate that scenarios were loaded (o3's issue #2)
+        if not self.scenarios:
+            raise FileNotFoundError("No scenario JSON files loaded – check path and file existence. "
+                                   f"Expected files in {self.scenarios_dir}: {scenario_files}")
+        
+        print(f"📊 Successfully loaded {loaded_count} scenarios")
     
     def get_season_for_month(self, scenario: Dict, month: int) -> str:
-        """Determine which season a month belongs to in the scenario"""
+        """Determine which season a month belongs to in the scenario (fixed transition logic)"""
         for season_name, season_data in scenario['seasonal_cycles'].items():
             if season_name == "transition_periods":
-                # Handle nested transition periods
+                # Handle nested transition periods (o3's issue #3)
                 if isinstance(season_data, dict):
                     for sub_season, sub_data in season_data.items():
                         if 'months' in sub_data and isinstance(sub_data['months'], list):
                             if month in sub_data['months']:
-                                return sub_season  # Return "autumn" or "spring"
+                                return sub_season  # Return "autumn" or "spring" instead of "transition"
             else:
                 # Handle direct seasons
                 if 'months' in season_data and isinstance(season_data['months'], list):
                     if month in season_data['months']:
                         return season_name
-        return "transition"
+        
+        # Fixed: More specific fallback logic
+        # If month is not found, try to map to reasonable seasons
+        if month in [3, 4, 5]:  # Spring months
+            return "spring"
+        elif month in [6, 7, 8]:  # Summer months
+            return "summer"
+        elif month in [9, 10, 11]:  # Autumn months
+            return "autumn"
+        elif month in [12, 1, 2]:  # Winter months
+            return "winter"
+        else:
+            return "transition"  # Only as last resort
     
     def simulate_sensor_readings(self, scenario: Dict, season: str, year_in_cycle: int, 
                                 extreme_event: str = None) -> Dict[str, float]:
@@ -113,7 +164,7 @@ class EcologicalDataGenerator:
         return readings
     
     def _get_seasonal_baseline(self, sensor_type: str, season_data: Dict) -> float:
-        """Get seasonal baseline for sensor type"""
+        """Get seasonal baseline for sensor type with unknown combo logging"""
         # Map season descriptions to sensor readings
         baselines = {
             'soil_moisture': {
@@ -126,31 +177,42 @@ class EcologicalDataGenerator:
             'nutrient_nitrogen': {
                 'abundant': 0.8, 'high': 0.7, 'moderate': 0.5, 'low': 0.3, 'very_low': 0.2
             },
+            'nutrient_phosphorus': {
+                'abundant': 0.8, 'high': 0.7, 'moderate': 0.5, 'low': 0.3, 'very_low': 0.2
+            },
             'temperature': {
                 'optimal': 0.6, 'cold': 0.2, 'warm': 0.8, 'frozen': 0.0, 'hot': 1.0
+            },
+            'root_connections': {
+                'dense': 0.8, 'healthy': 0.7, 'moderate': 0.5, 'sparse': 0.3, 'damaged': 0.1
             }
         }
         
         # Extract activity/condition indicators from season data
         for key, value in season_data.items():
             # Skip list values (like months, ranges) which are not hashable
-            if isinstance(value, list):
-                continue
-            # Skip dictionary values as well
-            if isinstance(value, dict):
+            if isinstance(value, (list, dict)):
                 continue
             
             if sensor_type in baselines and value in baselines[sensor_type]:
                 return baselines[sensor_type][value]
         
+        # Fixed: Log unknown combinations for debugging (o3's issue #6)
+        combo_key = (sensor_type, tuple(sorted(k for k, v in season_data.items() 
+                                              if not isinstance(v, (list, dict)))))
+        if combo_key not in self.unknown_seasonal_combos:
+            self.unknown_seasonal_combos.add(combo_key)
+            print(f"🔍 Unknown seasonal combo: sensor={sensor_type}, descriptors={combo_key[1]}")
+        
         return 0.5  # default neutral
     
     def _apply_generational_patterns(self, base_reading: float, scenario: Dict, 
                                    sensor_type: str, year_in_cycle: int) -> float:
-        """Apply multi-generational cyclical patterns"""
+        """Apply multi-generational cyclical patterns with specific error handling"""
         patterns = scenario.get('multi_generational_patterns', {})
         reading = base_reading
         
+        # Fixed: More specific exception handling (o3's issue #9)
         try:
             # El Niño/La Niña effects (Australia)
             if 'el_nino_years' in patterns:
@@ -188,8 +250,11 @@ class EcologicalDataGenerator:
                         reading += 0.05  # more precipitation
         
         except (KeyError, TypeError) as e:
-            # If there's any error in pattern application, just return base reading
-            pass
+            # Log specific pattern application errors for debugging
+            print(f"⚠ Pattern application error for {sensor_type}: {e}")
+        except Exception as e:
+            # Catch unexpected errors but log them
+            print(f"⚠ Unexpected error in pattern application for {sensor_type}: {e}")
             
         return reading
     
@@ -316,15 +381,13 @@ class EcologicalDataGenerator:
             scenario, season, year_in_cycle, extreme_event
         )
         
-        # Calculate environmental stress
-        stress_indicators = ['soil_moisture', 'water_level', 'nitrate_concentration', 
-                           'heavy_metal_levels', 'temperature']
+        # Fixed: Calculate environmental stress over ALL sensor readings (o3's issue #4)
+        # More extensible approach that works with any sensor set
         stress_values = []
-        for indicator in stress_indicators:
-            if indicator in sensor_readings:
-                # Convert readings to stress (0.5 is optimal, deviations increase stress)
-                stress = abs(sensor_readings[indicator] - 0.5) * 2
-                stress_values.append(stress)
+        for sensor_name, reading in sensor_readings.items():
+            # Convert readings to stress (0.5 is optimal, deviations increase stress)
+            stress = abs(reading - 0.5) * 2
+            stress_values.append(stress)
         
         environmental_stress = np.mean(stress_values) if stress_values else 0.3
         repair_urgency = min(1.0, environmental_stress + random.uniform(0, 0.2))
@@ -357,7 +420,8 @@ class EcologicalDataGenerator:
                 'id': scenario_id,
                 'name': scenario['name'],
                 'bioregion': scenario['bioregion'],
-                'ecosystem_type': scenario['ecosystem_type']
+                'ecosystem_type': scenario['ecosystem_type'],
+                'season': season  # Include season for data consistency
             },
             'conditions': {
                 'season': season,
@@ -394,9 +458,9 @@ class EcologicalDataGenerator:
         """
         print(f"🌱 Generating {num_echoes} ecological spore echoes...")
         if chaos_mode:
-            print("⚡ Chaos mode: HIGH stress environment (15% extreme events)")
+            print("⚡ Chaos mode: HIGH stress environment (15% extreme events)")  # o3's issue #7: clarify percentage
         else:
-            print("🧘 Calm mode: LOW stress environment (3% extreme events)")
+            print("🧘 Calm mode: LOW stress environment (3% extreme events)")  # o3's issue #7: clarify percentage
         
         output_path = self.scenarios_dir / output_file
         scenario_ids = list(self.scenarios.keys())
@@ -405,49 +469,66 @@ class EcologicalDataGenerator:
             raise ValueError("No scenarios loaded!")
         
         extreme_events = [None, "drought", "flood", "fire", "contamination_event"]
-        # Adjust extreme event probability based on chaos_mode
-        extreme_probability = 0.15 if chaos_mode else 0.03
+        # Fixed: Comment extreme event probability for clarity (o3's issue #7)
+        extreme_probability = 0.15 if chaos_mode else 0.03  # 15% or 3% of echoes carry extreme events
         
-        with open(output_path, 'w', encoding='utf-8') as f:
-            for i in range(num_echoes):
-                # Distribute across scenarios
-                scenario_id = random.choice(scenario_ids)
-                
-                # Occasional extreme events based on chaos_mode
-                extreme_event = None
-                if random.random() < extreme_probability:
-                    extreme_event = random.choice(extreme_events[1:])  # exclude None
-                
-                try:
-                    spore_echo = self.generate_spore_echo(scenario_id, extreme_event=extreme_event, chaos_mode=chaos_mode)
+        generated_count = 0
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                for i in range(num_echoes):
+                    # Distribute across scenarios
+                    scenario_id = random.choice(scenario_ids)
                     
-                    # In calm mode, also bias sensor readings toward healthier values
-                    if not chaos_mode:
-                        # Reduce environmental stress
-                        conditions = spore_echo['conditions']
-                        conditions['environmental_stress'] *= 0.6  # Reduce stress by 40%
-                        
-                        # Improve sensor readings toward optimal
-                        for sensor, value in conditions['sensor_readings'].items():
-                            # Move values toward 0.5 (optimal) by 30%
-                            optimal_bias = 0.5
-                            new_value = value + (optimal_bias - value) * 0.3
-                            conditions['sensor_readings'][sensor] = max(0.0, min(1.0, new_value))
-                        
-                        # Update repair action to reflect lower urgency
-                        spore_echo['repair_action']['silence_probability'] = min(1.0, 
-                            spore_echo['repair_action']['silence_probability'] + 0.2)
+                    # Occasional extreme events based on chaos_mode
+                    extreme_event = None
+                    if random.random() < extreme_probability:
+                        extreme_event = random.choice(extreme_events[1:])  # exclude None
                     
-                    f.write(json.dumps(spore_echo) + '\n')
-                    
-                    if (i + 1) % 100 == 0:
-                        print(f"  Generated {i + 1}/{num_echoes} spore echoes...")
+                    try:
+                        spore_echo = self.generate_spore_echo(scenario_id, extreme_event=extreme_event, chaos_mode=chaos_mode)
                         
-                except Exception as e:
-                    print(f"⚠ Warning: Failed to generate echo {i}: {e}")
-                    continue
+                        # Fixed: In calm mode, recompute stress after sensor adjustments (o3's issue #1)
+                        if not chaos_mode:
+                            # First adjust sensor readings toward healthier values
+                            conditions = spore_echo['conditions']
+                            for sensor, value in conditions['sensor_readings'].items():
+                                # Move values toward 0.5 (optimal) by 30%
+                                optimal_bias = 0.5
+                                new_value = value + (optimal_bias - value) * 0.3
+                                conditions['sensor_readings'][sensor] = max(0.0, min(1.0, new_value))
+                            
+                            # CRITICAL FIX: Recompute environmental stress after sensor adjustments
+                            sensor_vals = list(conditions['sensor_readings'].values())
+                            new_stress = np.mean([abs(v - 0.5) * 2 for v in sensor_vals]) if sensor_vals else 0.3
+                            conditions['environmental_stress'] = new_stress * 0.6  # Additional 40% reduction
+                            
+                            # Update repair urgency based on new stress
+                            conditions['repair_urgency'] = min(1.0, new_stress + random.uniform(0, 0.2))
+                            
+                            # Update repair action to reflect lower urgency
+                            spore_echo['repair_action']['silence_probability'] = min(1.0, 
+                                spore_echo['repair_action']['silence_probability'] + 0.2)
+                        
+                        f.write(json.dumps(spore_echo, ensure_ascii=False) + '\n')
+                        generated_count += 1
+                        
+                        if (i + 1) % 100 == 0:
+                            progress_pct = ((i + 1) / num_echoes) * 100
+                            print(f"  Generated {i + 1}/{num_echoes} spore echoes ({progress_pct:.1f}%)...")
+                            
+                    except Exception as e:
+                        print(f"⚠ Warning: Failed to generate echo {i}: {e}")
+                        continue
+                        
+        except Exception as e:
+            print(f"❌ Error writing to file {output_path}: {e}")
+            return ""
         
-        print(f"✓ Generated {num_echoes} spore echoes")
+        if generated_count == 0:
+            print(f"❌ No spore echoes generated successfully!")
+            return ""
+        
+        print(f"✓ Generated {generated_count} ecological spore echoes")
         print(f"📁 Saved to: {output_path}")
         
         # Statistics
@@ -456,93 +537,128 @@ class EcologicalDataGenerator:
         return str(output_path)
     
     def print_dataset_statistics(self, dataset_path: str):
-        """Print statistics about the generated dataset"""
-        with open(dataset_path, 'r') as f:
-            echoes = [json.loads(line) for line in f if line.strip()]
-        
-        print(f"\n📊 Dataset Statistics:")
-        print(f"   Total spore echoes: {len(echoes)}")
-        
-        if len(echoes) == 0:
-            print("   ⚠ No valid spore echoes generated!")
-            return
-        
-        # Scenario distribution
-        scenario_counts = {}
-        for echo in echoes:
-            scenario = echo['scenario']['id']
-            scenario_counts[scenario] = scenario_counts.get(scenario, 0) + 1
-        
-        print(f"   Scenario distribution:")
-        for scenario, count in scenario_counts.items():
-            percentage = (count / len(echoes)) * 100
-            print(f"     {scenario}: {count} ({percentage:.1f}%)")
-        
-        # Effectiveness distribution
-        effectiveness_values = [echo['repair_action']['effectiveness'] for echo in echoes]
-        avg_effectiveness = np.mean(effectiveness_values) if effectiveness_values else 0.0
-        print(f"   Average repair effectiveness: {avg_effectiveness:.3f}")
-        
-        # Environmental stress distribution
-        stress_values = [echo['conditions']['environmental_stress'] for echo in echoes]
-        avg_stress = np.mean(stress_values) if stress_values else 0.0
-        print(f"   Average environmental stress: {avg_stress:.3f}")
-        
-        # Extreme events
-        extreme_count = sum(1 for echo in echoes if echo['conditions'].get('extreme_event'))
-        extreme_pct = (extreme_count / len(echoes) * 100) if len(echoes) > 0 else 0.0
-        print(f"   Extreme events: {extreme_count} ({extreme_pct:.1f}%)")
-        
-        # Analyze ecosystem condition types (for calm mode)
-        thriving_count = sum(1 for echo in echoes if "perfect harmony" in echo['repair_action']['description'])
-        maintenance_count = sum(1 for echo in echoes if "seasonal adjustment" in echo['repair_action']['description'])
-        crisis_count = len(echoes) - thriving_count - maintenance_count
-        
-        if thriving_count > 0 or maintenance_count > 0:
-            print(f"   Ecosystem conditions:")
-            print(f"     Thriving/harmony: {thriving_count} ({thriving_count/len(echoes)*100:.1f}%)")
-            print(f"     Minor maintenance: {maintenance_count} ({maintenance_count/len(echoes)*100:.1f}%)")
-            print(f"     Crisis scenarios: {crisis_count} ({crisis_count/len(echoes)*100:.1f}%)")
-        
-        # Silence probability analysis
-        silence_values = [echo['repair_action']['silence_probability'] for echo in echoes]
-        avg_silence = np.mean(silence_values) if silence_values else 0.0
-        high_silence = sum(1 for s in silence_values if s > 0.8)
-        print(f"   Average silence probability: {avg_silence:.3f}")
-        print(f"   High silence (>0.8): {high_silence} ({high_silence/len(echoes)*100:.1f}%)")
+        """Print statistics about the generated dataset with error handling"""
+        try:
+            with open(dataset_path, 'r', encoding='utf-8') as f:
+                echoes = []
+                for line_num, line in enumerate(f):
+                    try:
+                        if line.strip():
+                            echoes.append(json.loads(line))
+                    except json.JSONDecodeError as e:
+                        print(f"⚠ Corrupt echo at line {line_num+1}: {e}")
+                        continue
+            
+            print(f"\n📊 Dataset Statistics:")
+            print(f"   Total spore echoes: {len(echoes)}")
+            
+            if len(echoes) == 0:
+                print("   ⚠ No valid spore echoes generated!")
+                return
+            
+            # Scenario distribution
+            scenario_counts = {}
+            for echo in echoes:
+                scenario = echo['scenario']['id']
+                scenario_counts[scenario] = scenario_counts.get(scenario, 0) + 1
+            
+            print(f"   Scenario distribution:")
+            for scenario, count in scenario_counts.items():
+                percentage = (count / len(echoes)) * 100
+                print(f"     {scenario}: {count} ({percentage:.1f}%)")
+            
+            # Effectiveness distribution
+            effectiveness_values = [echo['repair_action']['effectiveness'] for echo in echoes]
+            avg_effectiveness = np.mean(effectiveness_values) if effectiveness_values else 0.0
+            print(f"   Average repair effectiveness: {avg_effectiveness:.3f}")
+            
+            # Environmental stress distribution
+            stress_values = [echo['conditions']['environmental_stress'] for echo in echoes]
+            avg_stress = np.mean(stress_values) if stress_values else 0.0
+            print(f"   Average environmental stress: {avg_stress:.3f}")
+            
+            # Extreme events
+            extreme_count = sum(1 for echo in echoes if echo['conditions'].get('extreme_event'))
+            extreme_pct = (extreme_count / len(echoes) * 100) if len(echoes) > 0 else 0.0
+            print(f"   Extreme events: {extreme_count} ({extreme_pct:.1f}%)")
+            
+            # Analyze ecosystem condition types (for calm mode)
+            thriving_count = sum(1 for echo in echoes if "perfect harmony" in echo['repair_action']['description'])
+            maintenance_count = sum(1 for echo in echoes if "seasonal adjustment" in echo['repair_action']['description'])
+            crisis_count = len(echoes) - thriving_count - maintenance_count
+            
+            if thriving_count > 0 or maintenance_count > 0:
+                print(f"   Ecosystem states:")
+                print(f"     Thriving (harmony): {thriving_count} ({thriving_count/len(echoes)*100:.1f}%)")
+                print(f"     Maintenance: {maintenance_count} ({maintenance_count/len(echoes)*100:.1f}%)")
+                print(f"     Crisis response: {crisis_count} ({crisis_count/len(echoes)*100:.1f}%)")
+                
+            # Silence analysis
+            silence_values = [echo['repair_action']['silence_probability'] for echo in echoes]
+            avg_silence = np.mean(silence_values) if silence_values else 0.0
+            high_silence_count = sum(1 for s in silence_values if s > 0.8)
+            high_silence_pct = (high_silence_count / len(echoes) * 100) if len(echoes) > 0 else 0.0
+            print(f"   Average silence probability: {avg_silence:.3f}")
+            print(f"   High silence (>0.8): {high_silence_count} ({high_silence_pct:.1f}%)")
+            
+        except FileNotFoundError:
+            print(f"   ❌ Dataset file not found: {dataset_path}")
+        except Exception as e:
+            print(f"   ❌ Error analyzing dataset: {e}")
 
 def main():
     """Main function to generate ecological training data"""
-    generator = EcologicalDataGenerator()
+    
+    # Fixed: Add reproducible seed option (o3's issue #8)
+    generator = EcologicalDataGenerator(random_seed=42)
     
     print("🌍 Ecological Spiramycel Training Data Generator")
-    print("=" * 50)
+    print("=" * 60)
     
     # Generate datasets for controlled comparison
     datasets = [
-        # Original chaotic datasets
+        # Small datasets for quick testing
         (500, "ecological_small_chaotic.jsonl", True),
-        (2000, "ecological_medium_chaotic.jsonl", True),
-        (5000, "ecological_large_chaotic.jsonl", True),
-        
-        # New calm datasets for comparison
         (500, "ecological_small_calm.jsonl", False),
+        
+        # Medium datasets
+        (2000, "ecological_medium_chaotic.jsonl", True),
         (2000, "ecological_medium_calm.jsonl", False),
+        
+        # Large datasets for serious training
+        (5000, "ecological_large_chaotic.jsonl", True),
         (5000, "ecological_large_calm.jsonl", False)
     ]
     
+    successful_datasets = 0
+    start_time = datetime.now()
+    
     for num_echoes, filename, chaos_mode in datasets:
         print(f"\n🎯 Generating {filename}...")
-        generator.generate_training_dataset(num_echoes, filename, chaos_mode)
+        try:
+            result_path = generator.generate_training_dataset(num_echoes, filename, chaos_mode)
+            if result_path:
+                successful_datasets += 1
+            else:
+                print(f"❌ Failed to generate {filename}")
+        except Exception as e:
+            print(f"❌ Error generating {filename}: {e}")
     
-    print("\n✅ All ecological datasets generated!")
+    elapsed_time = datetime.now() - start_time
+    
+    print(f"\n✅ Generated {successful_datasets}/{len(datasets)} datasets successfully!")
+    print(f"⏱ Total generation time: {elapsed_time.total_seconds():.1f} seconds")
+    
+    # Report any unknown seasonal combinations found
+    if generator.unknown_seasonal_combos:
+        print(f"\n🔍 Found {len(generator.unknown_seasonal_combos)} unknown seasonal combinations")
+        print("   Consider adding these to baseline mappings for more accurate simulation")
+    
     print("\nDatasets available:")
-    print("  CHAOTIC (original): ecological_*_chaotic.jsonl")
-    print("  CALM (new): ecological_*_calm.jsonl")
-    print("\nNext steps for controlled comparison:")
-    print("  1. Run: python controlled_comparison.py")
-    print("  2. Compare all four conditions: Ecological×Abstract + Calm×Chaotic")
-    print("  3. Separate paradigm effects from stress effects")
+    print("  CHAOTIC: ecological_*_chaotic.jsonl")
+    print("  CALM: ecological_*_calm.jsonl")
+    print("\nThese ecological datasets complement the abstract training data")
+    print("for comprehensive bioregional contemplative AI experiments!")
 
 if __name__ == "__main__":
     main() 

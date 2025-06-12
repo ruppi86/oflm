@@ -48,17 +48,36 @@ class AbstractDataset(Dataset):
     def __getitem__(self, idx):
         sample = self.samples[idx]
         
-        # Convert to format similar to SpiramycelDataset
-        sensor_readings = sample['conditions']['sensor_readings']
+        # Fixed: Handle both sensor_readings and sensor_deltas formats (o3's data consistency fix)
+        conditions_data = sample['conditions']
         
-        # Create network conditions from abstract data
-        conditions = NetworkConditions(
-            latency=sensor_readings.get('latency', 0.1),
-            voltage=sensor_readings.get('voltage', 3.3),
-            temperature=sensor_readings.get('temperature', 25.0),
-            error_rate=sensor_readings.get('error_rate', 0.02),
-            bandwidth=sensor_readings.get('bandwidth', 0.8),
-        )
+        # Try sensor_deltas first (new o3 format), fall back to sensor_readings (legacy)
+        if 'sensor_deltas' in conditions_data:
+            sensor_deltas = conditions_data['sensor_deltas']
+            # Convert deltas back to absolute values for NetworkConditions
+            conditions = NetworkConditions(
+                latency=sensor_deltas.get('latency', 0.1),  # latency is absolute
+                voltage=3.3 + sensor_deltas.get('voltage', 0.0),  # Convert delta to absolute
+                temperature=25.0 + sensor_deltas.get('temperature', 0.0),  # Convert delta to absolute
+                error_rate=sensor_deltas.get('error_rate', 0.02),  # error_rate is absolute
+                bandwidth=0.8 + sensor_deltas.get('bandwidth', 0.0),  # Convert delta to absolute
+            )
+        elif 'sensor_readings' in conditions_data:
+            # Legacy format support
+            sensor_readings = conditions_data['sensor_readings']
+            conditions = NetworkConditions(
+                latency=sensor_readings.get('latency', 0.1),
+                voltage=sensor_readings.get('voltage', 3.3),
+                temperature=sensor_readings.get('temperature', 25.0),
+                error_rate=sensor_readings.get('error_rate', 0.02),
+                bandwidth=sensor_readings.get('bandwidth', 0.8),
+            )
+        else:
+            # Fallback with default values
+            print(f"⚠ Warning: No sensor data found in sample {idx}, using defaults")
+            conditions = NetworkConditions(
+                latency=0.1, voltage=3.3, temperature=25.0, error_rate=0.02, bandwidth=0.8
+            )
         
         # Get glyph sequence 
         glyph_sequence = sample['repair_action']['glyph_sequence']

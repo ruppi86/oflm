@@ -65,13 +65,20 @@ class NetworkPatch:
     def __post_init__(self):
         if self.network_context is None:
             self.network_context = {}
+        # Clamp estimated_impact to valid range
+        self.estimated_impact = min(max(self.estimated_impact, 0.0), 1.0)
     
     def is_safe_to_execute(self) -> bool:
         """Check if patch meets safety criteria for execution."""
+        # Fixed logic: critical patches MUST have consensus approval
+        consensus_ok = (self.severity != PatchSeverity.CRITICAL) or (
+            self.requires_consensus and self.status == PatchStatus.APPROVED
+        )
+        
         safety_checks = [
             self.safety_score >= 0.7,           # High safety score
-            self.severity != PatchSeverity.CRITICAL or self.requires_consensus,  # Critical patches need consensus
-            self.status in [PatchStatus.APPROVED, PatchStatus.SIMULATED],       # Must be approved
+            consensus_ok,                        # Critical patches need approved consensus
+            self.status in [PatchStatus.APPROVED, PatchStatus.SIMULATED],  # Must be approved
         ]
         return all(safety_checks)
     
@@ -131,28 +138,28 @@ class SpiramycelRuntimePatcher:
                 "parameters": {"bandwidth_multiplier": 1.2, "queue_size": "+20%"},
                 "severity": PatchSeverity.MODERATE,
                 "safety_score": 0.8,
-                "estimated_impact": 0.7
+                "estimated_impact": min(0.7, 1.0)  # Clamp on creation
             },
             "redirect_to_neighbor": {
                 "target": "routing_table", 
                 "parameters": {"next_hop": "auto_detect", "route_priority": "high"},
                 "severity": PatchSeverity.MINOR,
                 "safety_score": 0.9,
-                "estimated_impact": 0.6
+                "estimated_impact": min(0.6, 1.0)
             },
             "throttle_bandwidth": {
                 "target": "network_interface",
                 "parameters": {"bandwidth_limit": "0.8x", "burst_allowance": "reduced"},
                 "severity": PatchSeverity.MINOR,
                 "safety_score": 0.95,
-                "estimated_impact": 0.5
+                "estimated_impact": min(0.5, 1.0)
             },
             "pause_transmission": {
                 "target": "network_interface",
                 "parameters": {"pause_duration": 2.0, "graceful": True},
                 "severity": PatchSeverity.CONTEMPLATIVE,
                 "safety_score": 1.0,
-                "estimated_impact": 0.4
+                "estimated_impact": min(0.4, 1.0)
             },
             
             # Energy management actions  
@@ -161,28 +168,28 @@ class SpiramycelRuntimePatcher:
                 "parameters": {"target_voltage": "3.3V", "regulation_mode": "adaptive"},
                 "severity": PatchSeverity.CRITICAL,
                 "safety_score": 0.6,
-                "estimated_impact": 0.9
+                "estimated_impact": min(0.9, 1.0)
             },
             "reduce_consumption": {
                 "target": "power_management",
                 "parameters": {"cpu_scaling": 0.8, "disable_non_essential": True},
                 "severity": PatchSeverity.MODERATE,
                 "safety_score": 0.85,
-                "estimated_impact": 0.7
+                "estimated_impact": min(0.7, 1.0)
             },
             "harvest_solar": {
                 "target": "energy_harvesting",
                 "parameters": {"solar_tracking": "enabled", "charge_rate": "optimized"},
                 "severity": PatchSeverity.MINOR,
                 "safety_score": 0.9,
-                "estimated_impact": 0.6
+                "estimated_impact": min(0.6, 1.0)
             },
             "sleep_mode": {
                 "target": "system_control",
                 "parameters": {"sleep_duration": "auto", "wake_triggers": ["solar", "network"]},
                 "severity": PatchSeverity.MODERATE,
                 "safety_score": 0.8,
-                "estimated_impact": 0.8
+                "estimated_impact": min(0.8, 1.0)
             },
             
             # System health actions
@@ -191,28 +198,28 @@ class SpiramycelRuntimePatcher:
                 "parameters": {"confidence": "high", "report_upstream": True},
                 "severity": PatchSeverity.INFO,
                 "safety_score": 1.0,
-                "estimated_impact": 0.2
+                "estimated_impact": min(0.2, 1.0)
             },
             "preventive_care": {
                 "target": "maintenance",
                 "parameters": {"diagnostic_level": "standard", "cleanup": "gentle"},
                 "severity": PatchSeverity.MINOR,
                 "safety_score": 0.9,
-                "estimated_impact": 0.5
+                "estimated_impact": min(0.5, 1.0)
             },
             "auto_healing": {
                 "target": "self_repair",
                 "parameters": {"repair_mode": "conservative", "backup_first": True},
                 "severity": PatchSeverity.MODERATE,
                 "safety_score": 0.7,
-                "estimated_impact": 0.8
+                "estimated_impact": min(0.8, 1.0)
             },
             "system_scan": {
                 "target": "diagnostics",
                 "parameters": {"scan_depth": "comprehensive", "repair_suggestions": True},
                 "severity": PatchSeverity.MINOR,
                 "safety_score": 0.95,
-                "estimated_impact": 0.4
+                "estimated_impact": min(0.4, 1.0)
             },
             
             # Contemplative/silence actions
@@ -221,23 +228,50 @@ class SpiramycelRuntimePatcher:
                 "parameters": {"pause_duration": 1.5, "mindful": True},
                 "severity": PatchSeverity.CONTEMPLATIVE,
                 "safety_score": 1.0,
-                "estimated_impact": 0.3
+                "estimated_impact": min(0.3, 1.0)
             },
             "complete_quiet": {
                 "target": "contemplative_control", 
                 "parameters": {"silence_duration": 5.0, "deep_rest": True},
                 "severity": PatchSeverity.CONTEMPLATIVE,
                 "safety_score": 1.0,
-                "estimated_impact": 0.2
+                "estimated_impact": min(0.2, 1.0)
             },
             "meditation_mode": {
                 "target": "contemplative_control",
-                "parameters": {"duration": 60.0, "breathe_sync": True},
+                "parameters": {"duration": 60.0, "breath_sync": True},
                 "severity": PatchSeverity.CONTEMPLATIVE,
                 "safety_score": 1.0,
-                "estimated_impact": 0.4
+                "estimated_impact": min(0.4, 1.0)
             }
         }
+    
+    def approve_patch(self, patch: NetworkPatch) -> bool:
+        """
+        Approve a patch for execution after consensus building.
+        
+        Returns True if patch was successfully approved.
+        """
+        if not patch.requires_consensus:
+            # Non-consensus patches can be auto-approved if safe
+            if patch.safety_score >= 0.7:
+                patch.status = PatchStatus.APPROVED
+                return True
+            else:
+                patch.status = PatchStatus.REJECTED
+                return False
+        
+        # For consensus-requiring patches, this would integrate with 
+        # community decision-making processes
+        if patch.severity == PatchSeverity.CRITICAL and patch.safety_score >= 0.6:
+            patch.status = PatchStatus.APPROVED
+            return True
+        elif patch.severity != PatchSeverity.CRITICAL and patch.safety_score >= 0.7:
+            patch.status = PatchStatus.APPROVED  
+            return True
+        else:
+            patch.status = PatchStatus.REJECTED
+            return False
     
     def expand_glyph_to_patch(self, 
                              glyph_id: int, 
@@ -369,6 +403,10 @@ class SpiramycelRuntimePatcher:
                 if patch:
                     patches.append(patch)
         
+        # Truncate to max_patches_per_cycle after contemplative padding
+        if len(patches) > self.max_patches_per_cycle:
+            patches = patches[:self.max_patches_per_cycle]
+        
         return patches
     
     def log_patch(self, patch: NetworkPatch):
@@ -397,6 +435,10 @@ class SpiramycelRuntimePatcher:
         Returns simulation results without actually changing anything.
         """
         patch.status = PatchStatus.SIMULATED
+        
+        # Approve patch if simulation shows it's safe
+        if patch.is_safe_to_execute():
+            self.approve_patch(patch)
         
         # Simulate the effect on network state
         simulated_state = self.simulated_network_state.copy()

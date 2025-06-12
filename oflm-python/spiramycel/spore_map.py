@@ -63,12 +63,12 @@ class SporeEcho:
         age = self.age_days()
         base_survival = 2 ** (-age / half_life_days)
         
-        # Quality bonuses (like dew-ledger)
+        # Quality bonuses (stacked, not overwritten)
         quality_bonus = 1.0
         if self.repair_effectiveness > 0.8:
-            quality_bonus = 1.5  # Highly effective repairs survive longer
+            quality_bonus *= 1.5  # Highly effective repairs survive longer
         if self.chosen:
-            quality_bonus = 3.0  # Solstice-chosen spores get big bonus
+            quality_bonus *= 2.0  # Solstice-chosen spores get additional bonus
         
         return min(base_survival * quality_bonus, 1.0)
     
@@ -81,9 +81,10 @@ class SporeEcho:
         time_diff = abs(self.timestamp - other.timestamp) / (24 * 3600)  # days
         temporal_resonance = math.exp(-time_diff / 7.0)  # Weekly decay
         
-        # Glyph pattern similarity
+        # Glyph pattern similarity (protected against division by zero)
         common_glyphs = set(self.glyph_sequence) & set(other.glyph_sequence)
-        glyph_resonance = len(common_glyphs) / max(len(self.glyph_sequence), len(other.glyph_sequence))
+        denom = max(len(self.glyph_sequence), len(other.glyph_sequence), 1)
+        glyph_resonance = len(common_glyphs) / denom
         
         # Effectiveness similarity
         effectiveness_resonance = 1.0 - abs(self.repair_effectiveness - other.repair_effectiveness)
@@ -319,11 +320,16 @@ class SporeMapLedger:
         }
     
     def maintenance_cycle(self):
-        """Run maintenance: evaporation + file compaction."""
+        """Run maintenance: evaporation + file compaction + decay age updates."""
+        # Update decay ages before evaporation
+        now = time.time()
+        for spore in self.spores:
+            spore.decay_age = (now - spore.timestamp) / (24 * 3600)
+        
         # Evaporate old spores
         evaporated = self.evaporate_spores()
         
-        # Rewrite file with surviving spores only
+        # Rewrite file with surviving spores only (periodic compaction)
         if evaporated > 0:
             self._compact_file()
         

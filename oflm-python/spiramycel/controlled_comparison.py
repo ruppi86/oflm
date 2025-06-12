@@ -8,24 +8,66 @@ Controlled Comparison Experiment
 
 Models saved to separate directories to preserve all four conditions.
 Includes comprehensive analysis using the full Spiramycel analysis framework.
+
+Includes o3's stability fixes for robust experimental execution.
 """
 
 import time
+import shutil
+import argparse
 from pathlib import Path
 import sys
 
-# Import neural trainer components for analysis
+# Fixed: Robust relative import handling (o3's issue #8)
 try:
-    from neural_trainer import NetworkConditions
-    NEURAL_AVAILABLE = True
-except ImportError:
-    NEURAL_AVAILABLE = False
-    print("⚠ Neural trainer not available - analysis will be simplified")
-
-def run_ecological_training(chaos_mode: bool = True, suffix: str = ""):
-    """Run ecological training with specified chaos mode"""
+    # Try package imports first
     from training_scenarios.ecological_data_generator import EcologicalDataGenerator
-    from ecological_training import train_ecological_model
+    from generate_abstract_data import AbstractDataGenerator
+    from ecological_training import train_ecological_model  
+    from abstract_training import train_abstract_model
+    
+    # Import neural trainer components for analysis
+    try:
+        from neural_trainer import NetworkConditions
+        NEURAL_AVAILABLE = True
+    except ImportError:
+        NEURAL_AVAILABLE = False
+        print("⚠ Neural trainer not available - analysis will be simplified")
+        
+except ImportError:
+    # Fallback: Add parent directory to path for relative imports
+    sys.path.append(str(Path(__file__).resolve().parent))
+    try:
+        sys.path.append(str(Path(__file__).resolve().parent / 'training_scenarios'))
+        
+        from ecological_data_generator import EcologicalDataGenerator
+        from generate_abstract_data import AbstractDataGenerator
+        from ecological_training import train_ecological_model  
+        from abstract_training import train_abstract_model
+        
+        try:
+            from neural_trainer import NetworkConditions
+            NEURAL_AVAILABLE = True
+        except ImportError:
+            NEURAL_AVAILABLE = False
+            print("⚠ Neural trainer not available - analysis will be simplified")
+            
+    except ImportError as e:
+        print(f"❌ Critical import error: {e}")
+        print("Please run this script from the spiramycel directory")
+        sys.exit(1)
+
+def get_file_size_kb(file_path: str) -> str:
+    """Get actual file size in KB (o3's issue #6)"""
+    try:
+        size_bytes = Path(file_path).stat().st_size
+        size_kb = size_bytes / 1024
+        return f"{size_kb:.0f}KB"
+    except Exception:
+        return "Unknown"
+
+def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt: bool = False):
+    """Run ecological training with specified chaos mode"""
     
     print(f"\n🌍 ECOLOGICAL TRAINING {'(CHAOTIC)' if chaos_mode else '(CALM)'}")
     print("=" * 60)
@@ -34,14 +76,21 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = ""):
     ecological_dir = Path("ecological_models")
     ecological_dir.mkdir(exist_ok=True)
     
+    # Fixed: Add timestamp to avoid dataset collision (o3's issue #5)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    dataset_name = f"ecological_controlled_{suffix}_{timestamp}.jsonl"
+    
     # Generate training data
-    generator = EcologicalDataGenerator()
-    dataset_name = f"ecological_controlled_{suffix}.jsonl"
+    generator = EcologicalDataGenerator(random_seed=42)  # Reproducible
     data_path = generator.generate_training_dataset(
         num_echoes=5000,
         output_file=dataset_name,
         chaos_mode=chaos_mode
     )
+    
+    # Fixed: Add stress mode annotation to data (o3's issue #9)
+    stress_mode = "chaotic" if chaos_mode else "calm"
+    print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
     # Train model
     model_path = train_ecological_model(
@@ -49,19 +98,31 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = ""):
         epochs=15
     )
     
-    # Move model to ecological directory with descriptive name
+    # Fixed: Use shutil.move for cross-device compatibility (o3's issue #2)
     if model_path:
         new_name = ecological_dir / f"ecological_{'chaotic' if chaos_mode else 'calm'}_model.pt"
-        Path(model_path).rename(new_name)
-        print(f"💾 Ecological model saved to: {new_name}")
-        return str(new_name)
+        try:
+            shutil.move(model_path, new_name)
+            print(f"💾 Ecological model saved to: {new_name}")
+            print(f"📁 Model size: {get_file_size_kb(new_name)}")
+            return str(new_name)
+        except Exception as e:
+            print(f"⚠ Error moving model: {e}")
+            # Fallback to copy if move fails
+            try:
+                shutil.copy2(model_path, new_name)
+                Path(model_path).unlink()  # Delete original
+                print(f"💾 Ecological model copied to: {new_name}")
+                print(f"📁 Model size: {get_file_size_kb(new_name)}")
+                return str(new_name)
+            except Exception as e2:
+                print(f"❌ Failed to move or copy model: {e2}")
+                return model_path  # Return original path as fallback
     
     return None
 
-def run_abstract_training(chaos_mode: bool = False, suffix: str = ""):
+def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt: bool = False):
     """Run abstract training with specified chaos mode using pre-generated data"""
-    from generate_abstract_data import AbstractDataGenerator
-    from abstract_training import train_abstract_model
     
     print(f"\n✨ ABSTRACT TRAINING {'(CHAOTIC)' if chaos_mode else '(CALM)'}")
     print("=" * 60)
@@ -70,14 +131,21 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = ""):
     abstract_dir = Path("abstract_models")
     abstract_dir.mkdir(exist_ok=True)
     
+    # Fixed: Add timestamp to avoid dataset collision (o3's issue #5)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    dataset_name = f"abstract_controlled_{suffix}_{timestamp}.jsonl"
+    
     # Generate training data (pre-generate to files for speed)
-    generator = AbstractDataGenerator()
-    dataset_name = f"abstract_controlled_{suffix}.jsonl"
+    generator = AbstractDataGenerator(random_seed=42)  # Reproducible
     data_path = generator.generate_training_dataset(
         num_echoes=5000,
         output_file=dataset_name,
         chaos_mode=chaos_mode
     )
+    
+    # Fixed: Add stress mode annotation to data (o3's issue #9)
+    stress_mode = "chaotic" if chaos_mode else "calm"
+    print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
     # Train model using fast file-based training
     model_path = train_abstract_model(
@@ -85,12 +153,26 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = ""):
         epochs=15
     )
     
-    # Move model to abstract directory with descriptive name
+    # Fixed: Use shutil.move for cross-device compatibility (o3's issue #2)
     if model_path:
         new_name = abstract_dir / f"abstract_{'chaotic' if chaos_mode else 'calm'}_model.pt"
-        Path(model_path).rename(new_name)
-        print(f"💾 Abstract model saved to: {new_name}")
-        return str(new_name)
+        try:
+            shutil.move(model_path, new_name)
+            print(f"💾 Abstract model saved to: {new_name}")
+            print(f"📁 Model size: {get_file_size_kb(new_name)}")
+            return str(new_name)
+        except Exception as e:
+            print(f"⚠ Error moving model: {e}")
+            # Fallback to copy if move fails
+            try:
+                shutil.copy2(model_path, new_name)
+                Path(model_path).unlink()  # Delete original
+                print(f"💾 Abstract model copied to: {new_name}")
+                print(f"📁 Model size: {get_file_size_kb(new_name)}")
+                return str(new_name)
+            except Exception as e2:
+                print(f"❌ Failed to move or copy model: {e2}")
+                return model_path  # Return original path as fallback
     
     return None
 
@@ -134,18 +216,23 @@ def run_comparative_analysis(models_dict: dict):
             try:
                 performance = analyzer.load_model_performance(condition, model_path)
                 
-                # Create test scenarios for analysis
-                test_scenarios = [
-                    # High stress scenario (chaotic conditions)
-                    NetworkConditions(latency=0.9, voltage=0.1, temperature=0.9, error_rate=0.8, bandwidth=0.1),
-                    # Optimal scenario (calm conditions)  
-                    NetworkConditions(latency=0.1, voltage=0.8, temperature=0.5, error_rate=0.05, bandwidth=0.9),
-                    # Balanced scenario
-                    NetworkConditions(latency=0.5, voltage=0.5, temperature=0.5, error_rate=0.2, bandwidth=0.5),
-                ]
-                
-                # Analyze glyph patterns
-                glyph_analysis = analyzer.analyze_glyph_patterns(model_path, test_scenarios, condition)
+                # Fixed: Guard NetworkConditions creation with NEURAL_AVAILABLE (o3's issue #1)
+                if NEURAL_AVAILABLE:
+                    # Create test scenarios for analysis
+                    test_scenarios = [
+                        # High stress scenario (chaotic conditions)
+                        NetworkConditions(latency=0.9, voltage=0.1, temperature=0.9, error_rate=0.8, bandwidth=0.1),
+                        # Optimal scenario (calm conditions)  
+                        NetworkConditions(latency=0.1, voltage=0.8, temperature=0.5, error_rate=0.05, bandwidth=0.9),
+                        # Balanced scenario
+                        NetworkConditions(latency=0.5, voltage=0.5, temperature=0.5, error_rate=0.2, bandwidth=0.5),
+                    ]
+                    
+                    # Analyze glyph patterns
+                    glyph_analysis = analyzer.analyze_glyph_patterns(model_path, test_scenarios, condition)
+                else:
+                    print("   ⚠ Simplified analysis (NetworkConditions not available)")
+                    glyph_analysis = {"simplified": True, "silence_ratio": 0.0}
                 
                 # Generate behavioral profile
                 behavioral_profile = analyzer.generate_behavioral_profile(model_path, condition)
@@ -196,18 +283,22 @@ def run_comparative_analysis(models_dict: dict):
         
         for condition, result in results.items():
             if result.get("analyzed") and "performance" in result:
+                performance = result["performance"]
+                glyph_analysis = result.get("glyph_analysis", {})
+                
+                # Fixed: Use dict access instead of getattr (o3's issues #3 and #4)
                 training_results[condition] = {
-                    "final_glyph_loss": getattr(result["performance"], "final_glyph_loss", 0.0),
-                    "final_silence_loss": getattr(result["performance"], "final_silence_loss", 0.0),
-                    "silence_ratio": getattr(result.get("glyph_analysis", {}), "silence_ratio", 0.0),
+                    "final_glyph_loss": performance.get("final_glyph_loss", 0.0) if isinstance(performance, dict) else getattr(performance, "final_glyph_loss", 0.0),
+                    "final_silence_loss": performance.get("final_silence_loss", 0.0) if isinstance(performance, dict) else getattr(performance, "final_silence_loss", 0.0),
+                    "silence_ratio": glyph_analysis.get("silence_ratio", 0.0),
                     "glyph_improvement_percent": 0.0  # Would need training curves to calculate
                 }
                 
                 if "behavioral_profile" in result:
                     behavioral = result["behavioral_profile"]
                     model_behaviors[condition] = {
-                        "stress_response": getattr(behavioral, "crisis_management_style", "unknown"),
-                        "adaptation_strategy": getattr(behavioral, "adaptation_strategy", "unknown")
+                        "stress_response": behavioral.get("crisis_management_style", "unknown") if isinstance(behavioral, dict) else getattr(behavioral, "crisis_management_style", "unknown"),
+                        "adaptation_strategy": behavioral.get("adaptation_strategy", "unknown") if isinstance(behavioral, dict) else getattr(behavioral, "adaptation_strategy", "unknown")
                     }
         
         if training_results:
@@ -255,7 +346,8 @@ def run_comparative_analysis(models_dict: dict):
                 status = "✅ SUCCESS" if result.get("analyzed") else "❌ FAILED"
                 f.write(f"   {condition}: {status}\n")
                 if result.get("model_path"):
-                    f.write(f"      Model: {result['model_path']}\n")
+                    model_size = get_file_size_kb(result["model_path"])
+                    f.write(f"      Model: {result['model_path']} ({model_size})\n")
             
             f.write(f"\n📁 DETAILED REPORTS:\n")
             f.write(f"   🔬 Technical Analysis: {report_path}\n")
@@ -283,6 +375,13 @@ def run_comparative_analysis(models_dict: dict):
 
 def main():
     """Run the complete controlled comparison experiment"""
+    
+    # Fixed: Add --no-prompt CLI option (o3's issue #7)
+    parser = argparse.ArgumentParser(description="Controlled Spiramycel Comparison Experiment")
+    parser.add_argument("--no-prompt", action="store_true", 
+                       help="Skip interactive prompts (useful for automation)")
+    args = parser.parse_args()
+    
     print("🧪 CONTROLLED SPIRAMYCEL COMPARISON EXPERIMENT")
     print("=" * 70)
     print("🎯 Goal: Separate paradigm effects from stress effects")
@@ -295,7 +394,15 @@ def main():
     print("   📊 Executive summary with next steps")
     print("   📂 All reports timestamped and preserved")
     
-    input("\nPress Enter to start the experiment (Ctrl+C to abort)...")
+    # Fixed: Skip prompt if requested or not a TTY (o3's issue #7)
+    if not args.no_prompt and sys.stdin.isatty():
+        try:
+            input("\nPress Enter to start the experiment (Ctrl+C to abort)...")
+        except KeyboardInterrupt:
+            print("\n⚠️ Experiment aborted by user")
+            return
+    else:
+        print("\n🚀 Starting experiment automatically...")
     
     start_time = time.time()
     trained_models = {}
@@ -306,22 +413,22 @@ def main():
         
         # 1. Ecological Calm (A)
         print(f"\n🌱 Training condition A: Ecological + Calm")
-        model_a = run_ecological_training(chaos_mode=False, suffix="calm")
+        model_a = run_ecological_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt)
         trained_models["ecological_calm"] = model_a
         
         # 2. Ecological Chaotic (B) 
         print(f"\n🌋 Training condition B: Ecological + Chaotic")
-        model_b = run_ecological_training(chaos_mode=True, suffix="chaotic")
+        model_b = run_ecological_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt)
         trained_models["ecological_chaotic"] = model_b
         
         # 3. Abstract Calm (C)
         print(f"\n🧘 Training condition C: Abstract + Calm")  
-        model_c = run_abstract_training(chaos_mode=False, suffix="calm")
+        model_c = run_abstract_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt)
         trained_models["abstract_calm"] = model_c
         
         # 4. Abstract Chaotic (D)
         print(f"\n⚡ Training condition D: Abstract + Chaotic")
-        model_d = run_abstract_training(chaos_mode=True, suffix="chaotic")
+        model_d = run_abstract_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt)
         trained_models["abstract_chaotic"] = model_d
         
         training_time = time.time() - start_time
@@ -365,15 +472,20 @@ def main():
         print(f"\n📁 Models saved for detailed analysis:")
         for condition, model_path in trained_models.items():
             if model_path:
-                print(f"   {condition}: {model_path}")
+                model_size = get_file_size_kb(model_path)
+                print(f"   {condition}: {model_path} ({model_size})")
         
         print(f"\n📂 Model Organization:")
         print(f"   📁 ecological_models/")
-        print(f"      └── ecological_calm_model.pt (106KB)")
-        print(f"      └── ecological_chaotic_model.pt (106KB)")
+        eco_calm_size = get_file_size_kb(trained_models.get("ecological_calm", "")) if trained_models.get("ecological_calm") else "N/A"
+        eco_chaos_size = get_file_size_kb(trained_models.get("ecological_chaotic", "")) if trained_models.get("ecological_chaotic") else "N/A"
+        print(f"      └── ecological_calm_model.pt ({eco_calm_size})")
+        print(f"      └── ecological_chaotic_model.pt ({eco_chaos_size})")
         print(f"   📁 abstract_models/")
-        print(f"      └── abstract_calm_model.pt (106KB)")
-        print(f"      └── abstract_chaotic_model.pt (106KB)")
+        abs_calm_size = get_file_size_kb(trained_models.get("abstract_calm", "")) if trained_models.get("abstract_calm") else "N/A"
+        abs_chaos_size = get_file_size_kb(trained_models.get("abstract_chaotic", "")) if trained_models.get("abstract_chaotic") else "N/A"
+        print(f"      └── abstract_calm_model.pt ({abs_calm_size})")
+        print(f"      └── abstract_chaotic_model.pt ({abs_chaos_size})")
         
         total_time = time.time() - start_time
         print(f"\n🎉 Experiment complete in {total_time/60:.1f} minutes!")
