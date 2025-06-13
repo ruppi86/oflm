@@ -1357,7 +1357,7 @@ The codebase represents a complete, functional implementation of the contemplati
 ```
 **Suggested Citation:**
 
-Langell, R., Claude 4 Sonnet, ChatGPT-4o, and o3 (2025). *Contemplative AI at Femto-Scale: The World’s First 2×2 Study of Paradigm and Environmental Effect*. Zenodo. https://doi.org/10.5281/zenodo.15657084
+Langell, R., Claude 4 Sonnet, ChatGPT-4o, and o3 (2025). *Contemplative AI at Femto-Scale: A 2×2 Experimental Validation of Contemplative AI Under Stress*. Zenodo. https://doi.org/10.5281/zenodo.15657084
 
 ```
 
