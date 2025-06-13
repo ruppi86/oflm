@@ -1,55 +1,51 @@
 #!/usr/bin/env python3
+"""
+Test script for the most recent Spiramycel neural model
+"""
 
+from spiramycel.neural_trainer import SpiramycelNeuralModel
+from spiramycel.spore_codec import SpiramycelGlyphCodec
 import torch
-from neural_trainer import SpiramycelNeuralModel
-import json
 
 def test_recent_model():
-    print("🔍 Testing Ultra-Calm Ecological Model Results:")
-    print("=" * 60)
+    print("🦠 Testing most recent Spiramycel model...")
     
-    try:
-        # Load the most recent model with correct parameters (66 = 64 glyphs + START + END)
-        model = SpiramycelNeuralModel(vocab_size=66, force_cpu_mode=True)
-        model.load_state_dict(torch.load('spiramycel_model_final.pt', map_location='cpu'))
-        model.eval()
-        
-        print("✅ Model loaded successfully!")
-        print(f"📊 Model parameters: {sum(p.numel() for p in model.parameters()):,}")
-        
-        # Basic model info
-        print("\n🧠 Model Architecture:")
-        print(f"   Vocab size: {model.vocab_size}")
-        print(f"   Embed dim: {model.embed_dim}")
-        print(f"   Hidden dim: {model.hidden_dim}")
-        print(f"   Model type: {model.model_type}")
-        print(f"   Total parameters: {sum(p.numel() for p in model.parameters()):,}")
-        
-        # Check if this looks like the femto architecture we were using
-        expected_params = 25636  # femto architecture
-        actual_params = sum(p.numel() for p in model.parameters())
-        
-        if abs(actual_params - expected_params) < 1000:
-            print(f"✅ Confirmed: This appears to be the femto architecture ({actual_params:,} ≈ {expected_params:,})")
-        else:
-            print(f"⚠️  Parameter count {actual_params:,} differs from expected femto {expected_params:,}")
-            
-        print("\n🌱 This model was trained on ultra-calm ecological scenarios:")
-        print("   • 70% thriving ecosystem scenarios (high silence 0.8-0.95)")
-        print("   • 20% minor maintenance scenarios")
-        print("   • 10% crisis scenarios")
-        print("   • Training data: 99.5% high silence scenarios")
-        print("   • Average silence in training: 0.990")
-        
-        print(f"\n🎯 BREAKTHROUGH RESULT:")
-        print(f"   Epoch 1 Silence: 42.87%")
-        print(f"   This proves dataset construction was the key factor!")
-        
-    except Exception as e:
-        print(f"❌ Error loading model: {e}")
-        return False
-        
-    return True
+    # Create model (using correct vocab_size=67)
+    model = SpiramycelNeuralModel(vocab_size=67, force_cpu_mode=True)
+    print(f"✓ Model created successfully")
+    print(f"   Model type: {model.model_type}")
+    print(f"   Embed dim: {model.embed_dim}")
+    print(f"   Hidden dim: {model.hidden_dim}")
+    print(f"   Vocab size: {model.vocab_size}")
+    print(f"   Parameters: {model.count_parameters():,}")
+    
+    # Test tokenization
+    codec = SpiramycelGlyphCodec()
+    print(f"✓ Codec vocab size: {len(codec.vocab)}")
+    
+    # Simple forward pass test
+    batch_size = 2
+    sequence_length = 8
+    condition_dim = 8
+    
+    # Create dummy inputs
+    glyph_tokens = torch.randint(0, model.vocab_size, (batch_size, sequence_length))
+    conditions = torch.randn(batch_size, condition_dim)
+    
+    print(f"✓ Testing forward pass...")
+    print(f"   Input shape: {glyph_tokens.shape}")
+    print(f"   Conditions shape: {conditions.shape}")
+    
+    # Forward pass
+    with torch.no_grad():
+        glyph_logits, eff_logits, silence_logits, h1, h2 = model(glyph_tokens, conditions)
+    
+    print(f"✓ Forward pass successful!")
+    print(f"   Glyph logits shape: {glyph_logits.shape}")
+    print(f"   Effectiveness logits shape: {eff_logits.shape}")  
+    print(f"   Silence logits shape: {silence_logits.shape}")
+    
+    print("🎉 Recent model test complete!")
 
 if __name__ == "__main__":
     test_recent_model() 

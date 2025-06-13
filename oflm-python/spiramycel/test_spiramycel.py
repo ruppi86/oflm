@@ -10,6 +10,8 @@ Tests all three components working together:
 Demonstrates the mycelial network repair cycle.
 """
 
+from pathlib import Path
+
 try:
     from glyph_codec import SpiramycelGlyphCodec
     from spore_map import SporeMapLedger, Season
@@ -24,10 +26,14 @@ def test_complete_spiramycel_system():
     print("🍄 Complete Spiramycel System Test")
     print("=" * 60)
     
+    # Ensure test data directory exists
+    test_data_dir = Path("data/test_data")
+    test_data_dir.mkdir(parents=True, exist_ok=True)
+    
     # Initialize all components
     codec = SpiramycelGlyphCodec()
-    spore_ledger = SporeMapLedger("test_mycelial_repairs.jsonl")
-    patcher = SpiramycelRuntimePatcher("test_network_patches.jsonl")
+    spore_ledger = SporeMapLedger(test_data_dir / "test_mycelial_repairs.jsonl")
+    patcher = SpiramycelRuntimePatcher(test_data_dir / "test_network_patches.jsonl")
     
     # 1. Generate contemplative breath pattern
     print("\n🌸 1. Contemplative Breath Generation")

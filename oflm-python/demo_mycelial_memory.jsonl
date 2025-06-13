@@ -1,1 +1,0 @@
-{"timestamp": 1749625359.0972664, "sensor_deltas": {"latency": -0.1, "voltage": 0.05, "temperature": -1.5}, "glyph_sequence": [1, 49], "repair_effectiveness": 0.82, "bioregion": "demo_meadow", "decay_age": 0.0, "season": "summer", "network_id": "spiramycel_node", "spore_quality": 0.9199999999999999, "chosen": false, "parent_spores": null}

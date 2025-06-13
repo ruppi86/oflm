@@ -46,8 +46,8 @@ class SpiramycelUnifiedAnalyzer:
         self.results_history = []
         
     def start_unified_analysis(self, 
-                             ecological_model_path: str = "ecological_spiramycel_femto.pt",
-                             abstract_model_path: str = "spiramycel_model_final.pt",
+                             ecological_model_path: str = "ecological_models/ecological_spiramycel_latest.pt",
+                             abstract_model_path: str = "abstract_models/abstract_spiramycel_latest.pt",
                              enable_realtime_monitoring: bool = True):
         """Start comprehensive analysis of both models"""
         
@@ -339,13 +339,17 @@ class SpiramycelUnifiedAnalyzer:
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
+        # Ensure results directories exist
+        Path("results/analysis").mkdir(parents=True, exist_ok=True)
+        Path("results/reports").mkdir(parents=True, exist_ok=True)
+        
         # Save JSON data
-        json_path = f"unified_analysis_{timestamp}.json"
+        json_path = f"results/analysis/unified_analysis_{timestamp}.json"
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(asdict(results), f, indent=2)
         
         # Save human-readable report
-        report_path = f"unified_report_{timestamp}.txt"
+        report_path = f"results/reports/unified_report_{timestamp}.txt"
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write("🍄 SPIRAMYCEL UNIFIED ANALYSIS REPORT\n")
             f.write("=" * 80 + "\n")
@@ -414,8 +418,8 @@ def unified_analysis_demo():
     
     # Start analysis (in demo mode, models may not exist)
     analyzer.start_unified_analysis(
-        ecological_model_path="demo_ecological.pt",
-        abstract_model_path="demo_abstract.pt",
+        ecological_model_path="ecological_models/demo_ecological.pt",
+        abstract_model_path="abstract_models/demo_abstract.pt",
         enable_realtime_monitoring=True
     )
     

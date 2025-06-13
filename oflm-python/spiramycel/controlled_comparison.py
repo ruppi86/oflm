@@ -27,7 +27,7 @@ import sys
 try:
     # Try package imports first
     from training_scenarios.ecological_data_generator import EcologicalDataGenerator
-    from generate_abstract_data import AbstractDataGenerator
+    from data.training_scenarios.generate_abstract_data import AbstractDataGenerator
     from ecological_training import train_ecological_model  
     from abstract_training import train_abstract_model
     
@@ -44,6 +44,7 @@ except ImportError:
     # Fallback: Add parent directory to path for relative imports
     sys.path.append(str(Path(__file__).resolve().parent))
     try:
+        # If package imports fail, try direct imports
         sys.path.append(str(Path(__file__).resolve().parent / 'training_scenarios'))
         
         from ecological_data_generator import EcologicalDataGenerator
@@ -478,7 +479,13 @@ def run_comparative_analysis(models_dict: dict):
         comparative_report = analyzer.generate_full_report()
         
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        report_path = f"controlled_comparison_analysis_{timestamp}.txt"
+        
+        # Ensure results directories exist
+        Path("results/analysis").mkdir(parents=True, exist_ok=True)
+        Path("results/reports").mkdir(parents=True, exist_ok=True)
+        Path("results/statistical_analysis").mkdir(parents=True, exist_ok=True)
+        
+        report_path = f"results/analysis/controlled_comparison_analysis_{timestamp}.txt"
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write("🧪 CONTROLLED COMPARISON EXPERIMENT - COMPREHENSIVE ANALYSIS\n")
             f.write("=" * 80 + "\n")
@@ -522,7 +529,7 @@ def run_comparative_analysis(models_dict: dict):
             philosophical_report = philosophical.generate_contemplative_report()
             
             # Save philosophical report
-            philosophical_path = f"controlled_comparison_philosophy_{timestamp}.txt"
+            philosophical_path = f"results/reports/controlled_comparison_philosophy_{timestamp}.txt"
             with open(philosophical_path, 'w', encoding='utf-8') as f:
                 f.write("🧘 CONTROLLED COMPARISON - PHILOSOPHICAL IMPLICATIONS\n")
                 f.write("=" * 80 + "\n")
@@ -546,7 +553,7 @@ def run_comparative_analysis(models_dict: dict):
         
         # 3. Summary Report
         print("📋 Generating executive summary...")
-        summary_path = f"controlled_comparison_summary_{timestamp}.txt"
+        summary_path = f"results/reports/controlled_comparison_summary_{timestamp}.txt"
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write("📊 CONTROLLED COMPARISON EXPERIMENT - EXECUTIVE SUMMARY\n")
             f.write("=" * 70 + "\n")
@@ -579,6 +586,9 @@ def run_comparative_analysis(models_dict: dict):
         
         print(f"\n🎉 COMPREHENSIVE ANALYSIS COMPLETE!")
         print(f"📂 Three detailed reports generated with timestamp {timestamp}")
+        print(f"   📊 Analysis: results/analysis/")
+        print(f"   📋 Reports: results/reports/")
+        print(f"   📈 Statistics: results/statistical_analysis/")
         
     except Exception as e:
         print(f"❌ Error generating reports: {e}")

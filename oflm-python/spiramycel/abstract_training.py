@@ -208,16 +208,21 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
     
     # Save model
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_path = f"abstract_spiramycel_{timestamp}.pt"
+    
+    # Ensure abstract_models directory exists
+    abstract_models_dir = Path("abstract_models")
+    abstract_models_dir.mkdir(exist_ok=True)
+    
+    model_path = abstract_models_dir / f"abstract_spiramycel_{timestamp}.pt"
     torch.save(model.state_dict(), model_path)
     
     print(f"💾 Model saved to {model_path}")
     
     # Also create a "latest" symlink for easy access
-    latest_path = "abstract_spiramycel_latest.pt"
+    latest_path = abstract_models_dir / "abstract_spiramycel_latest.pt"
     try:
-        if Path(latest_path).exists():
-            Path(latest_path).unlink()
+        if latest_path.exists():
+            latest_path.unlink()
         # On Windows, copy instead of symlink
         shutil.copy2(model_path, latest_path)
         print(f"📎 Latest model link: {latest_path}")

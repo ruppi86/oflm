@@ -3,11 +3,11 @@
 Ecological Data Generator for Spiramycel Training
 
 Generates realistic spore echoes based on actual ecological scenarios:
-- Drought-stressed eucalyptus forest (Australia)
-- Rice paddy ecosystem (Guangzhou, China) 
+- Drought‑stressed eucalyptus forest (Australia)
+- Rice paddy ecosystem (Guangzhou, China)
 - Groundwater monitoring (Sweden)
 
-Each scenario includes multi-generational patterns, seasonal cycles,
+Each scenario includes multi‑generational patterns, seasonal cycles,
 and real bioregional adaptation strategies.
 
 Includes o3's stability fixes for robust data generation.
@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Any, Optional
 from dataclasses import dataclass
 
+
 @dataclass
 class NetworkConditions:
     """Represents current network conditions for spore echo generation"""
@@ -33,20 +34,17 @@ class NetworkConditions:
     repair_urgency: float
     historical_context: str
 
+
 class EcologicalDataGenerator:
     """Generates realistic ecological training data for Spiramycel with stability improvements"""
-    
-    def __init__(self, scenarios_dir: str = None, random_seed: Optional[int] = None):
-        """Initialize with scenario definitions and optional reproducible seed"""
-        if scenarios_dir is None:
-            scenarios_dir = Path(__file__).parent
-        else:
-            scenarios_dir = Path(scenarios_dir)
-            
+
+    def __init__(self, scenarios_dir: str | None = None, random_seed: Optional[int] = None):
+        """Initialise with scenario definitions and optional reproducible seed"""
+        scenarios_dir = Path(scenarios_dir) if scenarios_dir else Path(__file__).parent
         self.scenarios_dir = scenarios_dir
-        self.scenarios = {}
-        
-        # Set reproducible random seed if provided
+        self.scenarios: Dict[str, Dict[str, Any]] = {}
+
+        # Optional reproducibility
         if random_seed is not None:
             random.seed(random_seed)
             np.random.seed(random_seed)
@@ -54,157 +52,371 @@ class EcologicalDataGenerator:
             print(f"🌱 Random seed set to {random_seed} for reproducible ecological generation")
         else:
             self.random_seed = None
-            
-        # Multi-generational time tracking
+
+        # Simulation calendar
         self.base_year = 2024
-        self.simulation_years = 50  # 50-year simulation
-        
-        # Track unknown combinations for debugging
-        self.unknown_seasonal_combos = set()
-        
+        self.simulation_years = 50  # 50‑year simulation window
+
+        # Diagnostics
+        self.unknown_seasonal_combos: set[Tuple[str, Tuple[str, ...]]] = set()
+
         self.load_scenarios()
-        
+
+    # ---------------------------------------------------------------------
+    # Scenario loading
+    # ---------------------------------------------------------------------
     def load_scenarios(self):
         """Load all scenario JSON files with robust error handling"""
         scenario_files = [
             "drought_landscape_australia.json",
-            "rice_paddy_guangzhou.json", 
-            "groundwater_sweden.json"
+            "rice_paddy_guangzhou.json",
+            "groundwater_sweden.json",
         ]
-        
-        loaded_count = 0
-        for scenario_file in scenario_files:
+
+        loaded = 0
+        for fname in scenario_files:
+            fpath = self.scenarios_dir / fname
+            if not fpath.exists():
+                print(f"⚠ Warning: Scenario file not found: {fpath}")
+                continue
             try:
-                scenario_path = self.scenarios_dir / scenario_file
-                if not scenario_path.exists():
-                    print(f"⚠ Warning: Scenario file not found: {scenario_path}")
-                    continue
-                    
-                with open(scenario_path, 'r', encoding='utf-8') as f:
-                    scenario = json.load(f)
-                    
-                # Validate required fields
-                required_fields = ['scenario_id', 'name', 'bioregion', 'ecosystem_type']
-                if not all(field in scenario for field in required_fields):
-                    print(f"⚠ Warning: {scenario_file} missing required fields: {required_fields}")
-                    continue
-                    
-                self.scenarios[scenario['scenario_id']] = scenario
-                print(f"✓ Loaded scenario: {scenario['name']}")
-                loaded_count += 1
-                
+                with open(fpath, "r", encoding="utf‑8") as fh:
+                    scenario = json.load(fh)
             except json.JSONDecodeError as e:
-                print(f"⚠ Warning: Invalid JSON in {scenario_file}: {e}")
+                print(f"⚠ Warning: Invalid JSON in {fname}: {e}")
+                continue
             except Exception as e:
-                print(f"⚠ Warning: Could not load {scenario_file}: {e}")
-        
-        # Fixed: Validate that scenarios were loaded (o3's issue #2)
+                print(f"⚠ Warning: Could not load {fname}: {e}")
+                continue
+
+            # Minimal schema check
+            required = {"scenario_id", "name", "bioregion", "ecosystem_type"}
+            if not required.issubset(scenario):
+                print(f"⚠ Warning: {fname} missing required fields: {required}")
+                continue
+
+            self.scenarios[scenario["scenario_id"]] = scenario
+            print(f"✓ Loaded scenario: {scenario['name']}")
+            loaded += 1
+
         if not self.scenarios:
-            raise FileNotFoundError("No scenario JSON files loaded – check path and file existence. "
-                                   f"Expected files in {self.scenarios_dir}: {scenario_files}")
-        
-        print(f"📊 Successfully loaded {loaded_count} scenarios")
-    
-    def get_season_for_month(self, scenario: Dict, month: int) -> str:
-        """Determine which season a month belongs to in the scenario (fixed transition logic)"""
-        for season_name, season_data in scenario['seasonal_cycles'].items():
-            if season_name == "transition_periods":
-                # Handle nested transition periods (o3's issue #3)
-                if isinstance(season_data, dict):
-                    for sub_season, sub_data in season_data.items():
-                        if 'months' in sub_data and isinstance(sub_data['months'], list):
-                            if month in sub_data['months']:
-                                return sub_season  # Return "autumn" or "spring" instead of "transition"
-            else:
-                # Handle direct seasons
-                if 'months' in season_data and isinstance(season_data['months'], list):
-                    if month in season_data['months']:
-                        return season_name
-        
-        # Fixed: More specific fallback logic
-        # If month is not found, try to map to reasonable seasons
-        if month in [3, 4, 5]:  # Spring months
-            return "spring"
-        elif month in [6, 7, 8]:  # Summer months
-            return "summer"
-        elif month in [9, 10, 11]:  # Autumn months
-            return "autumn"
-        elif month in [12, 1, 2]:  # Winter months
-            return "winter"
-        else:
-            return "transition"  # Only as last resort
-    
-    def simulate_sensor_readings(self, scenario: Dict, season: str, year_in_cycle: int, 
-                                extreme_event: str = None) -> Dict[str, float]:
-        """Generate realistic sensor readings based on scenario and conditions"""
-        readings = {}
-        sensor_mappings = scenario['sensor_mappings']
-        season_data = scenario['seasonal_cycles'].get(season, {})
-        
-        for sensor_type, ranges in sensor_mappings.items():
-            # Base reading from seasonal patterns
-            if season_data:
-                base_reading = self._get_seasonal_baseline(sensor_type, season_data)
-            else:
-                base_reading = 0.5  # neutral default
-            
-            # Apply multi-generational patterns
-            reading = self._apply_generational_patterns(
-                base_reading, scenario, sensor_type, year_in_cycle
+            raise FileNotFoundError(
+                "No scenario JSON files loaded – check path and file existence."
             )
-            
-            # Apply extreme events
+        print(f"📊 Successfully loaded {loaded} scenarios")
+
+    # ------------------------------------------------------------------
+    # Season mapping helpers
+    # ------------------------------------------------------------------
+    def get_season_for_month(self, scenario: Dict[str, Any], month: int) -> str:
+        """Return the season string for a given month according to scenario meta."""
+        for season_name, season_data in scenario["seasonal_cycles"].items():
+            if season_name == "transition_periods" and isinstance(season_data, dict):
+                for sub, sub_data in season_data.items():
+                    if month in sub_data.get("months", []):
+                        return sub  # autumn / spring
+            else:
+                if month in season_data.get("months", []):
+                    return season_name
+
+        # Fallback heuristics
+        if month in (3, 4, 5):
+            return "spring"
+        if month in (6, 7, 8):
+            return "summer"
+        if month in (9, 10, 11):
+            return "autumn"
+        return "winter"  # months 12,1,2
+
+    # ------------------------------------------------------------------
+    # Sensor simulation helpers
+    # ------------------------------------------------------------------
+    def simulate_sensor_readings(
+        self,
+        scenario: Dict[str, Any],
+        season: str,
+        year_in_cycle: int,
+        extreme_event: str | None = None,
+    ) -> Dict[str, float]:
+        """Generate realistic sensor readings for a scenario / season."""
+        readings: Dict[str, float] = {}
+        sensor_mappings = scenario["sensor_mappings"]
+        season_data = scenario["seasonal_cycles"].get(season, {})
+
+        for sensor_type in sensor_mappings:
+            base = self._get_seasonal_baseline(sensor_type, season_data)
+            val = self._apply_generational_patterns(base, scenario, sensor_type, year_in_cycle)
             if extreme_event:
-                reading = self._apply_extreme_event(reading, extreme_event, sensor_type)
-            
-            # Add natural variation
-            reading += random.gauss(0, 0.05)  # 5% standard deviation
-            readings[sensor_type] = max(0.0, min(1.0, reading))
-            
+                val = self._apply_extreme_event(val, extreme_event, sensor_type)
+            # small stochasticity
+            val += random.gauss(0, 0.05)
+            readings[sensor_type] = max(0.0, min(1.0, val))
         return readings
-    
+
+     # ----------------------------------------------------------------------
+    #  Seasonal baseline table – unified & exhaustively extended
+    # ----------------------------------------------------------------------
     def _get_seasonal_baseline(self, sensor_type: str, season_data: Dict) -> float:
-        """Get seasonal baseline for sensor type with unknown combo logging"""
-        # Map season descriptions to sensor readings
-        baselines = {
-            'soil_moisture': {
-                'high': 0.7, 'moderate': 0.5, 'low': 0.3, 'very_low': 0.15,
-                'flooded': 0.9, 'drained': 0.2
+        """
+        Map (sensor_type, seasonal-descriptor) → [0.0-1.0] baseline.
+
+        • First try direct lookup (season_data[sensor_type]).
+        • Then try alias-resolved key.
+        • Then scan **all scalar values** in season_data for a match
+          (handles patterns like  {"recharge_rate": "slow"}  etc.).
+        • Falls back to 0.5 and logs once per unseen combo.
+        """
+
+        # ---------- 1. comprehensive baseline mapping table --------
+        baselines: Dict[str, Dict[str, float]] = {
+            # Soil moisture sensor
+            "soil_moisture": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "drought_risk": 0.2, "drought_severe": 0.1, "drought_extreme": 0.05,
+                "wet": 0.8, "dry": 0.2, "optimal": 0.6, "saturated": 0.95,
+                "fungal_activity": 0.6, "rainfall_probability": 0.7
             },
-            'water_level': {
-                'flooded': 0.8, 'high': 0.7, 'normal': 0.5, 'low': 0.3, 'drought': 0.1
+            
+            # Nitrogen/nutrient sensors
+            "nitrogen_concentration": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "depleted": 0.15, "optimal": 0.6, "excessive": 0.9,
+                "nutrient_flow": 0.6, "nutrient_transport": 0.7, "nutrient_availability": 0.65,
+                "bacterial_activity": 0.7, "flooding_status": 0.8
             },
-            'nutrient_nitrogen': {
-                'abundant': 0.8, 'high': 0.7, 'moderate': 0.5, 'low': 0.3, 'very_low': 0.2
+            
+            "nutrient_nitrogen": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "depleted": 0.15, "optimal": 0.6, "excessive": 0.9,
+                "nutrient_flow": 0.6, "nutrient_transport": 0.7, "nutrient_availability": 0.65,
+                "bacterial_activity": 0.7, "flooding_status": 0.8, "fungal_activity": 0.6,
+                "rainfall_probability": 0.7
             },
-            'nutrient_phosphorus': {
-                'abundant': 0.8, 'high': 0.7, 'moderate': 0.5, 'low': 0.3, 'very_low': 0.2
+            
+            # Phosphorus sensors
+            "phosphorus_availability": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "depleted": 0.15, "optimal": 0.6, "excessive": 0.85,
+                "nutrient_flow": 0.6, "nutrient_transport": 0.7, "nutrient_availability": 0.65,
+                "bacterial_activity": 0.7, "flooding_status": 0.8
             },
-            'temperature': {
-                'optimal': 0.6, 'cold': 0.2, 'warm': 0.8, 'frozen': 0.0, 'hot': 1.0
+            
+            "nutrient_phosphorus": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "depleted": 0.15, "optimal": 0.6, "excessive": 0.85,
+                "nutrient_flow": 0.6, "nutrient_transport": 0.7, "nutrient_availability": 0.65,
+                "bacterial_activity": 0.7, "flooding_status": 0.8, "fungal_activity": 0.6,
+                "rainfall_probability": 0.7
             },
-            'root_connections': {
-                'dense': 0.8, 'healthy': 0.7, 'moderate': 0.5, 'sparse': 0.3, 'damaged': 0.1
+            
+            # Temperature sensor
+            "temperature": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "cold": 0.2, "cool": 0.35, "warm": 0.65, "hot": 0.85, "extreme": 0.95,
+                "optimal": 0.5, "stress": 0.8, "freezing": 0.05,
+                "contamination_risk": 0.6, "nutrient_transport": 0.5, "recharge_rate": 0.4,
+                "bacterial_activity": 0.6, "flooding_status": 0.5, "nutrient_flow": 0.5,
+                "fungal_activity": 0.6, "rainfall_probability": 0.5
+            },
+            
+            # Water level sensors
+            "water_level": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "flood": 0.95, "drought": 0.1, "normal": 0.5, "optimal": 0.6,
+                "bacterial_activity": 0.7, "flooding_status": 0.8, "nutrient_flow": 0.6
+            },
+            
+            "water_table_level": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "depleted": 0.15, "recharged": 0.8, "optimal": 0.6, "saturated": 0.9,
+                "contamination_risk": 0.4, "nutrient_transport": 0.6, "recharge_rate": 0.3,
+                "slow": 0.3, "fast": 0.8, "normal": 0.5
+            },
+            
+            # Contamination sensors
+            "nitrate_concentration": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "safe": 0.2, "elevated": 0.7, "dangerous": 0.9, "optimal": 0.3,
+                "contamination_risk": 0.6, "nutrient_transport": 0.7, "recharge_rate": 0.5
+            },
+            
+            "heavy_metal_levels": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "safe": 0.1, "elevated": 0.6, "dangerous": 0.9, "toxic": 0.95,
+                "contamination_risk": 0.7, "nutrient_transport": 0.3, "recharge_rate": 0.4
+            },
+            
+            # Biological activity sensors
+            "bacterial_activity": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "dormant": 0.1, "active": 0.7, "optimal": 0.6, "stressed": 0.3,
+                "contamination_risk": 0.4, "nutrient_transport": 0.7, "recharge_rate": 0.5,
+                "bacterial_activity": 0.6, "flooding_status": 0.7, "nutrient_flow": 0.7
+            },
+            
+            "bacterial_balance": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "poor": 0.2, "good": 0.7, "optimal": 0.8, "excellent": 0.9,
+                "bacterial_activity": 0.7, "flooding_status": 0.6, "nutrient_flow": 0.7
+            },
+            
+            # pH stability
+            "ph_stability": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "acidic": 0.2, "neutral": 0.5, "alkaline": 0.8, "optimal": 0.6,
+                "contamination_risk": 0.4, "nutrient_transport": 0.5, "recharge_rate": 0.5
+            },
+            
+            # Rice paddy specific sensors
+            "methane_production": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "minimal": 0.2, "normal": 0.5, "elevated": 0.8, "excessive": 0.95,
+                "bacterial_activity": 0.7, "flooding_status": 0.8, "nutrient_flow": 0.6
+            },
+            
+            "rice_health": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "poor": 0.2, "fair": 0.4, "good": 0.7, "excellent": 0.9,
+                "bacterial_activity": 0.6, "flooding_status": 0.7, "nutrient_flow": 0.7
+            },
+            
+            # Forest ecosystem sensors
+            "competitor_pressure": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "minimal": 0.2, "light": 0.4, "moderate": 0.6, "heavy": 0.8, "extreme": 0.95,
+                "fungal_activity": 0.6, "nutrient_availability": 0.5, "rainfall_probability": 0.6
+            },
+            
+            "root_connections": {
+                "very_low": 0.1, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 0.9,
+                "poor": 0.2, "fair": 0.4, "good": 0.7, "excellent": 0.9, "optimal": 0.8,
+                "fungal_activity": 0.7, "nutrient_availability": 0.6, "rainfall_probability": 0.5
+            },
+            
+            # Generic seasonal descriptors to baseline mappings
+            "contamination_risk": {
+                "contamination_risk": 0.6, "nutrient_transport": 0.5, "recharge_rate": 0.4,
+                "bacterial_activity": 0.4, "flooding_status": 0.7, "nutrient_flow": 0.5
+            },
+            
+            "nutrient_transport": {
+                "contamination_risk": 0.5, "nutrient_transport": 0.7, "recharge_rate": 0.6,
+                "bacterial_activity": 0.7, "flooding_status": 0.8, "nutrient_flow": 0.8
+            },
+            
+            "recharge_rate": {
+                "contamination_risk": 0.4, "nutrient_transport": 0.6, "recharge_rate": 0.5,
+                "slow": 0.3, "moderate": 0.5, "fast": 0.8, "rapid": 0.9
+            },
+            
+            "flooding_status": {
+                "bacterial_activity": 0.7, "flooding_status": 0.8, "nutrient_flow": 0.6,
+                "flooded": 0.9, "normal": 0.5, "dry": 0.2
+            },
+            
+            "nutrient_flow": {
+                "bacterial_activity": 0.7, "flooding_status": 0.6, "nutrient_flow": 0.7,
+                "slow": 0.3, "moderate": 0.5, "fast": 0.8, "optimal": 0.6
+            },
+            
+            "fungal_activity": {
+                "fungal_activity": 0.6, "nutrient_availability": 0.6, "rainfall_probability": 0.5,
+                "low": 0.3, "moderate": 0.5, "high": 0.8, "optimal": 0.7
+            },
+            
+            "nutrient_availability": {
+                "fungal_activity": 0.6, "nutrient_availability": 0.6, "rainfall_probability": 0.7,
+                "low": 0.3, "moderate": 0.5, "high": 0.8, "optimal": 0.7
+            },
+            
+            "rainfall_probability": {
+                "fungal_activity": 0.5, "nutrient_availability": 0.7, "rainfall_probability": 0.6,
+                "low": 0.2, "moderate": 0.5, "high": 0.8, "very_high": 0.9
             }
         }
-        
-        # Extract activity/condition indicators from season data
-        for key, value in season_data.items():
-            # Skip list values (like months, ranges) which are not hashable
-            if isinstance(value, (list, dict)):
+
+        # ---------- 2. alias map (unchanged) -------------------------------
+        alias = {
+            "nutrient_nitrogen": "nitrogen_concentration",
+            "nutrient_phosphorus": "phosphorus_availability",
+            "water_table": "water_table_level",
+        }
+
+        # ---------- 3. direct + alias lookup -------------------------------
+        lookup_key = alias.get(sensor_type, sensor_type)
+        label_direct = season_data.get(sensor_type)
+        label_alias  = season_data.get(lookup_key)
+
+        if label_direct and lookup_key in baselines and label_direct in baselines[lookup_key]:
+            return baselines[lookup_key][label_direct]
+
+        if label_alias and lookup_key in baselines and label_alias in baselines[lookup_key]:
+            return baselines[lookup_key][label_alias]
+
+        # ---------- 4. fallback: scan all scalar *values* ------------------
+        if lookup_key in baselines:
+            for _, value in season_data.items():
+                # skip nested dicts / lists
+                if isinstance(value, (list, dict)):
+                    continue
+                if value in baselines[lookup_key]:
+                    return baselines[lookup_key][value]
+
+        # ---------- 5. enhanced fallback: try cross-seasonal descriptor matching --
+        # For seasonal descriptors that appear in season_data, try to find them in other baselines
+        for descriptor_key, descriptor_value in season_data.items():
+            if isinstance(descriptor_value, (list, dict)):
                 continue
-            
-            if sensor_type in baselines and value in baselines[sensor_type]:
-                return baselines[sensor_type][value]
+            # Look for this descriptor in any baseline category
+            for baseline_category, baseline_values in baselines.items():
+                if descriptor_key in baseline_values:
+                    return baseline_values[descriptor_key]
+                if descriptor_value in baseline_values:
+                    return baseline_values[descriptor_value]
+
+        # ---------- 6. sensor-specific fallback for empty seasonal data --------
+        # When no seasonal descriptors are found, provide reasonable defaults by sensor type
+        sensor_defaults = {
+            "soil_moisture": 0.5,           # moderate moisture
+            "nutrient_nitrogen": 0.6,       # good nitrogen levels
+            "nutrient_phosphorus": 0.55,    # good phosphorus
+            "temperature": 0.5,             # moderate temperature
+            "competitor_pressure": 0.4,     # moderate competition
+            "root_connections": 0.7,        # good root health
+            "water_level": 0.5,             # normal water level
+            "water_table_level": 0.5,       # normal water table
+            "nitrate_concentration": 0.3,   # safe nitrate levels
+            "heavy_metal_levels": 0.1,      # low contamination
+            "bacterial_activity": 0.6,      # healthy bacterial activity
+            "bacterial_balance": 0.7,       # good bacterial balance
+            "ph_stability": 0.5,            # neutral pH
+            "methane_production": 0.5,      # normal methane
+            "rice_health": 0.7,             # good rice health
+            "nitrogen_concentration": 0.6,  # good nitrogen (alias)
+            "phosphorus_availability": 0.55 # good phosphorus (alias)
+        }
         
-        # Fixed: Log unknown combinations for debugging (o3's issue #6)
-        combo_key = (sensor_type, tuple(sorted(k for k, v in season_data.items() 
-                                              if not isinstance(v, (list, dict)))))
+        if sensor_type in sensor_defaults:
+            return sensor_defaults[sensor_type]
+        
+        # Try alias lookup for defaults
+        if lookup_key in sensor_defaults:
+            return sensor_defaults[lookup_key]
+
+        # ---------- 7. still unknown → log once, return neutral ------------
+        combo_key = (
+            sensor_type,
+            tuple(sorted(k for k, v in season_data.items()
+                         if not isinstance(v, (list, dict))))
+        )
         if combo_key not in self.unknown_seasonal_combos:
             self.unknown_seasonal_combos.add(combo_key)
-            print(f"🔍 Unknown seasonal combo: sensor={sensor_type}, descriptors={combo_key[1]}")
-        
-        return 0.5  # default neutral
+            print(f"🔍 Unknown seasonal combo: sensor={sensor_type}, "
+                  f"descriptors={combo_key[1]}")
+        return 0.5
+
+
+
     
     def _apply_generational_patterns(self, base_reading: float, scenario: Dict, 
                                    sensor_type: str, year_in_cycle: int) -> float:

@@ -77,7 +77,7 @@ def load_trained_models():
     models = {}
     model_paths = {
         "ecological_calm": "ecological_models/ecological_calm_model.pt",
-        "ecological_chaotic": "ecological_models/ecological_chaotic_model.pt", 
+        "ecological_chaotic": "ecological_models/ecological_chaotic_model.pt",
         "abstract_calm": "abstract_models/abstract_calm_model.pt",
         "abstract_chaotic": "abstract_models/abstract_chaotic_model.pt"
     }
@@ -106,7 +106,7 @@ def load_trained_models():
 
 def load_ood_test_set():
     """Load the out-of-distribution test environments"""
-    ood_file = Path("ood_test_set.jsonl")
+    ood_file = Path("data/test_sets/ood_test_set.jsonl")
     if not ood_file.exists():
         raise FileNotFoundError(f"OOD test set not found: {ood_file}")
     
@@ -313,7 +313,9 @@ def analyze_stress_response(glyph_sequence, stress_signature, model_name):
 def generate_cross_validation_report(all_results, timestamp):
     """Generate comprehensive cross-validation analysis report"""
     
-    report_path = f"ood_cross_validation_report_{timestamp}.txt"
+    # Ensure results directories exist
+    Path("results/reports").mkdir(parents=True, exist_ok=True)
+    report_path = f"results/reports/ood_cross_validation_report_{timestamp}.txt"
     
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write("🧪 OUT-OF-DISTRIBUTION CROSS-VALIDATION EVALUATION\n")
@@ -535,8 +537,8 @@ def create_visualizations(all_results, statistical_results, timestamp):
     
     logging.info("📊 Creating scientific visualizations...")
     
-    viz_dir = Path("visualizations")
-    viz_dir.mkdir(exist_ok=True)
+    viz_dir = Path("results/visualizations")
+    viz_dir.mkdir(parents=True, exist_ok=True)
     
     created_plots = []
     
@@ -728,7 +730,7 @@ def create_visualizations(all_results, statistical_results, timestamp):
 def generate_statistical_report(all_results, statistical_results, visualizations, timestamp):
     """Generate enhanced cross-validation report with statistical analysis"""
     
-    report_path = f"ood_statistical_analysis_{timestamp}.txt"
+    report_path = f"results/reports/ood_statistical_analysis_{timestamp}.txt"
     
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write("🧪 OUT-OF-DISTRIBUTION STATISTICAL ANALYSIS\n")

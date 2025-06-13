@@ -44,7 +44,7 @@ except ImportError:
 # Constants for improved pad/start token handling
 START_TOKEN = 0x00    # Reserved for sequence start
 END_TOKEN = 0x41      # After our 64-glyph vocabulary  
-PAD_TOKEN = 0x42      # Dedicated padding token (avoids START collision)
+PAD_TOKEN = 0x42      # Dedicated padding token (matches saved models)
 
 @dataclass
 class NetworkConditions:
@@ -139,7 +139,7 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
     """
     
     def __init__(self, 
-                 vocab_size: int = 67,  # 64 glyphs + START + END + PAD
+                 vocab_size: int = 67,  # 64 glyphs + START + END + PAD (matches saved models)
                  embed_dim: int = None,
                  hidden_dim: int = None,
                  condition_dim: int = 8,

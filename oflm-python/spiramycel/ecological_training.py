@@ -245,7 +245,7 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
         )
         
         # Create dummy input tokens (using proper tokens)
-        dummy_input = torch.full((1, 15), PAD_TOKEN, dtype=torch.long)  # 15 = max_length - 1
+        dummy_input = torch.full((1, 15), PAD_TOKEN, dtype=torch.long)  # 15 = max_length - 1, use PAD_TOKEN  
         dummy_input[0, 0] = START_TOKEN  # Start with START token
         condition_tensor = torch.tensor(drought_conditions.to_condition_vector(), dtype=torch.float32).unsqueeze(0)
         
