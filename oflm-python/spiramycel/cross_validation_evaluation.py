@@ -32,8 +32,12 @@ except ImportError:
 # Visualization imports
 try:
     import matplotlib.pyplot as plt
-    import seaborn as sns
-    plt.style.use('seaborn-v0_8' if hasattr(plt.style, 'seaborn-v0_8') else 'default')
+    try:
+        import seaborn as sns
+        plt.style.use('seaborn-v0_8' if hasattr(plt.style, 'seaborn-v0_8') else 'default')
+    except ImportError:
+        # No seaborn available, just use matplotlib
+        plt.style.use('default')
     PLOTTING_AVAILABLE = True
 except ImportError:
     try:

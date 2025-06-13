@@ -46,6 +46,7 @@ except ImportError:
     try:
         # If package imports fail, try direct imports
         sys.path.append(str(Path(__file__).resolve().parent / 'training_scenarios'))
+        sys.path.append(str(Path(__file__).resolve().parent / 'data' / 'training_scenarios'))
         
         from ecological_data_generator import EcologicalDataGenerator
         from generate_abstract_data import AbstractDataGenerator

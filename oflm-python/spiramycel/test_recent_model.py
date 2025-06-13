@@ -4,7 +4,8 @@ Test script for the most recent Spiramycel neural model
 """
 
 from spiramycel.neural_trainer import SpiramycelNeuralModel
-from spiramycel.spore_codec import SpiramycelGlyphCodec
+#from spiramycel.spore_codec import SpiramycelGlyphCodec
+from spiramycel.glyph_codec import SpiramycelGlyphCodec
 import torch
 
 def test_recent_model():

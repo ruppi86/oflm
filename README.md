@@ -218,6 +218,147 @@ Traditional AI assumptions **CHALLENGED**:
 
 ---
 
+## 🛠️ Installation
+
+### **Quick Start**
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/haikumeadowlib.git
+cd haikumeadowlib
+
+# Install core dependencies
+pip install -r requirements.txt
+
+# Verify installation
+python -c "import torch, numpy, scipy, matplotlib; print('✅ All dependencies installed successfully!')"
+```
+
+### **Requirements Overview**
+
+| Component | Purpose | Size | Required? |
+|-----------|---------|------|-----------|
+| **torch** | Neural networks (CPU-optimized) | ~200MB | ✅ Required |
+| **numpy** | Numerical operations | ~15MB | ✅ Required |
+| **scipy** | Statistical analysis (t-tests, Mann-Whitney U) | ~30MB | ✅ Required |
+| **matplotlib** | Visualization & plotting | ~40MB | ✅ Required |
+| **seaborn** | Enhanced statistical plots | ~5MB | ✅ Required |
+
+**Total download**: ~290MB  
+**Disk space**: ~800MB installed  
+**Python version**: 3.8+ recommended
+
+### **Development Setup**
+
+For contributors and researchers who want the full development environment:
+
+```bash
+# Install development dependencies (includes linting, testing, documentation tools)
+pip install -r requirements-dev.txt
+
+# Verify development environment
+python -c "import black, flake8, pytest; print('✅ Development environment ready!')"
+```
+
+### **System Requirements**
+
+**Minimum (WHISPER breath preset)**:
+- **CPU**: Any x64 processor (2+ cores)
+- **RAM**: 1GB available
+- **Disk**: 2GB free space
+- **OS**: Windows 10+, macOS 10.15+, Linux
+
+**Recommended (STEADY breath preset)**:
+- **CPU**: Modern x64 processor (4+ cores) 
+- **RAM**: 4GB available
+- **Disk**: 5GB free space
+- **Python**: 3.9 or 3.10 (best compatibility)
+
+### **Platform-Specific Notes**
+
+**Windows**: 
+```bash
+# Use Python from Microsoft Store or python.org
+# Avoid conda if possible (PyTorch CPU works better with pip)
+pip install -r requirements.txt
+```
+
+**macOS**:
+```bash
+# Apple Silicon Macs work perfectly (native CPU optimization)
+pip install -r requirements.txt
+```
+
+**Linux**:
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install python3-pip
+pip install -r requirements.txt
+
+# Fedora/CentOS  
+sudo dnf install python3-pip
+pip install -r requirements.txt
+```
+
+### **Troubleshooting Installation**
+
+**Common Issues**:
+
+```bash
+# If PyTorch installation fails
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# If matplotlib has display issues (Linux headless)
+export MPLBACKEND=Agg
+pip install -r requirements.txt
+
+# If scipy fails to build
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+
+# Clean install (if dependencies conflict)
+pip uninstall -y torch numpy scipy matplotlib seaborn
+pip install -r requirements.txt
+```
+
+**Memory-Constrained Systems**:
+- Use `WHISPER` breath preset (1GB RAM)
+- Install dependencies one by one: `pip install torch` then `pip install numpy` etc.
+- Close other applications during training
+
+### **Verification Tests**
+
+After installation, verify everything works:
+
+```bash
+# Test core dependencies
+cd oflm-python/spiramycel/
+python test_recent_model.py        # Should output model architecture info
+
+# Test visualization capabilities  
+python -c "
+import matplotlib.pyplot as plt
+import seaborn as sns
+print('✅ Visualization ready')
+plt.plot([1,2,3])
+plt.savefig('test_plot.png')
+print('✅ Plotting works - test_plot.png created')
+"
+
+# Test statistical functions
+python -c "
+from scipy.stats import ttest_ind
+import numpy as np
+data1, data2 = np.random.randn(100), np.random.randn(100)
+t_stat, p_val = ttest_ind(data1, data2)
+print(f'✅ Statistical analysis ready: t={t_stat:.3f}, p={p_val:.3f}')
+"
+```
+
+If all tests pass, you're ready for contemplative AI experimentation! 🌸
+
+---
+
 ## 🚀 Getting Started
 
 ### **Experience the Complete Ecosystem**

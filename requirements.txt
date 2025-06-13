@@ -1,0 +1,23 @@
+# HaikuMeadowLib / Spiramycel Contemplative AI Project
+# Requirements for CPU-optimized femto-scale neural language models
+# Compatible with Python 3.8+
+
+# Core Machine Learning
+torch>=2.0.0,<3.0.0          # PyTorch for neural networks (CPU-optimized)
+numpy>=1.21.0,<2.0.0         # Numerical computing
+
+# Statistical Analysis  
+scipy>=1.9.0,<2.0.0          # Statistical functions (t-tests, Mann-Whitney U, etc.)
+
+# Data Visualization
+matplotlib>=3.5.0,<4.0.0     # Core plotting functionality
+seaborn>=0.11.0,<1.0.0       # Enhanced statistical visualizations
+
+# Development & Testing (Optional)
+pytest>=7.0.0,<8.0.0         # Unit testing framework
+pytest-cov>=4.0.0,<5.0.0     # Test coverage reports
+
+# Note: All built-in Python libraries are excluded from requirements:
+# - json, pathlib, datetime, collections, logging, argparse
+# - typing, dataclasses, enum, time, os, sys, random, threading
+# - asyncio, shutil, math, gc, signal 
