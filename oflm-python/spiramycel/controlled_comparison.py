@@ -759,7 +759,7 @@ def main():
         total_time = time.time() - start_time
         print(f"\n🎉 Experiment complete in {total_time/60:.1f} minutes!")
         print(f"🔬 Ready for detailed contemplative analysis!")
-        print(f"🌱 All four organic femto language models preserved!")
+        print(f"🌱 All four oscillatory femto language models preserved!")
         print(f"📋 Check the comprehensive analysis reports for deep insights!")
         print(f"\n📝 COMPLETE LOGGING DOCUMENTATION:")
         print(f"   📖 Main experiment log: {main_log_file}")

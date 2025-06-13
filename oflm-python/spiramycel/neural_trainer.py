@@ -5,7 +5,7 @@ Spiramycel Neural Trainer
 Adapts HaikuMeadowLib's training approach for mycelial network repair learning.
 Trains femto-scale models on spore echo datasets with contemplative principles.
 
-Part of the Organic Femto Language Model (OFLM) framework.
+Part of the oscillatory Femto Language Model (OFLM) framework.
 """
 
 import torch

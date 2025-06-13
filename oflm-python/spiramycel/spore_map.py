@@ -5,7 +5,7 @@ JSONL-based collection system for mycelial network repair echoes.
 Each spore echo represents the effectiveness of glyph-based repairs,
 creating a living memory substrate with 75-day evaporation cycles.
 
-Part of the Organic Femto Language Model (OFLM) framework.
+Part of the oscillatory Femto Language Model (OFLM) framework.
 Implements seasonal resonance for collective network healing.
 """
 

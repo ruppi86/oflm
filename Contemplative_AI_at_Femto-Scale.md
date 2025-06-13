@@ -33,9 +33,10 @@ Before proceeding with our scientific exploration, we establish precise definiti
 * **Tystnadsmajoritet**: The 87.5% structural silence principle — contemplative AI systems that choose non-response as default wisdom, learning when *not* to act
 * **Contemplative Agency**: The learned ability to discern appropriate inaction, treating silence as intelligence rather than failure
 * **Glyph Sequences**: 6-bit symbolic micro-actions (64-symbol vocabulary) that represent both technical repairs and contemplative states
-* **Spiramycel**: The underground nervous system for contemplative AI — our organic femto language model (OFLM) that practices mycelial network repair
+* **Spiramycel**: The underground nervous system for contemplative AI — our oscillatory femto language model (OFLM) that practices mycelial network repair
 * **Spore Maps**: Evaporating memory systems that model natural forgetting processes, supporting seasonal learning cycles
 * **Paradigm × Environment Interaction**: The core experimental framework testing how learning paradigms (Ecological vs Abstract) interact with environmental stress conditions
+* **Oscillatory**: Moving or characterized by motion, backward and forward like a pendulum; swinging; oscillating; vibratory; as, oscillatory motion. In this context, oscillatory models are those that oscillate between contemplation and action, rather than remaining static or moving in a single direction.
 
 These terms bridge contemplative philosophy with rigorous computer science, creating a new vocabulary for wisdom-centered artificial intelligence.
 
@@ -257,7 +258,7 @@ Where HaikuMeadowLib aimed to express meaning and emotion, Spiramycel channels t
 
 ### 🌿 The Spiramycel System Architecture
 
-Spiramycel is structured as a lightweight organic femto language model (OFLM), designed to operate with minimal parameters while maintaining the ability to adapt, heal, and remain silent when necessary.
+Spiramycel is structured as a lightweight oscillatory femto language model (OFLM), designed to operate with minimal parameters while maintaining the ability to adapt, heal, and remain silent when necessary.
 
 Its architecture consists of five key modules:
 

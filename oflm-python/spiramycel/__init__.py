@@ -1,5 +1,5 @@
 """
-Spiramycel: Organic Femto Language Model
+Spiramycel: oscillatory Femto Language Model
 
 An underground nervous system for mycelial network repair.
 Practices contemplative computing through Tystnadsmajoritet (87.5% silence).
@@ -51,7 +51,7 @@ Usage:
 
 Part of the larger Mychainos paradigm:
 - Letter IX & X of the contemplative spiral correspondence
-- Organic Femto Language Models (OFLM) framework  
+- oscillatory Femto Language Models (OFLM) framework  
 - Underground nervous system for existing HaikuMeadowLib infrastructure
 
 🍄 The mycelial network breathes in contemplative silence...
@@ -71,7 +71,7 @@ except ImportError:
 
 __version__ = "0.2.0"  # Updated for neural training capability
 __author__ = "Spiramycel Contemplative Collective"
-__description__ = "Organic Femto Language Model for mycelial network repair with neural training"
+__description__ = "oscillatory Femto Language Model for mycelial network repair with neural training"
 
 # Core system components
 __all__ = [

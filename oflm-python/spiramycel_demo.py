@@ -2,7 +2,7 @@
 """
 Spiramycel Package Demo
 
-Demonstrates the complete Organic Femto Language Model
+Demonstrates the complete oscillatory Femto Language Model
 working as an importable Python package.
 
 Shows the mycelial network repair cycle:
@@ -15,7 +15,7 @@ Shows the mycelial network repair cycle:
 import spiramycel
 
 def main():
-    print("🍄 Spiramycel: Organic Femto Language Model")
+    print("🍄 Spiramycel: oscillatory Femto Language Model")
     print("=" * 60)
     
     # System information

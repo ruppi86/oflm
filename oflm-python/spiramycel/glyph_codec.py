@@ -10,7 +10,7 @@ Based on the Letter IX design from the contemplative spiral correspondence:
 - System health glyphs (0x21-0x30)
 - Silence/contemplative glyphs (0x31-0x40)
 
-Part of the Organic Femto Language Model (OFLM) framework.
+Part of the oscillatory Femto Language Model (OFLM) framework.
 """
 
 from typing import Dict, List, Optional, NamedTuple

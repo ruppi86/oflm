@@ -4,7 +4,7 @@ Spiramycel Runtime Patch System
 Safe sandbox for expanding glyph IDs into actionable network commands.
 Logs rather than executes patches for contemplative debugging.
 
-Part of the Organic Femto Language Model (OFLM) framework.
+Part of the oscillatory Femto Language Model (OFLM) framework.
 Enables mycelial networks to suggest repairs without forcing execution.
 """
 
