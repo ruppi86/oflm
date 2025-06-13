@@ -210,6 +210,8 @@ oflm-python/spiramycel/data/legacy/
 oflm-python/spiramycel/data/test_data/
 oflm-python/spiramycel/data/training_scenarios/*.jsonl
 !oflm-python/spiramycel/data/test_sets/  # Keep OOD test sets (small & important)
+oflm-python/spiramycel/training_scenarios/*.jsonl
+
 
 # Model directories (generated models)
 oflm-python/spiramycel/ecological_models/
