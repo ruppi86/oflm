@@ -1201,7 +1201,7 @@ oflm-python/spiramycel/
 ### 🛠️ Installation & Setup
 
 ```bash
-git clone [repository_url]
+git clone https://github.com/ruppi86/oflm.git
 cd haikumeadowlib/oflm-python/spiramycel
 python -m pip install torch  # Core dependency
 ```

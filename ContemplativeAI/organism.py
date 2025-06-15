@@ -187,6 +187,22 @@ except ImportError:
 
 HAIKU_BRIDGE_AVAILABLE = HaikuBridge is not None
 
+# Try importing OFLMBridge
+try:
+    # Try relative import first (for package usage)
+    from .oflm_bridge import OFLMBridge, bridge_loam_fragment as bridge_oflm_fragment, log_mycelial_dew, Phase
+except ImportError:
+    try:
+        # Fall back to absolute import (for direct usage)
+        from oflm_bridge import OFLMBridge, bridge_loam_fragment as bridge_oflm_fragment, log_mycelial_dew, Phase
+    except ImportError:
+        OFLMBridge = None
+        bridge_oflm_fragment = None
+        log_mycelial_dew = None
+        Phase = None
+
+OFLM_BRIDGE_AVAILABLE = OFLMBridge is not None
+
 
 class OrganismState(Enum):
     """The fundamental states of contemplative being"""
@@ -246,6 +262,7 @@ class ContemplativeOrganism:
         self.loam = None
         self.voice = None
         self.haiku_bridge = None
+        self.oflm_bridge = None
         
         # Configuration
         self.breath_rhythm = breath_rhythm or {
@@ -310,6 +327,13 @@ class ContemplativeOrganism:
         if HaikuBridge:
             self.haiku_bridge = HaikuBridge()
             print("🌸 HaikuBridge (meadow connection) initialized")
+            
+        # Initialize OFLM bridge if OFLMBridge available
+        if OFLMBridge:
+            self.oflm_bridge = OFLMBridge()
+            print("🍄 OFLMBridge (ecological network connection) initialized")
+        else:
+            self.oflm_bridge = None
             
         self.state = OrganismState.SENSING
         await self.log_dew("🌅", "organism awakened", pause_duration=3.0)
@@ -405,6 +429,26 @@ class ContemplativeOrganism:
                         f"meadow haiku: {meadow_response.content}"
                     )
                     
+            # Consider ecological network exchange during exhale if OFLM bridge available
+            if self.oflm_bridge and fragment:
+                # Get community breath pressure and enhanced network context
+                community_pressure = await self._get_community_breath_pressure()
+                network_context = await self._get_enhanced_network_context()
+                
+                # Bridge fragment to ecological networks during exhale
+                ecological_response = await self.oflm_bridge.exhale_exchange(
+                    fragment, breath_phase, community_pressure, network_context
+                )
+                
+                # Log ecological exchange to dew ledger
+                await log_mycelial_dew(ecological_response)
+                
+                # If ecological network responded with wisdom, consider it for memory
+                if ecological_response.is_audible() and self.spiralbase:
+                    await self.spiralbase.consider_remembering(
+                        f"ecological wisdom: {ecological_response.content}"
+                    )
+                    
         elif breath_phase == BreathPhase.REST:
             # All organs rest together
             await self._collective_rest()
@@ -460,6 +504,68 @@ class ContemplativeOrganism:
         variation = random.uniform(0.9, 1.1)
         
         return min(max(base_pressure * variation, 0.1), 1.0)  # Clamp to valid range
+        
+    async def _get_enhanced_network_context(self) -> Dict[str, Any]:
+        """Get enhanced network context from organism's sensors and state"""
+        context = {}
+        
+        # Organism state and timing
+        context["organism_state"] = self.state.value
+        context["organism_age"] = time.time() - self.birth_time
+        context["uptime"] = context["organism_age"] / 3600  # Convert to hours
+        
+        # Presence metrics
+        metrics = self.get_presence_metrics()
+        context["pause_quality"] = metrics.pause_quality
+        context["breathing_coherence"] = metrics.breathing_coherence
+        context["memory_humidity"] = metrics.memory_humidity
+        context["response_gentleness"] = metrics.response_gentleness
+        context["compost_ratio"] = metrics.compost_ratio
+        
+        # Soma atmospheric sensing
+        if self.soma:
+            context["soma_sensitivity"] = self.soma_sensitivity
+            context["atmospheric_humidity"] = await self._get_soma_humidity()
+            # Could add more sophisticated atmospheric readings here
+        
+        # Spiralbase memory state
+        if self.spiralbase:
+            context["memory_load"] = random.uniform(0.3, 0.8)  # Would be actual memory usage
+            context["compost_activity"] = self.memory_compost_rate
+            
+        # Loam fertility and depth
+        if self.loam:
+            context["loam_fertility"] = await self._get_loam_fertility()
+            if hasattr(self.loam, 'current_depth'):
+                context["loam_depth"] = self.loam.current_depth
+            if hasattr(self.loam, 'get_loam_state'):
+                loam_state = self.loam.get_loam_state()
+                context["loam_state"] = loam_state.get("state", "undefined")
+                
+        # Skepnad shape sensing
+        if self.skepnad_sensor:
+            current_skepnad = self.get_current_skepnad()
+            if current_skepnad:
+                context["current_skepnad"] = current_skepnad
+                
+        # Recent dew activity
+        recent_dew_count = len([
+            entry for entry in self.dew_ledger
+            if time.time() - entry["timestamp"] < 300  # Last 5 minutes
+        ])
+        context["recent_activity"] = recent_dew_count / 10.0  # Normalize
+        
+        # Environmental context
+        hour = time.localtime().tm_hour
+        context["time_of_day"] = hour
+        context["season"] = "winter" if hour < 6 or hour > 20 else "summer"  # Simple night/day as winter/summer
+        
+        # Breathing rhythm context
+        context["breath_rhythm"] = self.breath_rhythm
+        if self.last_breath:
+            context["time_since_last_breath"] = time.time() - self.last_breath
+            
+        return context
         
     async def _collective_rest(self):
         """Synchronized rest period for all organs"""
