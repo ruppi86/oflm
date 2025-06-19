@@ -619,7 +619,7 @@ class EcologicalDataGenerator:
         # Select repair strategy with chaos_mode parameter
         glyph_sequence, description, effectiveness = self.select_repair_strategy(scenario, conditions, chaos_mode)
         
-        # Calculate Tystnadsmajoritet (silence probability)
+        # Calculate Silence Majority (silence probability)
         if not chaos_mode and random.random() < 0.7:  # Thriving ecosystem
             silence_probability = random.uniform(0.8, 0.95)  # High silence for thriving systems
         else:

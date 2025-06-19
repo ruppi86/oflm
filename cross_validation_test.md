@@ -42,7 +42,7 @@ Please generate **4 new synthetic environments** for Spiramycel evaluation that 
 These test environments will be used to measure:
 
 * Glyph adaptation: Do models maintain or shift their response patterns?
-* Silence under novelty: Does Tystnadsmajoritet hold when surprised?
+* Silence under novelty: Does Silence Majority hold when surprised?
 * Ecological/Abstract contrast under unfamiliar pressure
 
 Please generate this as `ood_test_set.jsonl`, with one block per environment.

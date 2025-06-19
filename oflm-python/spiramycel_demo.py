@@ -35,7 +35,7 @@ def main():
     
     # 1. Glyph Codec
     codec = spiramycel.SpiramycelGlyphCodec()
-    breath = codec.practice_tystnadsmajoritet(8)
+    breath = codec.practice_silence_majority(8)
     formatted = codec.format_glyph_sequence(breath)
     
     silence_glyphs = codec.get_contemplative_glyphs()
@@ -70,7 +70,7 @@ def main():
     
     print()
     print("✨ Integration Success:")
-    print("  • 64-symbol mycelial vocabulary practicing Tystnadsmajoritet")
+    print("  • 64-symbol mycelial vocabulary practicing Silence Majority")
     print("  • Living memory with seasonal evaporation cycles")
     print("  • Safe patch system suggesting rather than commanding")
     print("  • Community consensus building for network wisdom")

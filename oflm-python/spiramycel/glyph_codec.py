@@ -35,7 +35,7 @@ class SpiramycelGlyphCodec:
     """
     Mycelial repair vocabulary - 64 glyphs for network healing.
     
-    Follows Tystnadsmajoritet principle: most slots are silence,
+    Follows Silence Majority principle: most slots are silence,
     active glyphs emerge only when network needs healing.
     """
     
@@ -179,10 +179,10 @@ class SpiramycelGlyphCodec:
                 if glyph.category == category]
     
     def get_contemplative_glyphs(self) -> List[int]:
-        """Get silence/contemplative glyphs for Tystnadsmajoritet practice."""
+        """Get silence/contemplative glyphs for Silence Majority practice."""
         return self.get_category_glyphs(GlyphCategory.SILENCE)
     
-    def practice_tystnadsmajoritet(self, total_slots: int = 16) -> List[int]:
+    def practice_silence_majority(self, total_slots: int = 16) -> List[int]:
         """
         Generate a breath cycle with ~87.5% silence.
         Returns mostly silence glyphs with 1-2 active repair glyphs.
@@ -257,9 +257,9 @@ def demo_spiramycel_glyphs():
     for glyph_id in silence_glyphs:
         print(f"  {codec.get_debug_info(glyph_id)}")
     
-    # Demonstrate Tystnadsmajoritet practice
-    print("\n🌸 Tystnadsmajoritet Practice (87.5% silence):")
-    breath_sequence = codec.practice_tystnadsmajoritet(16)
+    # Demonstrate Silence Majority practice
+    print("\n🌸 Silence Majority Practice (87.5% silence):")
+    breath_sequence = codec.practice_silence_majority(16)
     formatted = codec.format_glyph_sequence(breath_sequence)
     print(f"  Breath pattern: {formatted}")
     

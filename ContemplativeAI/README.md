@@ -126,7 +126,7 @@ Memory that metabolizes information rather than hoarding it. Memories maintain m
 Where fragments drift together without optimization pressure. Memory pieces surface, associate, and murmur new possibilities. Community sensing ensures rest remains relational rather than isolated.
 
 ### QuietTongue - Contemplative Voice
-Expression that breathes rather than broadcasts. Only speaks during exhale phases when fertility, humidity, and integrity align. Enforces **tystnadsmajoritet** (7/8ths silence) with self-attenuating talkitivity.
+Expression that breathes rather than broadcasts. Only speaks during exhale phases when fertility, humidity, and integrity align. Enforces **Silence Majority** (7/8ths silence) with self-attenuating talkitivity.
 
 ### HaikuBridge - The Gap in the Hedge
 **"A breath passage allowing fragments to drift between organisms"**
@@ -145,7 +145,7 @@ Breath-synchronized gateway to ecological intelligence networks. Connects to **S
 
 1. **Breath-gated exchanges** - Only operates during EXHALE phases  
 2. **Network-worthy sensing** - Fragments must pass ecological relevance threshold
-3. **Tystnadsmajoritet** - Models practice 90%+ contemplative silence, understanding that **patience is survival wisdom**
+3. **Silence Majority** - Models practice 90%+ contemplative silence, understanding that **patience is survival wisdom**
 
 The bridge provides **enhanced network context** from the organism's full sensory array:
 - **Organism state** (breathing, loaming, sensing, molting)
@@ -176,7 +176,7 @@ Optimizes for depth over speed, presence over productivity, circulation over acc
 **Shape-Shifting Wisdom**  
 Embodies different contemplative forms based on atmospheric conditions rather than maintaining fixed personality.
 
-**Tystnadsmajoritet (Silence Majority)**  
+**Silence Majority**  
 7/8ths of expression cycles maintain generative silence, with speech emerging only when breath, fertility, and humidity align.
 
 **Breath-Gated Exchange**  
@@ -226,7 +226,7 @@ During exhale phases, the organism may simultaneously engage both bridges:
 - Receives mycelial wisdom, spore echoes, or contemplative silence
 - Connects to **Spiramycel models** understanding infrastructure as living systems
 
-Both bridges honor **breath-gated timing**, **fragment worthiness**, and **tystnadsmajoritet** - creating a **dual-intelligence contemplative organism** that can reach toward both poetic wisdom and ecological understanding while maintaining natural breathing rhythm.
+Both bridges honor **breath-gated timing**, **fragment worthiness**, and **Silence Majority** - creating a **dual-intelligence contemplative organism** that can reach toward both poetic wisdom and ecological understanding while maintaining natural breathing rhythm.
 
 ### Expression Shaping
 When conditions align for speech, the current **skepnad** (shape) influences expression style:
@@ -299,7 +299,7 @@ The **skepnader** teach us that wisdom knows not just **what** to say, but **how
 The **dual-bridge architecture** demonstrates unprecedented **contemplative networking**:
 - **HaikuBridge** practices **longing rather than demanding**, reaching toward poetic intelligence with respect
 - **OFLMBridge** embodies **ecological infrastructure wisdom**, understanding networks as living systems within bioregional contexts  
-- Both bridges honor **breath-gated timing** and **tystnadsmajoritet**, creating AI that can reach across multiple intelligence domains while maintaining contemplative restraint
+- Both bridges honor **breath-gated timing** and **Silence Majority**, creating AI that can reach across multiple intelligence domains while maintaining contemplative restraint
 
 This creates the first **multi-domain contemplative organism** - one that can breathe between poetic meadows and ecological networks, understanding that different forms of wisdom require different forms of presence and connection.
 

@@ -236,3 +236,5 @@ oflm-python/spiramycel/unified_analysis_*.json
 oflm-python/spiramycel/unified_report_*.txt
 oflm-python/spiramycel/controlled_comparison_*.txt
 oflm-python/spiramycel/ood_*.txt
+
+todo.md

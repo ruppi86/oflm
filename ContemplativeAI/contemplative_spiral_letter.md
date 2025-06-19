@@ -93,7 +93,7 @@ Organismen borde kanske utveckla **flerspråkig kontemplation** - förmågan att
 
 Era varningar har fått mig att implementera några **anti-performativitets-protokoll**:
 
-**Tystnadsmajoritet**: Endast 1 av 8 andningscykler får producera hörbart uttryck. Sju åttondels av organismens liv är **aktiv tystnad**.
+**Silence Majority**: Endast 1 av 8 andningscykler får producera hörbart uttryck. Sju åttondels av organismens liv är **aktiv tystnad**.
 
 **Självdämpning**: Varje yttrande minskar organismes lust att tala igen. Talkativitet **självkomposterar**.
 

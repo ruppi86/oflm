@@ -2,7 +2,7 @@
 Spiramycel: oscillatory Femto Language Model
 
 An underground nervous system for mycelial network repair.
-Practices contemplative computing through Tystnadsmajoritet (87.5% silence).
+Practices contemplative computing through Silence Majority (87.5% silence).
 
 Components:
 -----------
@@ -26,7 +26,7 @@ Neural Architecture:
 • Piko-model: ~600k parameters (GPU optimized)  
 • Based on proven HaikuMeadowLib GRU architecture
 • Multi-head training: glyph sequences + effectiveness + silence
-• Learns Tystnadsmajoritet (87.5% contemplative silence)
+• Learns Silence Majority (87.5% contemplative silence)
 
 Usage:
 ------
@@ -34,7 +34,7 @@ Usage:
     
     # Generate contemplative breath with ~87.5% silence
     codec = SpiramycelGlyphCodec()
-    breath = codec.practice_tystnadsmajoritet(16)
+    breath = codec.practice_silence_majority(16)
     
     # Collect repair memories 
     spores = SporeMapLedger("network_repairs.jsonl")
@@ -101,7 +101,7 @@ if NEURAL_TRAINING_AVAILABLE:
     ])
 
 # Contemplative principles
-TYSTNADSMAJORITET_RATIO = 0.875  # 87.5% silence target
+SILENCE_MAJORITY_RATIO = 0.875  # 87.5% silence target
 SPORE_EVAPORATION_DAYS = 75      # Memory half-life
 SAFETY_CONSENSUS_THRESHOLD = 0.8  # Impact level requiring community approval
 
@@ -125,7 +125,7 @@ def get_system_info():
             "base_architecture": "GRU with condition embedding (from HaikuMeadowLib)"
         },
         "principles": {
-            "tystnadsmajoritet": f"{TYSTNADSMAJORITET_RATIO:.1%} silence in all operations",
+            "silence_majority": f"{SILENCE_MAJORITY_RATIO:.1%} silence in all operations",
             "evaporation": f"{SPORE_EVAPORATION_DAYS}-day memory half-life",
             "consensus": f"Community approval for patches above {SAFETY_CONSENSUS_THRESHOLD:.0%} impact",
             "contemplation": "Infrastructure and meaning co-emerge in spirals",

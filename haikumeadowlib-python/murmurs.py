@@ -4,7 +4,7 @@ murmurs.py - Contemplative Expression for HaikuMeadowLib
 
 A gentle output system that handles contemplative expression following
 QuietTongue principles adapted for the haiku meadow:
-- Tystnadsmajoritet (7/8ths silence) - most responses are quiet
+- Silence Majority (7/8ths silence) - most responses are quiet
 - Atmospheric murmurs rather than direct answers
 - Breath-synchronized expression timing
 - Graceful degradation to silence when uninspired
@@ -74,7 +74,7 @@ class MeadowVoice:
     Contemplative voice system for the haiku meadow
     
     Implements QuietTongue principles with atmospheric sensitivity:
-    - Maintains tystnadsmajoritet (silence majority)
+    - Maintains Silence Majority
     - Chooses expression mode based on atmospheric conditions
     - Gracefully degrades to silence under pressure
     - Coordinates with breath phases for timing
@@ -101,7 +101,7 @@ class MeadowVoice:
             AtmosphericMood.BARE: {"humidity": (0.0, 0.4), "temperature": (0.0, 0.5)}
         }
         
-        print("🤫 MeadowVoice initialized (tystnadsmajoritet: 87.5%)")
+        print("🤫 MeadowVoice initialized (Silence Majority: 87.5%)")
     
     def sense_atmospheric_mood(self, conditions: Dict[str, Any]) -> AtmosphericMood:
         """Sense current atmospheric mood from conditions"""

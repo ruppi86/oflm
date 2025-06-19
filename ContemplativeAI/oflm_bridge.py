@@ -124,7 +124,7 @@ class MycelialBreath:
     content: str                      # The actual content (if any)
     glyph_sequence: Optional[List[int]] = None  # Raw glyph data if available
     effectiveness: float = 0.0        # Predicted repair effectiveness
-    silence_probability: float = 0.0  # Tystnadsmajoritet likelihood
+    silence_probability: float = 0.0  # Silence Majority likelihood
     timestamp: float = 0.0            # When this exchange occurred
     atmosphere: str = ""              # Atmospheric conditions
     model_used: str = ""              # Which ecological model responded
@@ -142,7 +142,7 @@ class MycelialBreath:
         return self.response_type == MycelialResponse.FOG
         
     def practices_silence(self) -> bool:
-        """Whether response embodies Tystnadsmajoritet (87.5% silence)"""
+        """Whether response embodies Silence Majority (87.5% silence)"""
         return self.silence_probability > 0.875
 
 
@@ -609,7 +609,7 @@ class OFLMBridge:
                     effectiveness = torch.sigmoid(eff_logits[0, -1]).item()
                     silence_prob = torch.sigmoid(silence_logits[0, -1]).item()
                     
-                    # Check if model wants to stay silent (Tystnadsmajoritet)
+                    # Check if model wants to stay silent (Silence Majority)
                     if silence_prob > 0.8:
                         break
                     
@@ -707,7 +707,7 @@ class OFLMBridge:
             )
             
         else:
-            # Most fragments receive contemplative silence (practicing Tystnadsmajoritet)
+            # Most fragments receive contemplative silence (practicing Silence Majority)
             return MycelialBreath(
                 fragment=fragment,
                 response_type=MycelialResponse.SILENCE,

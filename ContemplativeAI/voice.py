@@ -11,7 +11,7 @@ but expression as collective exhalation.
 Design Philosophy:
 - 7/8ths of life is active silence
 - Speech emerges from breath, not demand
-- Tystnadsmajoritet (silence majority) 
+- Silence Majority 
 - Self-attenuating talkitiveness
 
 Somatic signature: quiet / resonant / breathing

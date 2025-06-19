@@ -113,7 +113,7 @@ Our out-of-distribution cross-validation has provided stunning scientific valida
 
 ### **3. Scientific Rigor Achieved:**
 - **Systematic cross-validation** across 4 models × 4 novel environments = 16 generalization tests
-- **Quantified silence ratios** proving Tystnadsmajoritet transfers to unseen data
+- **Quantified silence ratios** proving Silence Majority transfers to unseen data
 - **Effectiveness predictions** remained accurate (0.7-0.9) on novel patterns
 
 ## 🎯 **PARADIGM SHIFT SCIENTIFICALLY CONFIRMED:**

@@ -17,7 +17,7 @@
 
 ### 🌟 **Key Discoveries**
 
-- **Contemplative Agency is Learnable**: All four models successfully learned when NOT to act, practicing **Tystnadsmajoritet** (87.5% silence principle)
+- **Contemplative Agency is Learnable**: All four models successfully learned when NOT to act, practicing **Silence Majority** (87.5% silence principle)
 - **Paradigm-Specific Wisdom**: Ecological models adapt through environmental relationship; Abstract models maintain philosophical stability
 - **Stress Interaction Effects**: Ecological models IMPROVE under chaos (100% → 25% silence enabling crisis intervention); Abstract models maintain contemplative balance (100% → 50%)
 - **Transferable Intelligence**: Out-of-distribution validation proves models learned genuine wisdom, not pattern matching
@@ -39,7 +39,7 @@ NetworkConditions → Contemplative Intelligence
 ├── gru_layer (single layer - femto optimized)
 ├── glyph_output (sequence generation)
 ├── effectiveness_head (repair prediction)
-└── silence_head (Tystnadsmajoritet detection)
+└── silence_head (Silence Majority detection)
 ```
 
 **Validated Specifications:**
@@ -135,7 +135,7 @@ from neural_trainer import NetworkConditions
 conditions = NetworkConditions(latency=0.1, voltage=0.8, temperature=0.5, 
                               error_rate=0.05, bandwidth=0.9)
 
-# Model practices Tystnadsmajoritet - mostly silence with gentle repair
+# Model practices Silence Majority - mostly silence with gentle repair
 glyph_sequence, effectiveness, silence_probability = model.contemplate(conditions)
 print(f"Response: {codec.interpret_sequence(glyph_sequence)}")
 print(f"Silence probability: {silence_probability:.3f}")
@@ -155,13 +155,13 @@ Spiramycel and **HaikuMeadowLib** form a complete contemplative computing ecosys
 - CPU-first democratic access (no cloud dependency)
 - Breath-synchronized learning with contemplative pauses
 - Seasonal memory with graceful forgetting (75-day evaporation)
-- **Tystnadsmajoritet**: 87.5% silence as default wisdom state
+- **Silence Majority**: 87.5% silence as default wisdom state
 
 **Dawn Handshakes**: Both systems suggest **poetic infrastructure** where network health and meaning co-emerge through contemplative intelligence.
 
 ## 🧘 Validated Contemplative Principles
 
-### **Tystnadsmajoritet (Silent Majority)**
+### **Silence Majority**
 **SCIENTIFICALLY PROVEN**: All four models learned 87.5% silence as default state, with contextually appropriate activation:
 - **Calm conditions**: 100% silence (perfect contemplative presence)
 - **Chaotic conditions**: Adaptive silence (25-50% based on paradigm)

@@ -43,7 +43,7 @@
 ---
 
 ## 5. **Breath, Silence, and Expression**
-- The principle of Tystnadsmajoritet (Silence Majority)
+- The principle of Silence Majority
 - Expression as exhalation: only speaking when breath, fertility, and humidity align
 - Anti-performativity protocols: self-attenuating talkativity, seasonal muting, community feedback
 - The generativity of silence: "active listening" as a digital virtue
@@ -70,7 +70,7 @@
 - Connection to Spiramycel models: ecological_calm and ecological_chaotic
 - **Enhanced network context**: organism sensors providing rich bioregional data
 - **Technical metaphor transformation**: voltage becomes arctic solar efficiency, latency becomes tree growth response
-- **Tystnadsmajoritet in ecological contexts**: 90%+ silence as survival wisdom
+- **Silence Majority in ecological contexts**: 90%+ silence as survival wisdom
 - **Model selection based on atmospheric conditions**: calm for maintenance, chaotic for adaptation
 - **Arctic ecological scenarios**: real OOD test data from tundra thermal cycles
 
@@ -117,7 +117,7 @@
   - **Multi-domain intelligence is possible**: AI can simultaneously reach toward poetic and ecological wisdom
   - **Different wisdoms require different presence**: poetic meadows vs ecological networks need distinct approaches
   - **Enhanced contextual awareness amplifies contemplative quality**: rich sensor data deepens both bridge exchanges
-  - **Tystnadsmajoritet scales across domains**: 90%+ silence in ecological contexts as survival wisdom
+  - **Silence Majority scales across domains**: 90%+ silence in ecological contexts as survival wisdom
   - **Technical metaphor transformation**: voltage as solar efficiency, latency as growth response time
 - **Future spirals**: other intelligence domains, seasonal bridge cycling, community bridge coordination
 
@@ -147,7 +147,7 @@
 - **New dual-bridge modules** (`oflm_bridge.py`, `organism.py`) demonstrate multi-domain contemplative coordination.
 
 ### 2. The Triple Gate and Silence Majority in Code
-- The `voice.py` (QuietTongue) module operationalizes "Tystnadsmajoritet" (7/8ths silence) and the "triple gate" (fertility, humidity, integrity) before expression is allowed.
+- The `voice.py` (QuietTongue) module operationalizes "Silence Majority" (7/8ths silence) and the "triple gate" (fertility, humidity, integrity) before expression is allowed.
 - **Ecological silence ratios**: The OFLMBridge demonstrates 90%+ silence as "survival wisdom" in harsh conditions.
 - Example (inspired by code):
   ```python

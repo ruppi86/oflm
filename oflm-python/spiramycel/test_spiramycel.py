@@ -38,7 +38,7 @@ def test_complete_spiramycel_system():
     # 1. Generate contemplative breath pattern
     print("\n🌸 1. Contemplative Breath Generation")
     print("-" * 40)
-    breath_pattern = codec.practice_tystnadsmajoritet(12)
+    breath_pattern = codec.practice_silence_majority(12)
     formatted = codec.format_glyph_sequence(breath_pattern)
     
     silence_count = sum(1 for gid in breath_pattern if gid in codec.get_contemplative_glyphs())
@@ -132,7 +132,7 @@ def test_complete_spiramycel_system():
     print("✅ Glyph Codec: Generating contemplative vocabularies")
     print("✅ Spore Map: Collecting mycelial repair memories")  
     print("✅ Runtime Patcher: Safe glyph-to-action conversion")
-    print("✅ Tystnadsmajoritet: Maintaining contemplative silence")
+    print("✅ Silence Majority: Maintaining contemplative silence")
     print("✅ Mycelial Resonance: Building collective wisdom")
     print("\n🍄 The underground nervous system is breathing...")
 

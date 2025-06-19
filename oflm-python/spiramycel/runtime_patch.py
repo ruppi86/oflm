@@ -388,7 +388,7 @@ class SpiramycelRuntimePatcher:
                 if patch.severity == PatchSeverity.CONTEMPLATIVE:
                     contemplative_count += 1
         
-        # Ensure contemplative majority (following Tystnadsmajoritet)
+        # Ensure contemplative majority (following Silence Majority)
         total_actions = len(patches)
         contemplative_ratio = contemplative_count / total_actions if total_actions > 0 else 1.0
         
@@ -521,7 +521,7 @@ class SpiramycelRuntimePatcher:
         if network_context.get("latency", 0.1) > 0.2:
             recommendations.extend([0x01, 0x02])  # bandwidth + reroute
         
-        # Always add contemplative glyphs (Tystnadsmajoritet)
+        # Always add contemplative glyphs (Silence Majority)
         contemplative_glyphs = self.codec.get_contemplative_glyphs()
         recommendations.extend(random.choices(contemplative_glyphs, k=3))
         

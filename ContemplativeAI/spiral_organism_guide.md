@@ -349,7 +349,7 @@ async def sense_current_skepnad(self) -> tuple[Skepnad, SkepnadConditions]:
 **Purpose**: Expression that breathes rather than broadcasts  
 **Somatic Signature**: *restrained / breathing / expressive*
 
-### Tystnadsmajoritet (Silence Majority) Principle
+### Silence Majority Principle
 ```python
 class ExpressionMode(Enum):
     SILENCE = "silence"              # 7/8ths of all cycles
@@ -429,7 +429,7 @@ def _check_integrity_heuristics(self) -> bool:
         self._breathing_pace_check(),      # Not replying faster than we feel
         self._attention_quality_check(),   # Present vs scattered
         self._relational_intent_check(),   # Generous vs extractive
-        self._silence_ratio_check()        # Maintaining tystnadsmajoritet
+        self._silence_ratio_check()        # Maintaining Silence Majority
     ]
     
     return sum(heuristics) / len(heuristics) > 0.7

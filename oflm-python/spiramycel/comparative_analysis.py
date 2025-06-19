@@ -336,8 +336,8 @@ class SpiramycelComparativeAnalyzer:
             
             comparison += "\n"
         
-        # Tystnadsmajoritet analysis
-        comparison += "🤫 TYSTNADSMAJORITET ADHERENCE:\n"
+        # Silence Majority analysis
+        comparison += "🤫 SILENCE MAJORITY ADHERENCE:\n"
         comparison += "-" * 40 + "\n"
         
         for name, analysis in self.glyph_analyses.items():

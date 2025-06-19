@@ -186,7 +186,7 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
             # Effectiveness prediction head (like silence head in HaikuMeadowLib)
             self.effectiveness_head = nn.Linear(self.hidden_dim, 1)
             
-            # Tystnadsmajoritet head (predicts when to stay silent)
+            # Silence Majority head (predicts when to stay silent)
             self.silence_head = nn.Linear(self.hidden_dim, 1)
     
     def forward(self, glyph_tokens, conditions, hidden1=None, hidden2=None):
@@ -487,7 +487,7 @@ class SpiramycelTrainer:
             # Select repair glyphs from this scenario's problem type
             primary_glyphs = random.choices(problem_type["repair_glyphs"], k=random.randint(1, 3))
             
-            # Add contemplative glyphs (Tystnadsmajoritet)
+            # Add contemplative glyphs (Silence Majority)
             contemplative_glyphs = self.codec.get_contemplative_glyphs()
             
             # Ensure contemplative majority - more silence for optimal conditions
