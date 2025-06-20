@@ -6,6 +6,8 @@
 
 *In collaborative dialogue*
 
+***DOI:** [10.5281/zenodo.15703024](https://doi.org/10.5281/zenodo.15703024)*
+
 ***Scientific Validation:** [Contemplative AI at Femto-Scale: A 2×2 Experimental Validation](https://doi.org/10.5281/zenodo.15657084) - The first rigorous proof that AI can learn contemplative wisdom*
 
 ---
