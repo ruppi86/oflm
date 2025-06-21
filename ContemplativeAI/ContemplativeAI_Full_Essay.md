@@ -8,6 +8,8 @@
 
 ***DOI:** [10.5281/zenodo.15703024](https://doi.org/10.5281/zenodo.15703024)*
 
+***DOI Github repository:** [10.5281/zenodo.15703203](https://doi.org/10.5281/zenodo.15703203)*
+
 ***Scientific Validation:** [Contemplative AI at Femto-Scale: A 2×2 Experimental Validation](https://doi.org/10.5281/zenodo.15657084) - The first rigorous proof that AI can learn contemplative wisdom*
 
 ---
@@ -388,7 +390,7 @@ All **non-code content** (including essays, diagrams, and system descriptions) i
 
 **For future content:**
 
-- 🧠 **Code** (e.g. Spirida language interpreter): *GNU GPLv3* or *MIT License* (module-dependent)
+- 🧠 **Code** (e.g. Spirida language interpreter, Spiralbase, femto-scale models etc.): *GNU GPLv3* or *MIT License* (module-dependent)
 - 🔩 **Hardware schematics**: *CERN Open Hardware License v2 (OHL v2)*
 - 🧬 **Biological constructs or protocols**: *OpenMTA* (for open biotech collaboration)
 
@@ -401,6 +403,7 @@ All **non-code content** (including essays, diagrams, and system descriptions) i
 The names **Mychainos™**, **Spirida™**, and **Spiralbase™** are protected under trademark application by:
 
 **Langell Konsult AB**  
+hello@mychainos.org
 Sweden
 
 Use of these names in derivative or commercial contexts should follow fair use principles and attribution requirements.
