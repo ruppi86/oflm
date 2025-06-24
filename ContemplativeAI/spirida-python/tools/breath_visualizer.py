@@ -28,7 +28,7 @@ except ImportError:
 
 # Import our contemplative system components
 from spirida.compiler.breath_resonance import BreathResonanceNode, BreathPhase
-from spirida.protocols.pulmonos import Pulmonos
+from spirida.protocols.pulmonos import Pulmonos, NetworkPulmonos
 from spirida.contemplative_core import SpiralField
 from spirida.compiler.resonance_bus import ResonanceBus, NetworkResonanceBus
 

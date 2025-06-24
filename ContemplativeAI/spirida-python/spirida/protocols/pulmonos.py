@@ -13,11 +13,14 @@ import asyncio
 import time
 import threading
 from enum import Enum
-from typing import Optional, Callable, List, Set, Dict, Any
+from typing import Optional, Callable, List, Set, Dict, Any, TYPE_CHECKING
 from datetime import datetime, timedelta
 from ..compiler.breath_resonance import BreathPhase
 
 # Network coordination imports
+if TYPE_CHECKING:
+    from .bip import BreathIntroductionService, BipPacket
+
 try:
     from .bip import BreathIntroductionService, BipPacket
     NETWORK_AVAILABLE = True
@@ -501,7 +504,7 @@ class NetworkPulmonos(Pulmonos):
         
         await self.bip_service.broadcast_bip(phase, cycle_durations, compost_load, skepnad)
     
-    async def _on_network_rhythm_sync(self, packet: BipPacket) -> None:
+    async def _on_network_rhythm_sync(self, packet: "BipPacket") -> None:
         """Handle rhythm synchronization with network agent."""
         if not self.network_enabled:
             return
@@ -521,7 +524,7 @@ class NetworkPulmonos(Pulmonos):
                 self.master_agent = packet.agent_id
                 self.missed_network_cycles = 0
     
-    async def _on_agent_lost(self, packet: BipPacket) -> None:
+    async def _on_agent_lost(self, packet: "BipPacket") -> None:
         """Handle loss of network agent."""
         if packet.agent_id == self.master_agent:
             print(f"🤝 Lost connection to master agent {packet.agent_id}")
