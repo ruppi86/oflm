@@ -26,6 +26,15 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
+# Try to import YAML for parameter loading
+try:
+    import yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    yaml = None
+    YAML_AVAILABLE = False
+    print("⚠️  PyYAML not available - using default parameters")
+
 # Try to import torch for neural network functionality
 try:
     import torch
@@ -54,6 +63,124 @@ except ImportError:
     TORCH_AVAILABLE = False
     DEVICE = None
     print("⚠️  PyTorch not available - using template-based generation")
+
+def load_model_parameters(model_name: str = None, param_file: str = "lm_parameters.yml") -> Dict:
+    """Load model parameters from YAML configuration file"""
+    
+    # Default parameters (fallback if YAML not available)
+    default_params = {
+        "piko": {
+            "description": "Default piko-scale model",
+            "target_device": "cpu",
+            "parameter_count": 35,
+            "embed_dim": 32,
+            "hidden_dim": 64,
+            "num_layers": 1,
+            "condition_dim": 8,
+            "vocab_size": 2000,
+            "max_sequence_length": 32,
+            "training": {
+                "epochs": 8,
+                "batch_size": 2,
+                "learning_rate": 0.001,
+                "weight_decay": 0.0001,
+                "gradient_clip_norm": 0.5
+            },
+            "memory_limit_mb": 50,
+            "force_cpu_mode": True,
+            "generation": {
+                "temperature_base": 0.7,
+                "silence_probability": 0.3,
+                "rate_limit_seconds": 5.0
+            }
+        },
+        "nano": {
+            "description": "Default nano-scale model", 
+            "target_device": "gpu",
+            "parameter_count": 600,
+            "embed_dim": 128,
+            "hidden_dim": 256,
+            "num_layers": 2,
+            "condition_dim": 8,
+            "vocab_size": 2000,
+            "max_sequence_length": 48,
+            "training": {
+                "epochs": 20,
+                "batch_size": 16,
+                "learning_rate": 0.001,
+                "weight_decay": 0.0001,
+                "gradient_clip_norm": 1.0
+            },
+            "memory_limit_mb": 500,
+            "force_cpu_mode": False,
+            "generation": {
+                "temperature_base": 0.8,
+                "silence_probability": 0.25,
+                "rate_limit_seconds": 3.0
+            }
+        }
+    }
+    
+    # Try to load from YAML file
+    if YAML_AVAILABLE:
+        param_path = Path(param_file)
+        if param_path.exists():
+            try:
+                with open(param_path, 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f)
+                
+                # Auto-detect model if not specified
+                if model_name is None:
+                    # Choose based on device capability
+                    if DEVICE and DEVICE.type == "cuda":
+                        model_name = config.get("default_model", "nano")
+                    else:
+                        model_name = "piko"  # Safe default for CPU
+                else:
+                    model_name = model_name.lower()
+                
+                # Load model-specific parameters
+                if "models" in config and model_name in config["models"]:
+                    params = config["models"][model_name].copy()
+                    
+                    # Add global config sections
+                    if "paths" in config:
+                        params["paths"] = config["paths"]
+                    if "data" in config:
+                        params["data"] = config["data"]
+                    if "logging" in config:
+                        params["logging"] = config["logging"]
+                    if "atmospheric" in config:
+                        params["atmospheric"] = config["atmospheric"]
+                        
+                    print(f"📋 Loaded {model_name} parameters from {param_file}")
+                    print(f"   Model: {params.get('description', 'Unknown')}")
+                    print(f"   Target: ~{params.get('parameter_count', '?')}k parameters")
+                    return params
+                else:
+                    print(f"⚠️  Model '{model_name}' not found in {param_file}, using defaults")
+                    
+            except Exception as e:
+                print(f"🌫️ Error loading {param_file}: {e}")
+                print("   Using default parameters")
+        else:
+            print(f"⚠️  Parameter file {param_file} not found, using defaults")
+    
+    # Fallback to defaults
+    if model_name is None:
+        # Auto-select based on device
+        if DEVICE and DEVICE.type == "cuda":
+            model_name = "nano" 
+        else:
+            model_name = "piko"
+    
+    model_name = model_name.lower()
+    if model_name in default_params:
+        print(f"📋 Using default {model_name} parameters")
+        return default_params[model_name]
+    else:
+        print(f"⚠️  Unknown model '{model_name}', using piko defaults")
+        return default_params["piko"]
 
 class Season(Enum):
     SPRING = "spring"
@@ -105,7 +232,10 @@ class HaikuLogger:
     def __init__(self, log_path: Path = None):
         if log_path is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            log_path = Path(f"haiku_session_{timestamp}.jsonl")
+            # Ensure logs directory exists
+            logs_dir = Path("logs")
+            logs_dir.mkdir(exist_ok=True)
+            log_path = logs_dir / f"haiku_session_{timestamp}.jsonl"
         
         self.log_path = log_path
         self.session_start = datetime.now()
@@ -333,55 +463,83 @@ class HaikuDataset(Dataset if TORCH_AVAILABLE else object):
 
 class PikoHaikuModel(nn.Module if TORCH_AVAILABLE else object):
     """
-    Minimal neural haiku generator with CPU/GPU adaptive sizing
+    Configurable neural haiku generator with adaptive sizing
     
-    CPU mode: ~50k parameters (femto-model) 
-    GPU mode: ~600k parameters (piko-model)
+    Now uses parameters from lm_parameters.yml:
+    - Piko mode: ~35k parameters (CPU-optimized)
+    - Nano mode: ~600k parameters (GPU-optimized)
     """
     
-    def __init__(self, vocab_size: int = 2000, 
+    def __init__(self, 
+                 vocab_size: int = 2000, 
                  embed_dim: int = None,
                  hidden_dim: int = None,
-                 condition_dim: int = 8,  # Keep as 8 to match trained model
-                 force_cpu_mode: bool = False):
+                 num_layers: int = None,
+                 condition_dim: int = 8,
+                 force_cpu_mode: bool = None,
+                 config: Dict = None):
         
         if TORCH_AVAILABLE:
             super().__init__()
         
-        self.vocab_size = vocab_size
-        self.condition_dim = condition_dim
-        
-        # Adaptive sizing based on device and memory constraints
-        if not TORCH_AVAILABLE or DEVICE.type == "cpu" or force_cpu_mode:
-            # CPU/Femto mode - drastically smaller to prevent crashes
-            self.embed_dim = embed_dim or 32    # Was 128 -> 32 (4x smaller)
-            self.hidden_dim = hidden_dim or 64  # Was 256 -> 64 (4x smaller)
-            self.model_type = "femto"
-            print("🦠 Using femto-model (CPU optimized, ~50k parameters)")
+        # Load parameters from config if provided
+        if config:
+            self.embed_dim = embed_dim or config.get("embed_dim", 32)
+            self.hidden_dim = hidden_dim or config.get("hidden_dim", 64)
+            self.num_layers = num_layers or config.get("num_layers", 1)
+            self.condition_dim = condition_dim or config.get("condition_dim", 8)
+            self.vocab_size = vocab_size or config.get("vocab_size", 2000)
+            force_cpu_mode = force_cpu_mode if force_cpu_mode is not None else config.get("force_cpu_mode", False)
+            
+            # Determine model type from config
+            target_device = config.get("target_device", "cpu")
+            param_count = config.get("parameter_count", 35)
+            
+            if target_device == "cpu" or param_count < 100:
+                self.model_type = "piko"
+                model_desc = f"piko-model (CPU optimized, ~{param_count}k parameters)"
+            else:
+                self.model_type = "nano"
+                model_desc = f"nano-model (GPU optimized, ~{param_count}k parameters)"
+                
         else:
-            # GPU mode - full size
-            self.embed_dim = embed_dim or 128
-            self.hidden_dim = hidden_dim or 256
-            self.model_type = "piko"
-            print("🚀 Using piko-model (GPU optimized, ~600k parameters)")
+            # Fallback to original adaptive sizing if no config
+            self.vocab_size = vocab_size
+            self.condition_dim = condition_dim
+            
+            if not TORCH_AVAILABLE or DEVICE.type == "cpu" or force_cpu_mode:
+                self.embed_dim = embed_dim or 32
+                self.hidden_dim = hidden_dim or 64
+                self.num_layers = num_layers or 1
+                self.model_type = "piko"
+                model_desc = "piko-model (CPU optimized, ~35k parameters)"
+            else:
+                self.embed_dim = embed_dim or 128
+                self.hidden_dim = hidden_dim or 256
+                self.num_layers = num_layers or 2
+                self.model_type = "nano"
+                model_desc = "nano-model (GPU optimized, ~600k parameters)"
+        
+        print(f"🦠 Using {model_desc}")
         
         if TORCH_AVAILABLE:
             # Token embedding
-            self.embedding = nn.Embedding(vocab_size, self.embed_dim)
+            self.embedding = nn.Embedding(self.vocab_size, self.embed_dim)
             
             # Atmospheric condition embedding
-            self.condition_proj = nn.Linear(condition_dim, self.embed_dim)
+            self.condition_proj = nn.Linear(self.condition_dim, self.embed_dim)
             
-            # Single GRU layer for femto, double for piko
-            if self.model_type == "femto":
+            # GRU layers based on num_layers configuration
+            if self.num_layers == 1:
                 self.gru1 = nn.GRU(self.embed_dim, self.hidden_dim, batch_first=True)
-                self.gru2 = None  # Skip second layer for memory savings
+                self.gru2 = None  # Single layer for memory efficiency
             else:
+                # Multi-layer configuration (typically 2 layers)
                 self.gru1 = nn.GRU(self.embed_dim, self.hidden_dim, batch_first=True)
                 self.gru2 = nn.GRU(self.hidden_dim, self.hidden_dim, batch_first=True)
             
             # Output projection
-            self.output_proj = nn.Linear(self.hidden_dim, vocab_size)
+            self.output_proj = nn.Linear(self.hidden_dim, self.vocab_size)
             
             # Silence head (for contemplative restraint)
             self.silence_head = nn.Linear(self.hidden_dim, 1)
@@ -427,28 +585,44 @@ class PikoHaikuModel(nn.Module if TORCH_AVAILABLE else object):
             return 0
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
-def train_piko_model(training_data_path: Path, 
-                    model_save_path: Path,
-                    epochs: int = 10,
-                    batch_size: int = 16,
-                    learning_rate: float = 0.001):
-    """Train the piko-LLM on haiku data with aggressive CPU memory optimization"""
+def train_model(training_data_path: Path, 
+                model_save_path: Path,
+                config: Dict = None,
+                model_name: str = "piko",
+                epochs: int = None,
+                batch_size: int = None,
+                learning_rate: float = None):
+    """Train the neural model with configurable parameters"""
     
     if not TORCH_AVAILABLE:
         print("❌ PyTorch not available - cannot train neural model")
         return False
     
-    print(f"🌸 Starting piko-LLM training")
+    # Load configuration if not provided
+    if config is None:
+        config = load_model_parameters(model_name)
+    
+    # Extract training parameters from config
+    training_config = config.get("training", {})
+    epochs = epochs or training_config.get("epochs", 10)
+    batch_size = batch_size or training_config.get("batch_size", 16)
+    learning_rate = learning_rate or training_config.get("learning_rate", 0.001)
+    weight_decay = training_config.get("weight_decay", 0.0001)
+    gradient_clip_norm = training_config.get("gradient_clip_norm", 0.5)
+    
+    print(f"🌸 Starting {model_name} model training")
     print(f"   Training data: {training_data_path}")
     print(f"   Model save path: {model_save_path}")
     print(f"   Device: {DEVICE}")
+    print(f"   Configuration: {config.get('description', 'Unknown')}")
     
-    # Aggressive memory optimization for CPU
-    if DEVICE.type == "cpu":
-        # Drastically reduce batch size for CPU to prevent crashes
-        batch_size = min(batch_size, 2)  # Maximum 2 samples per batch on CPU
-        epochs = min(epochs, 5)  # Reduce epochs for CPU training
-        print(f"   🧘 CPU mode: reduced to batch_size={batch_size}, epochs={epochs}")
+    # Device-specific optimizations
+    target_device = config.get("target_device", "cpu")
+    memory_limit = config.get("memory_limit_mb", 100)
+    
+    if DEVICE.type == "cpu" or target_device == "cpu":
+        # CPU optimizations from config
+        print(f"   🧘 CPU mode: optimized for {memory_limit}MB memory limit")
         print(f"   💡 This will be slower but safer for your system")
     elif DEVICE.type == "cuda":
         # GPU memory optimization
@@ -458,7 +632,7 @@ def train_piko_model(training_data_path: Path,
             print(f"   Reduced batch size to {batch_size} for limited GPU memory")
         torch.cuda.empty_cache()
     
-    print(f"   Final settings: epochs={epochs}, batch_size={batch_size}")
+    print(f"   Final settings: epochs={epochs}, batch_size={batch_size}, lr={learning_rate}")
     
     # Initialize tokenizer and dataset
     tokenizer = SimpleTokenizer()
@@ -479,17 +653,21 @@ def train_piko_model(training_data_path: Path,
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, 
                           num_workers=num_workers, pin_memory=pin_memory)
     
-    # Initialize adaptive model
+    # Initialize model with configuration
     model = PikoHaikuModel(
-        vocab_size=tokenizer.vocab_size, 
-        force_cpu_mode=(DEVICE.type == "cpu")
+        config=config,
+        vocab_size=tokenizer.vocab_size
     ).to(DEVICE)
     
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss(ignore_index=0)
     
     # Learning rate scheduler for better convergence
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2, factor=0.7)
+    scheduler_patience = training_config.get("scheduler_patience", 2)
+    scheduler_factor = training_config.get("scheduler_factor", 0.7)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, patience=scheduler_patience, factor=scheduler_factor
+    )
     
     param_count = model.count_parameters()
     memory_estimate_mb = param_count * 4 / 1e6
@@ -535,7 +713,7 @@ def train_piko_model(training_data_path: Path,
                     loss.backward()
                     
                     # Gradient clipping to prevent exploding gradients
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=gradient_clip_norm)
                     
                     optimizer.step()
                     
@@ -577,13 +755,14 @@ def train_piko_model(training_data_path: Path,
             # Save best model
             if avg_loss < best_loss:
                 best_loss = avg_loss
-                best_model_path = model_save_path.parent / f"piko_model_best.pt"
+                best_model_path = model_save_path.parent / f"{model_name}_model_best.pt"
                 torch.save(model.state_dict(), best_model_path)
                 print(f"💎 New best model saved: {best_model_path}")
             
             # Save checkpoint more frequently for CPU (in case of crash)
-            if DEVICE.type == "cpu" or (epoch + 1) % 3 == 0 or epoch == epochs - 1:
-                checkpoint_path = model_save_path.parent / f"piko_model_epoch_{epoch+1}.pt"
+            checkpoint_freq = config.get("logging", {}).get("checkpoint_frequency", 3)
+            if DEVICE.type == "cpu" or (epoch + 1) % checkpoint_freq == 0 or epoch == epochs - 1:
+                checkpoint_path = model_save_path.parent / f"{model_name}_model_epoch_{epoch+1}.pt"
                 torch.save(model.state_dict(), checkpoint_path)
                 print(f"💾 Saved checkpoint: {checkpoint_path}")
                 
@@ -604,7 +783,7 @@ def train_piko_model(training_data_path: Path,
     except KeyboardInterrupt:
         print("\n🌙 Training interrupted by user")
         # Save current state before exiting
-        interrupt_path = model_save_path.parent / "piko_model_interrupted.pt"
+        interrupt_path = model_save_path.parent / f"{model_name}_model_interrupted.pt"
         torch.save(model.state_dict(), interrupt_path)
         print(f"💾 Saved interrupted model: {interrupt_path}")
         return False
@@ -697,11 +876,26 @@ class HaikuMeadow:
     - Memory decay and seasonal learning
     """
     
-    def __init__(self, model_path: Optional[Path] = None, force_template_mode: bool = False):
+    def __init__(self, model_path: Optional[Path] = None, force_template_mode: bool = False, 
+                 config: Dict = None, model_name: str = None):
         
         self.tokenizer = SimpleTokenizer()
         self.last_generation_time = 0.0
-        self.silence_probability = 0.3  # Base probability of returning silence
+        
+        # Load configuration if not provided
+        if config is None and not force_template_mode:
+            config = load_model_parameters(model_name)
+        
+        # Set generation parameters from config
+        if config and "generation" in config:
+            gen_config = config["generation"]
+            self.silence_probability = gen_config.get("silence_probability", 0.3)
+            self.rate_limit = gen_config.get("rate_limit_seconds", 5.0)
+            self.temperature_base = gen_config.get("temperature_base", 0.7)
+        else:
+            self.silence_probability = 0.3
+            self.rate_limit = 5.0
+            self.temperature_base = 0.7
         
         # Memory safety: use template mode by default on CPU to prevent crashes
         if force_template_mode:
@@ -712,10 +906,10 @@ class HaikuMeadow:
             try:
                 print(f"🌸 Attempting to load neural model...")
                 
-                # Use adaptive model sizing
+                # Use configured model sizing
                 self.model = PikoHaikuModel(
-                    vocab_size=self.tokenizer.vocab_size,
-                    force_cpu_mode=(DEVICE.type == "cpu" if DEVICE else True)
+                    config=config,
+                    vocab_size=self.tokenizer.vocab_size
                 )
                 
                 # Load model with proper device handling and memory monitoring
@@ -832,7 +1026,7 @@ class HaikuMeadow:
         current_time = time.time()
         
         # Rate limiting: minimum time between generations
-        if current_time - self.last_generation_time < 5.0:  # 5 second cooldown
+        if current_time - self.last_generation_time < self.rate_limit:
             return False
             
         # Only generate during appropriate breath phases
@@ -920,7 +1114,7 @@ class HaikuMeadow:
                     break
                     
                 # Sample next token with temperature based on atmospheric humidity
-                temperature = 0.5 + conditions.humidity * 0.5
+                temperature = self.temperature_base + conditions.humidity * 0.3
                 next_logits = logits[0, -1] / temperature
                 probs = torch.softmax(next_logits, dim=0)
                 next_token = torch.multinomial(probs, 1).item()
@@ -1143,17 +1337,19 @@ def main():
     """Main entry point with command line interface"""
     
     parser = argparse.ArgumentParser(description="HaikuMeadowLib Piko-LLM")
-    parser.add_argument("--train", action="store_true", help="Train the piko-LLM model")
+    parser.add_argument("--train", action="store_true", help="Train the neural model")
     parser.add_argument("--test", action="store_true", help="Interactive test mode (CPU-safe)")
     parser.add_argument("--template-only", action="store_true", help="Force template mode (no neural model)")
     parser.add_argument("--check", action="store_true", help="Check system capabilities")
-    parser.add_argument("--training-data", type=str, default="haiku_training_material.json",
+    parser.add_argument("--model", type=str, choices=["piko", "nano"], default=None,
+                       help="Model size: piko (CPU, ~35k params) or nano (GPU, ~600k params)")
+    parser.add_argument("--training-data", type=str, default=None,
                        help="Path to training data JSON file")
-    parser.add_argument("--model-path", type=str, default="piko_haiku_model.pt",
+    parser.add_argument("--model-path", type=str, default=None,
                        help="Path to save/load model")
-    parser.add_argument("--epochs", type=int, default=20, help="Training epochs")
-    parser.add_argument("--batch-size", type=int, default=16, help="Training batch size")
-    parser.add_argument("--learning-rate", type=float, default=0.001, help="Learning rate")
+    parser.add_argument("--epochs", type=int, default=None, help="Training epochs (overrides config)")
+    parser.add_argument("--batch-size", type=int, default=None, help="Training batch size (overrides config)")
+    parser.add_argument("--learning-rate", type=float, default=None, help="Learning rate (overrides config)")
     
     args = parser.parse_args()
     
@@ -1162,30 +1358,36 @@ def main():
         return
     
     if args.train:
-        training_data_path = Path(args.training_data)
-        model_save_path = Path(args.model_path)
+        # Load model configuration
+        model_name = args.model or "piko"  # Default to piko for safety
+        config = load_model_parameters(model_name)
+        
+        # Use config paths if not overridden by command line
+        training_data_path = Path(args.training_data or config.get("data", {}).get("training_data_path", "training/haiku_training_material.json"))
+        
+        if args.model_path:
+            model_save_path = Path(args.model_path)
+        else:
+            # Use config path
+            paths_config = config.get("paths", {})
+            model_save_path = Path(paths_config.get(model_name, {}).get("save_path", f"model/{model_name}/{model_name}_haiku_model.pt"))
+        
+        # Ensure model directory exists
+        model_save_path.parent.mkdir(parents=True, exist_ok=True)
         
         if not training_data_path.exists():
             print(f"❌ Training data not found: {training_data_path}")
             print("   Run ingest.py first to create training material")
             return
         
-        # CPU safety warning for training
-        if DEVICE and DEVICE.type == "cpu":
-            print("🧘 CPU Training Mode")
-            print("   This will be slower but safer for your system")
-            print("   The model will be automatically reduced to femto-size")
-            print("   Consider using --template-only for instant testing instead")
-            print()
-            
-            response = input("Continue with CPU training? (y/N): ").strip().lower()
-            if response != 'y':
-                print("💡 Try: python generator.py --template-only --test")
-                return
+        # Train model with configuration
+        print(f"🌸 Training {model_name} model with configuration-based parameters")
         
-        success = train_piko_model(
+        success = train_model(
             training_data_path=training_data_path,
             model_save_path=model_save_path,
+            config=config,
+            model_name=model_name,
             epochs=args.epochs,
             batch_size=args.batch_size,
             learning_rate=args.learning_rate
@@ -1193,27 +1395,36 @@ def main():
         
         if success:
             print(f"\n🌸 Training complete! Model saved to {model_save_path}")
-            print(f"   Use --test to try the trained model")
+            print(f"   Use --test --model {model_name} to try the trained model")
         
     elif args.test:
-        # CPU-safe test mode with option to use trained models
+        # Load model configuration for testing
+        model_name = args.model  # Can be None for auto-detection
+        
         if args.template_only:
             print("🌿 Starting template-only test mode (CPU safe)")
             meadow = HaikuMeadow(force_template_mode=True)
         else:
-            model_path = Path(args.model_path) if Path(args.model_path).exists() else None
+            # Load configuration
+            config = load_model_parameters(model_name)
+            model_name = model_name or ("piko" if DEVICE and DEVICE.type == "cpu" else "nano")
             
-            if DEVICE and DEVICE.type == "cpu" and model_path:
-                print("🧘 CPU Test Mode - attempting to load trained femto-model")
-                print("   (Using your trained model - should be safe after successful training)")
-                meadow = HaikuMeadow(model_path, force_template_mode=False)  # Allow neural model
-            elif DEVICE and DEVICE.type == "cpu":
-                print("🧘 CPU Test Mode - using template generation for safety")
-                print("   (No trained model found)")
-                print("   Use --template-only to skip this message")
-                meadow = HaikuMeadow(model_path, force_template_mode=True)
+            # Determine model path
+            if args.model_path:
+                model_path_obj = Path(args.model_path)
             else:
-                meadow = HaikuMeadow(model_path)
+                # Use config path
+                paths_config = config.get("paths", {})
+                model_path_str = paths_config.get(model_name, {}).get("save_path", f"model/{model_name}/{model_name}_haiku_model.pt")
+                model_path_obj = Path(model_path_str)
+            
+            # Ensure model directory exists
+            model_path_obj.parent.mkdir(parents=True, exist_ok=True)
+            
+            model_path = model_path_obj if model_path_obj.exists() else None
+            
+            print(f"🌸 Starting {model_name} model test mode")
+            meadow = HaikuMeadow(model_path, config=config, model_name=model_name)
         
         interactive_test_mode(meadow)
         

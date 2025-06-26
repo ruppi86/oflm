@@ -16,11 +16,84 @@ from typing import List, Tuple, Dict, Any
 import time
 from datetime import datetime
 import shutil
+import re
+import glob
 
 # Import from existing modules
 from glyph_codec import SpiramycelGlyphCodec
 from spore_map import Season
-from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel
+from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, load_spiramycel_parameters
+
+def discover_training_data(paradigm: str = "abstract", data_dir: str = "training_scenarios") -> List[Path]:
+    """
+    Dynamically discover training data files with smart date-based sorting
+    
+    Args:
+        paradigm: "ecological" or "abstract" 
+        data_dir: Directory to search for *.jsonl files
+        
+    Returns:
+        List of Path objects sorted by date (most recent first)
+    """
+    data_path = Path(data_dir)
+    if not data_path.exists():
+        return []
+    
+    # Find all jsonl files matching the paradigm
+    pattern = f"{paradigm}_*.jsonl"
+    files = list(data_path.glob(pattern))
+    
+    if not files:
+        return []
+    
+    # Extract dates from filenames using regex
+    dated_files = []
+    undated_files = []
+    
+    # Regex patterns for different date formats
+    date_patterns = [
+        r'(\d{8}_\d{6})',           # YYYYMMDD_HHMMSS
+        r'(\d{8})',                 # YYYYMMDD  
+        r'(\d{4}_\d{2}_\d{2})',     # YYYY_MM_DD
+        r'(\d{4}-\d{2}-\d{2})',     # YYYY-MM-DD
+    ]
+    
+    for file_path in files:
+        filename = file_path.name
+        date_found = False
+        
+        for pattern in date_patterns:
+            match = re.search(pattern, filename)
+            if match:
+                date_str = match.group(1).replace('_', '').replace('-', '')
+                # Convert to sortable format (YYYYMMDDHHMMSS)
+                if len(date_str) == 8:  # YYYYMMDD
+                    date_str += "000000"  # Add HHMMSS
+                elif len(date_str) == 15:  # YYYYMMDDHHMMSS
+                    pass  # Already in correct format
+                
+                try:
+                    # Validate date format
+                    datetime.strptime(date_str[:8], '%Y%m%d')
+                    dated_files.append((date_str, file_path))
+                    date_found = True
+                    break
+                except ValueError:
+                    continue
+        
+        if not date_found:
+            undated_files.append(file_path)
+    
+    # Sort dated files by date (most recent first)
+    dated_files.sort(key=lambda x: x[0], reverse=True)
+    
+    # Sort undated files by size (largest first) as fallback
+    undated_files.sort(key=lambda x: x.stat().st_size, reverse=True)
+    
+    # Combine: dated files first (newest first), then undated files (largest first)
+    result = [file_path for _, file_path in dated_files] + undated_files
+    
+    return result
 
 class AbstractDataset(Dataset):
     """Dataset for abstract spore echoes (mirrors EcologicalDataset)"""
@@ -107,11 +180,29 @@ class AbstractDataset(Dataset):
         return input_tokens, target_tokens, condition_tensor, effectiveness
 
 def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jsonl",
-                        epochs: int = 10):
+                        config: Dict = None,
+                        epochs: int = None):
     """Train Spiramycel on abstract data (mirrors train_ecological_model)"""
     
     print("🔬 Abstract Spiramycel Training")
     print("=" * 50)
+    
+    # Load configuration
+    if config is None:
+        config = load_spiramycel_parameters("abstract")
+    
+    # Get training parameters from config (ensure numeric types)
+    training_config = config.get('training', {})
+    epochs = epochs or int(training_config.get('epochs', 15))
+    batch_size = int(training_config.get('batch_size', 4))
+    learning_rate = float(training_config.get('learning_rate', 0.0008))
+    weight_decay = float(training_config.get('weight_decay', 2e-5))
+    gradient_clip_norm = float(training_config.get('gradient_clip_norm', 0.8))
+    
+    print(f"🔧 Using abstract paradigm configuration")
+    print(f"   Epochs: {epochs}")
+    print(f"   Batch size: {batch_size}")
+    print(f"   Learning rate: {learning_rate}")
     
     # Initialize codec
     codec = SpiramycelGlyphCodec()
@@ -124,17 +215,16 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
         print("❌ No training data loaded!")
         return None
     
-    # Use SpiramycelNeuralModel with femto to match ecological training on CPU
-    device = torch.device("cpu")  # Force CPU for compatibility
-    model = SpiramycelNeuralModel(force_cpu_mode=True).to(device)
+    # Use SpiramycelNeuralModel with configuration
+    device = torch.device("cpu")  # Force CPU for democratic access
+    model = SpiramycelNeuralModel(config=config, paradigm="abstract").to(device)
     
     # Print actual model type that was selected
     print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
     
-    # Training setup - match ecological training parameters exactly
-    batch_size = 8  # Match ecological training batch size
+    # Training setup using configuration
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
     # Loss functions matching neural_trainer.py
     glyph_criterion = nn.CrossEntropyLoss(ignore_index=0)  # Ignore padding
@@ -183,6 +273,10 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             
             # Backward pass
             total_loss.backward()
+            
+            # Gradient clipping from configuration
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=gradient_clip_norm)
+            
             optimizer.step()
             
             # Accumulate losses
@@ -206,20 +300,20 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
     training_time = time.time() - start_time
     print(f"⏱ Training completed in {training_time:.1f} seconds")
     
-    # Save model
+    # Save model using configuration paths
+    save_paths = config.get('save_paths', {})
+    models_dir = Path(save_paths.get('model_dir', 'abstract_models'))
+    models_dir.mkdir(exist_ok=True)
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_path = models_dir / f"abstract_spiramycel_{timestamp}.pt"
     
-    # Ensure abstract_models directory exists
-    abstract_models_dir = Path("abstract_models")
-    abstract_models_dir.mkdir(exist_ok=True)
-    
-    model_path = abstract_models_dir / f"abstract_spiramycel_{timestamp}.pt"
     torch.save(model.state_dict(), model_path)
-    
     print(f"💾 Model saved to {model_path}")
     
-    # Also create a "latest" symlink for easy access
-    latest_path = abstract_models_dir / "abstract_spiramycel_latest.pt"
+    # Latest model link using configuration
+    latest_model_name = save_paths.get('latest_model', 'abstract_spiramycel_latest.pt')
+    latest_path = models_dir / latest_model_name
     try:
         if latest_path.exists():
             latest_path.unlink()
@@ -278,23 +372,36 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
 def main():
     """Main training function"""
     
-    # Check available data files
-    data_files = [
-        "training_scenarios/abstract_small_chaotic.jsonl",
-        "training_scenarios/abstract_medium_chaotic.jsonl", 
-        "training_scenarios/abstract_large_chaotic.jsonl"
-    ]
-    
-    available_files = [f for f in data_files if Path(f).exists()]
+    # Dynamically discover abstract training data files
+    print("🔍 Discovering abstract training data...")
+    available_files = discover_training_data("abstract", "training_scenarios")
     
     if not available_files:
         print("❌ No abstract training data found!")
-        print("   Run: cd oflm-python/spiramycel && python generate_abstract_data.py")
+        print("   Expected files in training_scenarios/:")
+        print("     abstract_YYYYMMDD_*.jsonl  (dated files - preferred)")
+        print("     abstract_*.jsonl           (undated files)")
+        print("   Run: python generate_abstract_data.py")
         return
     
-    # Use largest available dataset
-    data_file = available_files[-1]
-    print(f"📊 Using dataset: {data_file}")
+    # Show discovered files (first 3 for brevity)
+    print(f"📁 Found {len(available_files)} abstract dataset(s):")
+    for i, file_path in enumerate(available_files[:3]):
+        file_size = file_path.stat().st_size / (1024 * 1024)  # MB
+        print(f"   {i+1}. {file_path.name} ({file_size:.1f} MB)")
+    if len(available_files) > 3:
+        print(f"   ... and {len(available_files) - 3} more files")
+    
+    # Use most recent (first in sorted list)
+    data_file = str(available_files[0])
+    print(f"\n📊 Using most recent dataset: {available_files[0].name}")
+    
+    # Show dataset size info
+    try:
+        file_size = available_files[0].stat().st_size / (1024 * 1024)  # MB
+        print(f"   File size: {file_size:.1f} MB")
+    except Exception as e:
+        print(f"   ⚠ Could not get file size: {e}")
     
     # Train abstract model
     model_path = train_abstract_model(

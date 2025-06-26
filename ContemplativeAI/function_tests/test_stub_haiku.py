@@ -7,7 +7,7 @@ Quick demonstration of contemplative haiku generation using the local stub.
 
 import asyncio
 from haiku_bridge import HaikuBridge
-from pulmonos_alpha_01_o_3 import Phase
+from pulmonos_daemon import Phase
 
 async def test_stub_generation():
     """Test haiku generation with the local stub"""

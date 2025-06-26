@@ -116,12 +116,12 @@ class SeasonalTrainer:
     def __init__(self, 
                  config: BreathConfig,
                  dew_ledger: Optional[DewLedger] = None,
-                 output_dir: Path = Path("models")):
+                 output_dir: Path = Path("model")):
         
         self.config = config
         self.dew_ledger = dew_ledger or DewLedger()
         self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # Current season awareness
         self.current_season = determine_season()

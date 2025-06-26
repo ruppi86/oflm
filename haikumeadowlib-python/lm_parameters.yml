@@ -1,0 +1,109 @@
+# HaikuMeadowLib Language Model Parameters
+# Configuration for different model sizes and training scenarios
+
+models:
+  piko:
+    # CPU-optimized model for contemplative training
+    # Target: ~35k parameters for safe CPU training
+    description: "Piko-scale model optimized for CPU training and inference"
+    target_device: "cpu"
+    
+    # Model architecture
+    parameter_count: 35  # In thousands (35k parameters)
+    embed_dim: 32
+    hidden_dim: 64
+    num_layers: 1  # Single GRU layer for memory efficiency
+    condition_dim: 8  # Fixed for atmospheric conditions
+    vocab_size: 2000  # Fixed vocabulary size
+    max_sequence_length: 32
+    
+    # Training parameters
+    training:
+      epochs: 8  # Slightly more than current 5 for better learning
+      batch_size: 2  # CPU-safe batch size
+      learning_rate: 0.001
+      weight_decay: 0.0001
+      gradient_clip_norm: 0.5
+      scheduler_patience: 2
+      scheduler_factor: 0.7
+      
+    # Memory and safety
+    memory_limit_mb: 50  # Conservative memory limit
+    force_cpu_mode: true
+    enable_gradient_checkpointing: false  # Keep simple for CPU
+    
+    # Generation parameters
+    generation:
+      temperature_base: 0.7
+      silence_probability: 0.3
+      rate_limit_seconds: 5.0
+      
+  nano:
+    # GPU-optimized model for full-scale training
+    # Target: ~600k parameters for GPU acceleration
+    description: "Nano-scale model optimized for GPU training and inference"
+    target_device: "gpu"
+    
+    # Model architecture  
+    parameter_count: 600  # In thousands (600k parameters)
+    embed_dim: 128
+    hidden_dim: 256
+    num_layers: 2  # Dual GRU layers for richer representations
+    condition_dim: 8  # Fixed for atmospheric conditions
+    vocab_size: 2000  # Fixed vocabulary size
+    max_sequence_length: 48  # Longer sequences for richer generation
+    
+    # Training parameters
+    training:
+      epochs: 20  # Full training cycles
+      batch_size: 16  # GPU-optimized batch size
+      learning_rate: 0.001
+      weight_decay: 0.0001
+      gradient_clip_norm: 1.0  # Slightly higher for larger model
+      scheduler_patience: 3
+      scheduler_factor: 0.8
+      
+    # Memory and performance
+    memory_limit_mb: 500  # Higher limit for GPU
+    force_cpu_mode: false
+    enable_gradient_checkpointing: true  # Memory optimization for GPU
+    
+    # Generation parameters
+    generation:
+      temperature_base: 0.8  # Slightly more creative for larger model
+      silence_probability: 0.25  # Less silence for more capable model
+      rate_limit_seconds: 3.0  # Faster generation rate
+
+# Default model selection based on hardware
+default_model: "piko"  # Safe default for most systems
+
+# Model path templates
+paths:
+  model_directory: "model"
+  piko:
+    save_path: "model/piko/piko_haiku_model.pt"
+    checkpoint_dir: "model/piko/"
+  nano:
+    save_path: "model/nano/nano_haiku_model.pt" 
+    checkpoint_dir: "model/nano/"
+
+# Training data configuration
+data:
+  training_data_path: "training/haiku_training_material.json"
+  validation_split: 0.1
+  shuffle_training: true
+  
+# Logging configuration
+logging:
+  log_directory: "logs"
+  log_level: "INFO"
+  save_checkpoints: true
+  checkpoint_frequency: 3  # Every N epochs
+
+# Atmospheric condition defaults
+atmospheric:
+  default_season: "spring"
+  default_time: "day"
+  default_temperature: 0.5
+  default_humidity: 0.5
+  default_community_pressure: 0.3

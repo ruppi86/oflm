@@ -96,7 +96,7 @@ if not SPIRAMYCEL_AVAILABLE:
 
 # Import breath phases (with fallback)
 try:
-    from pulmonos_alpha_01_o_3 import Phase
+    from pulmonos_daemon import Phase
 except ImportError:
     # Fallback enum if Pulmonos not available
     class Phase(Enum):

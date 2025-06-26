@@ -18,7 +18,7 @@ from datetime import datetime
 
 from breath_resonance import BreathPhase, Skepnad
 
-# Network constants (matching o3's pulmonos_alpha_01_o_3.py)
+# Network constants (matching o3's pulmonos_daemon.py)
 MULTICAST_ADDR = "239.23.42.99"
 MULTICAST_PORT = 4242
 BIP_SCHEMA_VERSION = "BIP/v0.2"

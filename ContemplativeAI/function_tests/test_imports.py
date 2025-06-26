@@ -60,11 +60,11 @@ def test_imports():
         print(f"❌ Spiralbase failed: {e}")
     
     # Test pulmonos
-    print("\nTesting pulmonos_alpha_01_o_3.py...")
+    print("\nTesting pulmonos_daemon.py...")
     try:
-        from pulmonos_alpha_01_o_3 import Phase, BreathConfig
+        from pulmonos_daemon import Phase, BreathConfig
         components["pulmonos"] = True
-        print("✅ Pulmonos daemon loaded successfully")
+        print("✅ Pulmonos daemon imports successfully")
     except Exception as e:
         errors["pulmonos"] = str(e)
         print(f"❌ Pulmonos failed: {e}")

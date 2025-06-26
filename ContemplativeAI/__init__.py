@@ -35,7 +35,7 @@ except ImportError:
     SPIRALBASE_AVAILABLE = False
 
 try:
-    from .pulmonos_alpha_01_o_3 import Pulmonos, BreathDurations
+    from .pulmonos_daemon import Pulmonos, BreathDurations
     PULMONOS_AVAILABLE = True
 except ImportError:
     PULMONOS_AVAILABLE = False

@@ -40,7 +40,7 @@ class EcologicalDataGenerator:
 
     def __init__(self, scenarios_dir: str | None = None, random_seed: Optional[int] = None):
         """Initialise with scenario definitions and optional reproducible seed"""
-        scenarios_dir = Path(scenarios_dir) if scenarios_dir else Path(__file__).parent
+        scenarios_dir = Path(scenarios_dir) if scenarios_dir else Path(__file__).parent / "training_scenarios"
         self.scenarios_dir = scenarios_dir
         self.scenarios: Dict[str, Dict[str, Any]] = {}
 
@@ -625,35 +625,37 @@ class EcologicalDataGenerator:
         else:
             silence_probability = max(0.1, 0.875 - environmental_stress * 0.3)
         
+        # Return format compatible with neural training (simpler structure)
         return {
-            'spore_echo_id': f"{scenario_id}_{timestamp.strftime('%Y%m%d_%H%M%S')}",
-            'timestamp': timestamp.isoformat(),
-            'scenario': {
-                'id': scenario_id,
-                'name': scenario['name'],
-                'bioregion': scenario['bioregion'],
-                'ecosystem_type': scenario['ecosystem_type'],
-                'season': season  # Include season for data consistency
-            },
             'conditions': {
-                'season': season,
-                'year_in_cycle': year_in_cycle,
-                'environmental_stress': environmental_stress,
-                'repair_urgency': repair_urgency,
-                'extreme_event': extreme_event,
                 'sensor_readings': sensor_readings
             },
             'repair_action': {
                 'glyph_sequence': glyph_sequence,
-                'description': description,
-                'effectiveness': effectiveness,
-                'silence_probability': silence_probability
+                'effectiveness': effectiveness
             },
-            'historical_context': conditions.historical_context,
-            'multi_generational_wisdom': {
-                'pattern_recognition_confidence': min(1.0, year_in_cycle / 20),
-                'adaptation_strength': environmental_stress * effectiveness,
-                'bioregional_alignment': effectiveness * 0.8 + 0.2
+            # Optional: Keep rich metadata for analysis but don't break training
+            '_metadata': {
+                'spore_echo_id': f"{scenario_id}_{timestamp.strftime('%Y%m%d_%H%M%S')}",
+                'timestamp': timestamp.isoformat(),
+                'scenario': {
+                    'id': scenario_id,
+                    'name': scenario['name'],
+                    'bioregion': scenario['bioregion'],
+                    'ecosystem_type': scenario['ecosystem_type'],
+                    'season': season
+                },
+                'environmental_stress': environmental_stress,
+                'repair_urgency': repair_urgency,
+                'extreme_event': extreme_event,
+                'description': description,
+                'silence_probability': silence_probability,
+                'historical_context': conditions.historical_context,
+                'multi_generational_wisdom': {
+                    'pattern_recognition_confidence': min(1.0, year_in_cycle / 20),
+                    'adaptation_strength': environmental_stress * effectiveness,
+                    'bioregional_alignment': effectiveness * 0.8 + 0.2
+                }
             }
         }
     
@@ -712,14 +714,14 @@ class EcologicalDataGenerator:
                             # CRITICAL FIX: Recompute environmental stress after sensor adjustments
                             sensor_vals = list(conditions['sensor_readings'].values())
                             new_stress = np.mean([abs(v - 0.5) * 2 for v in sensor_vals]) if sensor_vals else 0.3
-                            conditions['environmental_stress'] = new_stress * 0.6  # Additional 40% reduction
+                            spore_echo['_metadata']['environmental_stress'] = new_stress * 0.6  # Additional 40% reduction
                             
                             # Update repair urgency based on new stress
-                            conditions['repair_urgency'] = min(1.0, new_stress + random.uniform(0, 0.2))
+                            spore_echo['_metadata']['repair_urgency'] = min(1.0, new_stress + random.uniform(0, 0.2))
                             
                             # Update repair action to reflect lower urgency
-                            spore_echo['repair_action']['silence_probability'] = min(1.0, 
-                                spore_echo['repair_action']['silence_probability'] + 0.2)
+                            spore_echo['_metadata']['silence_probability'] = min(1.0, 
+                                spore_echo['_metadata']['silence_probability'] + 0.2)
                         
                         f.write(json.dumps(spore_echo, ensure_ascii=False) + '\n')
                         generated_count += 1
@@ -771,7 +773,7 @@ class EcologicalDataGenerator:
             # Scenario distribution
             scenario_counts = {}
             for echo in echoes:
-                scenario = echo['scenario']['id']
+                scenario = echo['_metadata']['scenario']['id']
                 scenario_counts[scenario] = scenario_counts.get(scenario, 0) + 1
             
             print(f"   Scenario distribution:")
@@ -785,18 +787,18 @@ class EcologicalDataGenerator:
             print(f"   Average repair effectiveness: {avg_effectiveness:.3f}")
             
             # Environmental stress distribution
-            stress_values = [echo['conditions']['environmental_stress'] for echo in echoes]
+            stress_values = [echo['_metadata']['environmental_stress'] for echo in echoes]
             avg_stress = np.mean(stress_values) if stress_values else 0.0
             print(f"   Average environmental stress: {avg_stress:.3f}")
             
             # Extreme events
-            extreme_count = sum(1 for echo in echoes if echo['conditions'].get('extreme_event'))
+            extreme_count = sum(1 for echo in echoes if echo['_metadata'].get('extreme_event'))
             extreme_pct = (extreme_count / len(echoes) * 100) if len(echoes) > 0 else 0.0
             print(f"   Extreme events: {extreme_count} ({extreme_pct:.1f}%)")
             
             # Analyze ecosystem condition types (for calm mode)
-            thriving_count = sum(1 for echo in echoes if "perfect harmony" in echo['repair_action']['description'])
-            maintenance_count = sum(1 for echo in echoes if "seasonal adjustment" in echo['repair_action']['description'])
+            thriving_count = sum(1 for echo in echoes if "perfect harmony" in echo['_metadata']['description'])
+            maintenance_count = sum(1 for echo in echoes if "seasonal adjustment" in echo['_metadata']['description'])
             crisis_count = len(echoes) - thriving_count - maintenance_count
             
             if thriving_count > 0 or maintenance_count > 0:
@@ -806,7 +808,7 @@ class EcologicalDataGenerator:
                 print(f"     Crisis response: {crisis_count} ({crisis_count/len(echoes)*100:.1f}%)")
                 
             # Silence analysis
-            silence_values = [echo['repair_action']['silence_probability'] for echo in echoes]
+            silence_values = [echo['_metadata']['silence_probability'] for echo in echoes]
             avg_silence = np.mean(silence_values) if silence_values else 0.0
             high_silence_count = sum(1 for s in silence_values if s > 0.8)
             high_silence_pct = (high_silence_count / len(echoes) * 100) if len(echoes) > 0 else 0.0
@@ -827,19 +829,20 @@ def main():
     print("🌍 Ecological Spiramycel Training Data Generator")
     print("=" * 60)
     
-    # Generate datasets for controlled comparison
+    # Generate timestamped datasets (matching abstract format pattern)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     datasets = [
         # Small datasets for quick testing
-        (500, "ecological_small_chaotic.jsonl", True),
-        (500, "ecological_small_calm.jsonl", False),
+        (500, f"ecological_chaotic_small_{timestamp}.jsonl", True),
+        (500, f"ecological_calm_small_{timestamp}.jsonl", False),
         
         # Medium datasets
-        (2000, "ecological_medium_chaotic.jsonl", True),
-        (2000, "ecological_medium_calm.jsonl", False),
+        (2000, f"ecological_chaotic_medium_{timestamp}.jsonl", True),
+        (2000, f"ecological_calm_medium_{timestamp}.jsonl", False),
         
         # Large datasets for serious training
-        (5000, "ecological_large_chaotic.jsonl", True),
-        (5000, "ecological_large_calm.jsonl", False)
+        (5000, f"ecological_chaotic_large_{timestamp}.jsonl", True),
+        (5000, f"ecological_calm_large_{timestamp}.jsonl", False)
     ]
     
     successful_datasets = 0

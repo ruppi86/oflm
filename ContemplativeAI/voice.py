@@ -26,17 +26,18 @@ from enum import Enum
 
 # Import breath phases with fallback
 try:
-    from .pulmonos_alpha_01_o_3 import Phase as BreathPhase
+    if __name__ == "__main__":
+        from pulmonos_daemon import Phase as BreathPhase
+    else:
+        from .pulmonos_daemon import Phase as BreathPhase
+    PULMONOS_AVAILABLE = True
 except ImportError:
-    try:
-        from pulmonos_alpha_01_o_3 import Phase as BreathPhase
-    except ImportError:
-        # Fallback for when Pulmonos not available
-        class BreathPhase(Enum):
-            INHALE = "inhale"
-            HOLD = "hold"
-            EXHALE = "exhale"
-            REST = "rest"
+    # Fallback for when Pulmonos not available
+    class BreathPhase(Enum):
+        INHALE = "inhale"
+        HOLD = "hold"
+        EXHALE = "exhale"
+        REST = "rest"
 
 
 class ExpressionMode(Enum):

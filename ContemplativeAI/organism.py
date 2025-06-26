@@ -42,75 +42,28 @@ MyoSpiral = None
 
 # Try importing Pulmonos with both relative and absolute imports
 try:
-    # Try relative import first (for package usage)
-    from .pulmonos_alpha_01_o_3 import Phase as BreathPhase, BreathConfig
-except ImportError:
-    try:
-        # Fall back to absolute import (for direct usage)
-        from pulmonos_alpha_01_o_3 import Phase as BreathPhase, BreathConfig
-    except ImportError as e:
-        Pulmonos = None
-        BreathPhase = None
+    if __name__ == "__main__":
+        from pulmonos_daemon import Phase as BreathPhase, BreathConfig
     else:
-        # Only define Pulmonos if import succeeded
-        # Create a simple adapter for Pulmonos
-        class Pulmonos:
-            def __init__(self, breath_rhythm):
-                self.config = BreathConfig(
-                    inhale=breath_rhythm.get("inhale", 2.0),
-                    hold=breath_rhythm.get("hold", 1.0),
-                    exhale=breath_rhythm.get("exhale", 2.0),
-                    rest=breath_rhythm.get("rest", 1.0)
-                )
-                
-            async def broadcast_breathing(self, cycles):
-                """Simple breathing cycle generator for the organism"""
-                try:
-                    # Try relative import first
-                    from .pulmonos_alpha_01_o_3 import PHASE_ORDER
-                except ImportError:
-                    # Fall back to absolute import
-                    from pulmonos_alpha_01_o_3 import PHASE_ORDER
-                
-                for cycle in range(cycles):
-                    for phase in PHASE_ORDER:
-                        yield phase
-                        duration = self.config.durations[phase]
-                        await asyncio.sleep(duration)
-                        
-            async def rest(self):
-                """Rest the breathing daemon"""
-                pass
-else:
-    # Relative import succeeded
-    # Create a simple adapter for Pulmonos
-    class Pulmonos:
-        def __init__(self, breath_rhythm):
-            self.config = BreathConfig(
-                inhale=breath_rhythm.get("inhale", 2.0),
-                hold=breath_rhythm.get("hold", 1.0),
-                exhale=breath_rhythm.get("exhale", 2.0),
-                rest=breath_rhythm.get("rest", 1.0)
-            )
-            
-        async def broadcast_breathing(self, cycles):
-            """Simple breathing cycle generator for the organism"""
-            try:
-                # Try relative import first
-                from .pulmonos_alpha_01_o_3 import PHASE_ORDER
-            except ImportError:
-                # Fall back to absolute import
-                from pulmonos_alpha_01_o_3 import PHASE_ORDER
-            
-            for cycle in range(cycles):
-                for phase in PHASE_ORDER:
-                    yield phase
-                    duration = self.config.durations[phase]
-                    await asyncio.sleep(duration)
-                    
-        async def rest(self):
-            """Rest the breathing daemon"""
-            pass
+        from .pulmonos_daemon import Phase as BreathPhase, BreathConfig
+    PULMONOS_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Pulmonos not available: {e}")
+    BreathPhase = None
+    BreathConfig = None
+    PULMONOS_AVAILABLE = False
+
+# Try to import phase order constants
+try:
+    if __name__ == "__main__":
+        from pulmonos_daemon import PHASE_ORDER
+    else:
+        from .pulmonos_daemon import PHASE_ORDER
+except ImportError:
+    if __name__ == "__main__":
+        from pulmonos_daemon import PHASE_ORDER
+    else:
+        from .pulmonos_daemon import PHASE_ORDER
 
 # Try importing Soma
 try:

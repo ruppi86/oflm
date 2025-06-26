@@ -1,0 +1,180 @@
+# Spiramycel Neural Model Parameters
+# Configuration for the world's first scientifically validated contemplative AI
+# Based on proven 2×2 factorial experiment results (June 2025)
+
+models:
+  ecological:
+    # Ecological paradigm - bioregional, adaptive, environmental relationship
+    # Proven results: Crisis adaptive (100% → 25% silence under chaos)
+    description: "Ecological paradigm optimized for bioregional adaptation and environmental relationship"
+    target_device: "cpu"
+    paradigm: "ecological"
+    
+    # Validated model architecture (25,733 parameters exactly)
+    parameter_count: 25.733  # In thousands (scientifically verified by o3)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (fixed for spiramycel)
+    embed_dim: 32
+    hidden_dim: 64
+    num_layers: 1            # Single GRU layer (femto-optimized)
+    condition_dim: 8         # NetworkConditions: latency, voltage, temperature, error_rate, bandwidth, etc.
+    max_sequence_length: 16
+    
+    # Training parameters (proven effective 4.6-4.7 minutes)
+    training:
+      epochs: 15             # Validated in scientific experiment
+      batch_size: 4          # CPU-optimized for democratic access
+      learning_rate: 0.001
+      weight_decay: 1e-5
+      gradient_clip_norm: 1.0
+      scheduler_patience: 3
+      scheduler_factor: 0.8
+      
+      # Ecological-specific training
+      crisis_adaptation_weight: 1.5    # Learn to respond during chaos
+      bioregional_memory_cycles: 75    # Days (seasonal evaporation)
+      environment_stress_testing: true # Train under chaotic conditions
+      
+    # Contemplative generation parameters
+    generation:
+      silence_probability: 0.875       # Silence Majority (87.5% base)
+      calm_silence_boost: 1.0          # 100% silence in calm conditions
+      chaos_activation_threshold: 0.3  # Activate more during crisis (25% silence)
+      temperature_base: 0.6
+      rate_limit: 3.0                  # Seconds between generations
+      max_tokens: 12
+      
+    # Model persistence
+    save_paths:
+      model_dir: "ecological_models"   # Existing directory structure
+      latest_model: "ecological_spiramycel_latest.pt"
+      calm_model: "ecological_calm_model.pt"       # Model A from experiment
+      chaotic_model: "ecological_chaotic_model.pt" # Model B from experiment
+      
+    # Data sources
+    data:
+      training_scenarios: "training_scenarios"
+      ecological_configs: [
+        "drought_landscape_australia.json",
+        "rice_paddy_guangzhou.json", 
+        "groundwater_sweden.json"
+      ]
+
+  abstract:
+    # Abstract paradigm - systematic, philosophical stability  
+    # Proven results: Resilient balance (100% → 50% silence under chaos)
+    description: "Abstract paradigm optimized for systematic stability and philosophical consistency"
+    target_device: "cpu"
+    paradigm: "abstract"
+    
+    # Validated model architecture (25,733 parameters exactly)
+    parameter_count: 25.733  # In thousands (scientifically verified by o3)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (fixed for spiramycel)
+    embed_dim: 32
+    hidden_dim: 64
+    num_layers: 1            # Single GRU layer (femto-optimized)
+    condition_dim: 8         # NetworkConditions: latency, voltage, temperature, error_rate, bandwidth, etc.
+    max_sequence_length: 16
+    
+    # Training parameters (proven effective 10.0-10.7 minutes)
+    training:
+      epochs: 15             # Validated in scientific experiment
+      batch_size: 4          # CPU-optimized for democratic access
+      learning_rate: 0.0008  # Slightly lower for philosophical stability
+      weight_decay: 2e-5     # More regularization for systematic patterns
+      gradient_clip_norm: 0.8
+      scheduler_patience: 4
+      scheduler_factor: 0.9
+      
+      # Abstract-specific training
+      philosophical_consistency_weight: 1.2  # Maintain stable principles
+      systematic_pattern_emphasis: true      # Learn systematic responses
+      stress_resilience_training: true       # Maintain balance under pressure
+      
+    # Contemplative generation parameters  
+    generation:
+      silence_probability: 0.875       # Silence Majority (87.5% base)
+      calm_silence_boost: 1.0          # 100% silence in calm conditions
+      chaos_balance_threshold: 0.5     # Maintain 50% silence even in chaos
+      temperature_base: 0.5            # More stable/consistent generation
+      rate_limit: 4.0                  # Seconds between generations (more deliberate)
+      max_tokens: 10
+      
+    # Model persistence
+    save_paths:
+      model_dir: "abstract_models"     # Existing directory structure
+      latest_model: "abstract_spiramycel_latest.pt"
+      calm_model: "abstract_calm_model.pt"       # Model C from experiment
+      chaotic_model: "abstract_chaotic_model.pt" # Model D from experiment
+      
+    # Data sources
+    data:
+      training_scenarios: "training_scenarios"
+      abstract_patterns: [
+        "systematic_repair_sequences",
+        "philosophical_consistency_patterns",
+        "contemplative_stability_cycles"
+      ]
+
+# Shared configuration for both paradigms
+shared:
+  # Scientific experiment settings (reproduced from published results)
+  experiment:
+    random_seed: 42                    # Fixed seed for reproducibility
+    statistical_validation: true      # Enable cross-validation testing
+    significance_threshold: 0.05       # p < 0.05 for statistical significance
+    effect_size_target: 1.0           # Cohen's d target (large effect)
+    
+  # Hardware optimization
+  hardware:
+    force_cpu_mode: true              # Democratic access - no GPU required
+    memory_limit_mb: 512              # Conservative memory usage
+    training_timeout_minutes: 15      # Per model training limit
+    
+  # Contemplative principles (scientifically validated)
+  contemplative:
+    silence_majority_ratio: 0.875     # 87.5% silence as default wisdom
+    environmental_responsiveness: true # Adapt to NetworkConditions
+    seasonal_memory_days: 75          # Evaporating memory cycles
+    glyph_vocabulary_size: 64         # Core contemplative symbols
+    
+  # Multi-objective loss weighting
+  loss_weights:
+    glyph_generation: 1.0             # Primary sequence generation
+    effectiveness_prediction: 0.8     # Infrastructure repair effectiveness  
+    silence_majority: 1.2             # Contemplative restraint (most important)
+    
+# Environment configurations (from validated experiment)
+environments:
+  calm:
+    description: "Stable network conditions for pure contemplative expression"
+    network_stability: 0.9
+    expected_silence_ratio: 1.0       # 100% silence in calm conditions
+    
+  chaotic:
+    description: "Crisis network conditions requiring adaptive intervention"  
+    network_stability: 0.3
+    expected_silence_ratio: 0.375     # Average 37.5% silence (25% ecological, 50% abstract)
+    stress_testing: true
+
+# Global configuration
+global:
+  # Shared settings across all models
+  random_seed: 42
+  contemplative_framework: "silence_majority"
+  mycelial_networking: true
+  
+  # File paths
+  default_data_dir: "training_scenarios"
+  default_model_dir: "."  # Keep existing structure
+  log_dir: "logs"
+  
+  # Safety and stability
+  cpu_safety_mode: true
+  memory_efficient: true
+  error_recovery: true
+  
+  # Contemplative AI principles
+  silence_majority_principle: 0.875
+  bioregional_respect: true
+  community_consensus: false  # Not implemented yet
+  temporal_intelligence: true 

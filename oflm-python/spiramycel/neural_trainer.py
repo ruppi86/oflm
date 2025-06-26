@@ -20,6 +20,120 @@ from typing import Dict, List, Optional, Any
 from pathlib import Path
 from enum import Enum
 
+# Try to import YAML for parameter loading
+try:
+    import yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    yaml = None
+    YAML_AVAILABLE = False
+    print("⚠️  PyYAML not available - using default parameters")
+
+def load_spiramycel_parameters(paradigm: str = None, param_file: str = "spiramycel_parameters.yml") -> Dict:
+    """Load Spiramycel model parameters from YAML configuration file"""
+    
+    # Default parameters (fallback if YAML not available)
+    default_params = {
+        "ecological": {
+            "description": "Default ecological paradigm",
+            "target_device": "cpu",
+            "paradigm": "ecological",
+            "parameter_count": 25.733,
+            "embed_dim": 32,
+            "hidden_dim": 64,
+            "num_layers": 1,
+            "condition_dim": 8,
+            "vocab_size": 67,
+            "max_sequence_length": 16,
+            "training": {
+                "epochs": 15,
+                "batch_size": 4,
+                "learning_rate": 0.001,
+                "weight_decay": 1e-5,
+                "gradient_clip_norm": 1.0,
+                "scheduler_patience": 3,
+                "scheduler_factor": 0.8
+            },
+            "generation": {
+                "silence_probability": 0.875,
+                "temperature_base": 0.6,
+                "rate_limit": 3.0,
+                "max_tokens": 12
+            },
+            "save_paths": {
+                "model_dir": "ecological_models",
+                "latest_model": "ecological_spiramycel_latest.pt"
+            }
+        },
+        "abstract": {
+            "description": "Default abstract paradigm",
+            "target_device": "cpu", 
+            "paradigm": "abstract",
+            "parameter_count": 25.733,
+            "embed_dim": 32,
+            "hidden_dim": 64,
+            "num_layers": 1,
+            "condition_dim": 8,
+            "vocab_size": 67,
+            "max_sequence_length": 16,
+            "training": {
+                "epochs": 15,
+                "batch_size": 4,
+                "learning_rate": 0.0008,
+                "weight_decay": 2e-5,
+                "gradient_clip_norm": 0.8,
+                "scheduler_patience": 4,
+                "scheduler_factor": 0.9
+            },
+            "generation": {
+                "silence_probability": 0.875,
+                "temperature_base": 0.5,
+                "rate_limit": 4.0,
+                "max_tokens": 10
+            },
+            "save_paths": {
+                "model_dir": "abstract_models",
+                "latest_model": "abstract_spiramycel_latest.pt"
+            }
+        }
+    }
+    
+    # Try to load from YAML file
+    if YAML_AVAILABLE:
+        try:
+            config_path = Path(__file__).parent / param_file
+            if config_path.exists():
+                with open(config_path, 'r') as f:
+                    yaml_config = yaml.safe_load(f)
+                
+                if paradigm and paradigm in yaml_config.get('models', {}):
+                    config = yaml_config['models'][paradigm].copy()
+                    
+                    # Merge shared configuration if available
+                    if 'shared' in yaml_config:
+                        shared_config = yaml_config['shared']
+                        # Add loss weights to training config
+                        if 'loss_weights' in shared_config:
+                            config.setdefault('training', {}).update({'loss_weights': shared_config['loss_weights']})
+                        # Add hardware config
+                        if 'hardware' in shared_config:
+                            config.update({'hardware': shared_config['hardware']})
+                        # Add contemplative principles
+                        if 'contemplative' in shared_config:
+                            config.update({'contemplative': shared_config['contemplative']})
+                    
+                    print(f"🌿 Loaded {paradigm} parameters from {config_path}")
+                    return config
+                else:
+                    print(f"⚠️  Paradigm '{paradigm}' not found in {config_path}, using defaults")
+            else:
+                print(f"⚠️  Config file {config_path} not found, using defaults")
+        except Exception as e:
+            print(f"⚠️  Error loading YAML config: {e}, using defaults")
+    
+    # Return default configuration
+    return default_params.get(paradigm, default_params["ecological"])
+
 # Handle PyTorch availability gracefully
 try:
     import torch
@@ -139,6 +253,8 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
     """
     
     def __init__(self, 
+                 config: Dict = None,
+                 paradigm: str = None,
                  vocab_size: int = 67,  # 64 glyphs + START + END + PAD (matches saved models)
                  embed_dim: int = None,
                  hidden_dim: int = None,
@@ -148,22 +264,32 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
         if TORCH_AVAILABLE:
             super().__init__()
         
-        self.vocab_size = vocab_size
-        self.condition_dim = condition_dim
+        # Load configuration if not provided
+        if config is None and paradigm:
+            config = load_spiramycel_parameters(paradigm)
+        elif config is None:
+            config = load_spiramycel_parameters("ecological")  # Default to ecological
         
-        # Adaptive sizing (copying HaikuMeadowLib approach)
-        if not TORCH_AVAILABLE or DEVICE.type == "cpu" or force_cpu_mode:
-            # CPU/Femto mode - smaller for stability
-            self.embed_dim = embed_dim or 32
-            self.hidden_dim = hidden_dim or 64
+        # Use configuration values
+        self.vocab_size = config.get('vocab_size', vocab_size)
+        self.condition_dim = config.get('condition_dim', condition_dim)
+        self.embed_dim = config.get('embed_dim', embed_dim or 32)
+        self.hidden_dim = config.get('hidden_dim', hidden_dim or 64)
+        self.num_layers = config.get('num_layers', 1)
+        self.paradigm = config.get('paradigm', 'ecological')
+        
+        # Model type determination (scientifically validated parameters)
+        parameter_count = config.get('parameter_count', 25.733)
+        if parameter_count < 50:  # Femto-scale (< 50k parameters)
             self.model_type = "femto"
-            print("🦠 Using Spiramycel femto-model (CPU optimized, ~25k parameters)")
+            print(f"🦠 Using Spiramycel femto-model ({self.paradigm} paradigm, ~{parameter_count:.0f}k parameters)")
         else:
-            # GPU mode - full size
-            self.embed_dim = embed_dim or 128
-            self.hidden_dim = hidden_dim or 256
-            self.model_type = "piko"
-            print("🚀 Using Spiramycel piko-model (GPU optimized, ~600k parameters)")
+            self.model_type = "piko" 
+            print(f"🚀 Using Spiramycel piko-model ({self.paradigm} paradigm, ~{parameter_count:.0f}k parameters)")
+        
+        # Override if force_cpu_mode is set
+        if force_cpu_mode or not TORCH_AVAILABLE or DEVICE.type == "cpu":
+            self.model_type = "femto"
         
         if TORCH_AVAILABLE:
             # Glyph embedding

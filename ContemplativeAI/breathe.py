@@ -62,23 +62,19 @@ except ImportError as e:
 
 # Try importing Pulmonos
 try:
-    if __name__ == "__main__":
-        from pulmonos_alpha_01_o_3 import Phase, BreathConfig
-        # Create simple placeholder classes for compatibility
-        class Pulmonos:
-            pass
-        class BreathDurations:
-            pass
-    else:
-        from .pulmonos_alpha_01_o_3 import Phase, BreathConfig
-        class Pulmonos:
-            pass
-        class BreathDurations:
-            pass
+    from pulmonos_daemon import Phase, BreathConfig
+    EXTERNAL_PULMONOS = True
     PULMONOS_AVAILABLE = True
     print("🫁 Pulmonos daemon loaded")
-except ImportError as e:
-    print(f"⚠️  Pulmonos not available: {e}")
+except ImportError:
+    try:
+        from .pulmonos_daemon import Phase, BreathConfig
+        EXTERNAL_PULMONOS = True
+        PULMONOS_AVAILABLE = True
+        print("🫁 Pulmonos daemon loaded")
+    except ImportError as e:
+        print(f"⚠️  Pulmonos not available: {e}")
+        PULMONOS_AVAILABLE = False
 
 # Try importing Soma
 try:

@@ -68,7 +68,7 @@ except ImportError as e:
 
 # Import breath phases (with fallback)
 try:
-    from pulmonos_alpha_01_o_3 import Phase
+    from pulmonos_daemon import Phase
 except ImportError:
     # Fallback enum if Pulmonos not available
     class Phase(Enum):
@@ -206,7 +206,7 @@ class HaikuBridge:
                 if model_path:
                     model_path_obj = os.path.join(haiku_path, model_path)
                 else:
-                    model_path_obj = os.path.join(haiku_path, "piko_haiku_model.pt")
+                    model_path_obj = os.path.join(haiku_path, "model/piko/piko_haiku_model.pt")
                 
                 if os.path.exists(model_path_obj):
                     from pathlib import Path

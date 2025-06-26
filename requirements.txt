@@ -6,6 +6,9 @@
 torch>=2.0.0,<3.0.0          # PyTorch for neural networks (CPU-optimized)
 numpy>=1.21.0,<2.0.0         # Numerical computing
 
+# Configuration Management  
+pyyaml>=6.0,<7.0.0           # YAML configuration files for model parameters (HaikuMeadowLib & Spiramycel)
+
 # Statistical Analysis  
 scipy>=1.9.0,<2.0.0          # Statistical functions (t-tests, Mann-Whitney U, etc.)
 

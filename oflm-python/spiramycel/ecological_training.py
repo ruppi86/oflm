@@ -16,10 +16,83 @@ from typing import List, Tuple, Dict, Any
 import time
 from datetime import datetime
 import shutil
+import re
+import glob
 
 # Import from existing modules with token constants
 from glyph_codec import SpiramycelGlyphCodec
-from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, START_TOKEN, END_TOKEN, PAD_TOKEN
+from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, START_TOKEN, END_TOKEN, PAD_TOKEN, load_spiramycel_parameters
+
+def discover_training_data(paradigm: str = "ecological", data_dir: str = "training_scenarios") -> List[Path]:
+    """
+    Dynamically discover training data files with smart date-based sorting
+    
+    Args:
+        paradigm: "ecological" or "abstract" 
+        data_dir: Directory to search for *.jsonl files
+        
+    Returns:
+        List of Path objects sorted by date (most recent first)
+    """
+    data_path = Path(data_dir)
+    if not data_path.exists():
+        return []
+    
+    # Find all jsonl files matching the paradigm
+    pattern = f"{paradigm}_*.jsonl"
+    files = list(data_path.glob(pattern))
+    
+    if not files:
+        return []
+    
+    # Extract dates from filenames using regex
+    dated_files = []
+    undated_files = []
+    
+    # Regex patterns for different date formats
+    date_patterns = [
+        r'(\d{8}_\d{6})',           # YYYYMMDD_HHMMSS
+        r'(\d{8})',                 # YYYYMMDD  
+        r'(\d{4}_\d{2}_\d{2})',     # YYYY_MM_DD
+        r'(\d{4}-\d{2}-\d{2})',     # YYYY-MM-DD
+    ]
+    
+    for file_path in files:
+        filename = file_path.name
+        date_found = False
+        
+        for pattern in date_patterns:
+            match = re.search(pattern, filename)
+            if match:
+                date_str = match.group(1).replace('_', '').replace('-', '')
+                # Convert to sortable format (YYYYMMDDHHMMSS)
+                if len(date_str) == 8:  # YYYYMMDD
+                    date_str += "000000"  # Add HHMMSS
+                elif len(date_str) == 15:  # YYYYMMDDHHMMSS
+                    pass  # Already in correct format
+                
+                try:
+                    # Validate date format
+                    datetime.strptime(date_str[:8], '%Y%m%d')
+                    dated_files.append((date_str, file_path))
+                    date_found = True
+                    break
+                except ValueError:
+                    continue
+        
+        if not date_found:
+            undated_files.append(file_path)
+    
+    # Sort dated files by date (most recent first)
+    dated_files.sort(key=lambda x: x[0], reverse=True)
+    
+    # Sort undated files by size (largest first) as fallback
+    undated_files.sort(key=lambda x: x.stat().st_size, reverse=True)
+    
+    # Combine: dated files first (newest first), then undated files (largest first)
+    result = [file_path for _, file_path in dated_files] + undated_files
+    
+    return result
 
 class EcologicalDataset(Dataset):
     """Dataset for ecological spore echoes with proper token handling"""
@@ -111,11 +184,29 @@ class EcologicalDataset(Dataset):
         return input_tokens, target_tokens, condition_tensor, effectiveness
 
 def train_ecological_model(data_file: str = "training_scenarios/ecological_large.jsonl",
-                          epochs: int = 10):
+                          config: Dict = None,
+                          epochs: int = None):
     """Train Spiramycel on ecological data"""
     
     print("🌍 Ecological Spiramycel Training")
     print("=" * 50)
+    
+    # Load configuration
+    if config is None:
+        config = load_spiramycel_parameters("ecological")
+    
+    # Get training parameters from config (ensure numeric types)
+    training_config = config.get('training', {})
+    epochs = epochs or int(training_config.get('epochs', 15))
+    batch_size = int(training_config.get('batch_size', 4))
+    learning_rate = float(training_config.get('learning_rate', 0.001))
+    weight_decay = float(training_config.get('weight_decay', 1e-5))
+    gradient_clip_norm = float(training_config.get('gradient_clip_norm', 1.0))
+    
+    print(f"🔧 Using ecological paradigm configuration")
+    print(f"   Epochs: {epochs}")
+    print(f"   Batch size: {batch_size}")
+    print(f"   Learning rate: {learning_rate}")
     
     # Initialize codec
     codec = SpiramycelGlyphCodec()
@@ -128,17 +219,16 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
         print("❌ No training data loaded!")
         return None
     
-    # Use SpiramycelNeuralModel with femto to match original abstract training on CPU
-    device = torch.device("cpu")  # Force CPU for compatibility
-    model = SpiramycelNeuralModel(force_cpu_mode=True).to(device)
+    # Use SpiramycelNeuralModel with configuration
+    device = torch.device("cpu")  # Force CPU for democratic access
+    model = SpiramycelNeuralModel(config=config, paradigm="ecological").to(device)
     
     # Print actual model type that was selected
     print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
     
-    # Training setup - match neural_trainer.py parameters for consistency
-    batch_size = 4  # CPU-optimized batch size to match neural_trainer.py CPU mode
+    # Training setup using configuration
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
     # Loss functions matching neural_trainer.py fixes
     glyph_criterion = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN)  # Fixed: ignore PAD, not START
@@ -183,6 +273,10 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
             total_loss = glyph_loss + 0.5 * eff_loss + 0.3 * silence_loss
             
             total_loss.backward()
+            
+            # Gradient clipping from configuration
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=gradient_clip_norm)
+            
             optimizer.step()
             
             epoch_glyph_loss += glyph_loss.item()
@@ -208,20 +302,20 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
     training_time = time.time() - start_time
     print(f"⏱ Training completed in {training_time:.1f} seconds")
     
-    # Efficient file saving (avoid repeated file operations)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_path = f"ecological_spiramycel_{timestamp}.pt"
-    
-    # Create models directory if needed
-    models_dir = Path("ecological_models")
+    # Efficient file saving using configuration paths
+    save_paths = config.get('save_paths', {})
+    models_dir = Path(save_paths.get('model_dir', 'ecological_models'))
     models_dir.mkdir(exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_path = models_dir / f"ecological_spiramycel_{timestamp}.pt"
     
     torch.save(model.state_dict(), model_path)
     print(f"💾 Model saved to {model_path}")
     
-    # Efficient latest model link (only create if needed)
-    latest_path = models_dir / "ecological_spiramycel_latest.pt"
+    # Latest model link using configuration
+    latest_model_name = save_paths.get('latest_model', 'ecological_spiramycel_latest.pt')
+    latest_path = models_dir / latest_model_name
     try:
         # Remove old latest if exists, then create new one
         if latest_path.exists():
@@ -276,44 +370,36 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
 def main():
     """Main training function"""
     
-    # Check available data files with better error handling
-    data_files = [
-        "training_scenarios/ecological_small.jsonl",
-        "training_scenarios/ecological_medium.jsonl", 
-        "training_scenarios/ecological_large.jsonl"
-    ]
-    
-    available_files = []
-    for f in data_files:
-        if Path(f).exists():
-            # Check if file is not empty
-            try:
-                if Path(f).stat().st_size > 0:
-                    available_files.append(f)
-                else:
-                    print(f"⚠ Skipping empty file: {f}")
-            except Exception as e:
-                print(f"⚠ Error checking file {f}: {e}")
+    # Dynamically discover ecological training data files
+    print("🔍 Discovering ecological training data...")
+    available_files = discover_training_data("ecological", "training_scenarios")
     
     if not available_files:
         print("❌ No ecological training data found!")
-        print("   Available files should be in training_scenarios/:")
-        for f in data_files:
-            status = "✓" if Path(f).exists() else "✗"
-            print(f"     {status} {f}")
-        print("   Run: cd training_scenarios && python ecological_data_generator.py")
+        print("   Expected files in training_scenarios/:")
+        print("     ecological_YYYYMMDD_*.jsonl  (dated files - preferred)")
+        print("     ecological_*.jsonl           (undated files)")
+        print("   Run: python ecological_data_generator.py")
         return
     
-    # Use largest available dataset
-    data_file = available_files[-1]
-    print(f"📊 Using dataset: {data_file}")
+    # Show discovered files (first 3 for brevity)
+    print(f"📁 Found {len(available_files)} ecological dataset(s):")
+    for i, file_path in enumerate(available_files[:3]):
+        file_size = file_path.stat().st_size / (1024 * 1024)  # MB
+        print(f"   {i+1}. {file_path.name} ({file_size:.1f} MB)")
+    if len(available_files) > 3:
+        print(f"   ... and {len(available_files) - 3} more files")
+    
+    # Use most recent (first in sorted list)
+    data_file = str(available_files[0])
+    print(f"\n📊 Using most recent dataset: {available_files[0].name}")
     
     # Show dataset size info
     try:
-        file_size = Path(data_file).stat().st_size / (1024 * 1024)  # MB
+        file_size = available_files[0].stat().st_size / (1024 * 1024)  # MB
         print(f"   File size: {file_size:.1f} MB")
-    except:
-        pass
+    except Exception as e:
+        print(f"   ⚠ Could not get file size: {e}")
     
     # Train ecological model
     model_path = train_ecological_model(
