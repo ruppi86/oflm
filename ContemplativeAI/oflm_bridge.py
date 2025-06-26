@@ -283,25 +283,49 @@ class OFLMBridge:
         # Default model paths relative to this file
         base_path = Path(os.path.dirname(current_dir)) / "oflm-python" / "spiramycel" / "ecological_models"
         
+        # Multi-model discovery for 2x2 paradigm system (ecological/abstract × calm/chaotic)
         model_files = {
-            "ecological_calm": "ecological_calm_model.pt", 
-            "ecological_chaotic": "ecological_chaotic_model.pt"
+            # Latest unified models (if available)
+            "ecological_spiramycel": "ecological_spiramycel_latest.pt",
+            "abstract_spiramycel": "abstract_spiramycel_latest.pt",
+            
+            # Full 2x2 paradigm models from controlled_comparison.py
+            "ecological_calm": "ecological_calm_model.pt",
+            "ecological_chaotic": "ecological_chaotic_model.pt", 
+            "abstract_calm": "abstract_calm_model.pt",
+            "abstract_chaotic": "abstract_chaotic_model.pt"
         }
         
-        # Try to load each model
+        # Check both ecological_models and abstract_models directories
+        model_search_paths = [
+            base_path,  # ecological_models (default)
+            base_path.parent / "abstract_models"  # abstract_models directory
+        ]
+        
+        # Try to load each model from multiple search paths
         for model_name, filename in model_files.items():
-            model_path = base_path / filename
-            if model_path.exists():
-                try:
-                    model = SpiramycelNeuralModel(force_cpu_mode=True)
-                    model.load_state_dict(torch.load(model_path, map_location='cpu'))
-                    model.eval()
-                    self.models[model_name] = model
-                    print(f"🍄 Loaded {model_name} from {model_path}")
-                except Exception as e:
-                    print(f"⚠️  Failed to load {model_name}: {e}")
-            else:
-                print(f"⚠️  Model not found: {model_path}")
+            model_loaded = False
+            
+            for search_path in model_search_paths:
+                model_path = search_path / filename
+                if model_path.exists():
+                    try:
+                        # Determine paradigm from model name for proper initialization
+                        paradigm = "ecological" if "ecological" in model_name else "abstract"
+                        
+                        # Initialize model with proper configuration for compatibility
+                        model = SpiramycelNeuralModel(config=None, paradigm=paradigm)
+                        model.load_state_dict(torch.load(model_path, map_location='cpu'))
+                        model.eval()
+                        self.models[model_name] = model
+                        print(f"🍄 Loaded {model_name} from {model_path}")
+                        model_loaded = True
+                        break  # Stop searching once model is found
+                    except Exception as e:
+                        print(f"⚠️  Failed to load {model_name} from {model_path}: {e}")
+            
+            if not model_loaded:
+                print(f"⚠️  Model not found: {model_name} ({filename})")
                 
         if self.models:
             print(f"🌱 OFLM Bridge initialized with {len(self.models)} ecological models")
@@ -413,7 +437,7 @@ class OFLMBridge:
             current_time = time.time()
             
             # Choose which model to use based on fragment characteristics
-            model_name = self._select_ecological_model(fragment, network_context)
+            model_name = self._select_optimal_model(fragment, network_context)
             model = self.models.get(model_name)
             
             if not model:
@@ -484,41 +508,104 @@ class OFLMBridge:
                 atmosphere=f"spiramycel_error: {str(e)[:30]}"
             )
     
-    def _select_ecological_model(self, fragment: str, network_context: Optional[Dict] = None) -> str:
-        """Select which ecological model to use based on fragment characteristics"""
+    def _select_optimal_model(self, fragment: str, network_context: Optional[Dict] = None) -> str:
+        """Intelligently select the best model from the 2×2 paradigm matrix (ecological/abstract × calm/chaotic)"""
         
         fragment_lower = fragment.lower()
         
-        # Check for chaos/stress indicators
+        # Analyze fragment for paradigm preference (ecological vs abstract)
+        ecological_indicators = [
+            "ecosystem", "bioregion", "seasonal", "adaptation", "ecological", 
+            "natural", "organic", "growth", "healing", "resilience", "wisdom",
+            "soil", "root", "nutrient", "moisture", "temperature", "environment",
+            "drought", "flood", "climate", "habitat", "biodiversity"
+        ]
+        
+        abstract_indicators = [
+            "system", "network", "infrastructure", "protocol", "algorithm",
+            "data", "processing", "computation", "logic", "systematic",
+            "architecture", "framework", "methodology", "optimization",
+            "latency", "bandwidth", "throughput", "efficiency", "performance"
+        ]
+        
+        # Analyze fragment for stress level (calm vs chaotic)
         chaos_indicators = [
             "urgent", "critical", "failure", "error", "down", "broken",
-            "crisis", "emergency", "alert", "warning", "overload"
+            "crisis", "emergency", "alert", "warning", "overload", "crash",
+            "catastrophic", "severe", "immediate", "escalation"
         ]
         
-        # Check for calm/maintenance indicators  
         calm_indicators = [
-            "gentle", "maintenance", "optimize", "tune", "check",
-            "monitor", "stable", "routine", "scheduled", "planned"
+            "gentle", "maintenance", "optimize", "tune", "check", "monitor", 
+            "stable", "routine", "scheduled", "planned", "preventive",
+            "contemplative", "peaceful", "balanced", "harmonious"
         ]
         
+        # Calculate paradigm preference
+        has_ecological = any(indicator in fragment_lower for indicator in ecological_indicators)
+        has_abstract = any(indicator in fragment_lower for indicator in abstract_indicators)
+        
+        # Calculate stress level
         has_chaos = any(indicator in fragment_lower for indicator in chaos_indicators)
         has_calm = any(indicator in fragment_lower for indicator in calm_indicators)
         
-        # Select model based on conditions
-        if has_chaos and "ecological_chaotic" in self.models:
-            return "ecological_chaotic"
-        elif has_calm and "ecological_calm" in self.models:
-            return "ecological_calm"
-        elif self.preferred_model in self.models:
-            return self.preferred_model
-        else:
-            # Return any available model (prioritize calm over chaotic for general use)
+        # Model selection priority matrix
+        model_priorities = []
+        
+        # 1st priority: Exact paradigm + stress match
+        if has_ecological and has_chaos and "ecological_chaotic" in self.models:
+            model_priorities.append("ecological_chaotic")
+        elif has_ecological and has_calm and "ecological_calm" in self.models:
+            model_priorities.append("ecological_calm")
+        elif has_abstract and has_chaos and "abstract_chaotic" in self.models:
+            model_priorities.append("abstract_chaotic")
+        elif has_abstract and has_calm and "abstract_calm" in self.models:
+            model_priorities.append("abstract_calm")
+        
+        # 2nd priority: Paradigm match with flexible stress handling
+        if has_ecological:
             if "ecological_calm" in self.models:
-                return "ecological_calm"
-            elif "ecological_chaotic" in self.models:
-                return "ecological_chaotic"
-            else:
-                return list(self.models.keys())[0] if self.models else ""
+                model_priorities.append("ecological_calm")
+            if "ecological_chaotic" in self.models:
+                model_priorities.append("ecological_chaotic")
+        elif has_abstract:
+            if "abstract_calm" in self.models:
+                model_priorities.append("abstract_calm") 
+            if "abstract_chaotic" in self.models:
+                model_priorities.append("abstract_chaotic")
+        
+        # 3rd priority: Unified models (latest training results)
+        if "ecological_spiramycel" in self.models:
+            model_priorities.append("ecological_spiramycel")
+        if "abstract_spiramycel" in self.models:
+            model_priorities.append("abstract_spiramycel")
+        
+        # 4th priority: Stress-level match regardless of paradigm
+        if has_chaos:
+            for model in ["ecological_chaotic", "abstract_chaotic"]:
+                if model in self.models and model not in model_priorities:
+                    model_priorities.append(model)
+        elif has_calm:
+            for model in ["ecological_calm", "abstract_calm"]:
+                if model in self.models and model not in model_priorities:
+                    model_priorities.append(model)
+        
+        # 5th priority: Preferred model
+        if self.preferred_model in self.models and self.preferred_model not in model_priorities:
+            model_priorities.append(self.preferred_model)
+        
+        # 6th priority: Any available model
+        for model in self.models.keys():
+            if model not in model_priorities:
+                model_priorities.append(model)
+        
+        # Return the highest priority available model
+        for model in model_priorities:
+            if model in self.models:
+                return model
+        
+        # Fallback: any available model
+        return list(self.models.keys())[0] if self.models else ""
     
     def _fragment_to_network_conditions(self, fragment: str, network_context: Optional[Dict] = None) -> NetworkConditions:
         """Convert fragment and context into NetworkConditions for the model"""

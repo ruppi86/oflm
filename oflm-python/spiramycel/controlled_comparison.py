@@ -26,14 +26,14 @@ import sys
 # Fixed: Robust relative import handling (o3's issue #8)
 try:
     # Try package imports first
-    from training_scenarios.ecological_data_generator import EcologicalDataGenerator
-    from data.training_scenarios.generate_abstract_data import AbstractDataGenerator
+    from ecological_data_generator import EcologicalDataGenerator
+    from generate_abstract_data import AbstractDataGenerator
     from ecological_training import train_ecological_model  
     from abstract_training import train_abstract_model
     
     # Import neural trainer components for analysis
     try:
-        from neural_trainer import NetworkConditions
+        from neural_trainer import NetworkConditions, load_spiramycel_parameters
         from glyph_codec import SpiramycelGlyphCodec
         NEURAL_AVAILABLE = True
     except ImportError:
@@ -54,7 +54,7 @@ except ImportError:
         from abstract_training import train_abstract_model
         
         try:
-            from neural_trainer import NetworkConditions
+            from neural_trainer import NetworkConditions, load_spiramycel_parameters
             from glyph_codec import SpiramycelGlyphCodec
             NEURAL_AVAILABLE = True
         except ImportError:
@@ -275,11 +275,23 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
     stress_mode = "chaotic" if chaos_mode else "calm"
     print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
-    # Train model with timing
+    # Load ecological configuration for training
+    if NEURAL_AVAILABLE:
+        try:
+            config = load_spiramycel_parameters("ecological")
+            print(f"🔧 Using ecological paradigm configuration from YAML")
+        except Exception as e:
+            print(f"⚠ Could not load YAML config, using defaults: {e}")
+            config = None
+    else:
+        config = None
+    
+    # Train model with timing using YAML configuration
     training_start = time.time()
     model_path = train_ecological_model(
         data_file=data_path,
-        epochs=15
+        config=config,
+        epochs=None  # Let config determine epochs
     )
     training_time = time.time() - training_start
     
@@ -351,11 +363,23 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
     stress_mode = "chaotic" if chaos_mode else "calm"
     print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
-    # Train model using fast file-based training with timing
+    # Load abstract configuration for training
+    if NEURAL_AVAILABLE:
+        try:
+            config = load_spiramycel_parameters("abstract")
+            print(f"🔧 Using abstract paradigm configuration from YAML")
+        except Exception as e:
+            print(f"⚠ Could not load YAML config, using defaults: {e}")
+            config = None
+    else:
+        config = None
+    
+    # Train model using fast file-based training with timing and YAML configuration
     training_start = time.time()
     model_path = train_abstract_model(
         data_file=data_path,
-        epochs=15
+        config=config,
+        epochs=None  # Let config determine epochs
     )
     training_time = time.time() - training_start
     
