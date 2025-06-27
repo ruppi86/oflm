@@ -21,6 +21,7 @@ import glob
 
 # Import from existing modules with token constants
 from glyph_codec import SpiramycelGlyphCodec
+from gpu_breathing import contemplative_pause
 from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, START_TOKEN, END_TOKEN, PAD_TOKEN, load_spiramycel_parameters
 
 def discover_training_data(paradigm: str = "ecological", data_dir: str = "training_scenarios") -> List[Path]:
@@ -220,8 +221,9 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
         return None
     
     # Use SpiramycelNeuralModel with configuration
-    device = torch.device("cpu")  # Force CPU for democratic access
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Use GPU if available
     model = SpiramycelNeuralModel(config=config, paradigm="ecological").to(device)
+    print(f"🚀 Using device: {device} ({'GPU-accelerated!' if device.type == 'cuda' else 'CPU fallback'})")
     
     # Print actual model type that was selected
     print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
@@ -255,7 +257,7 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
             optimizer.zero_grad()
             
             # Forward pass using the neural_trainer.py model structure
-            glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, conditions)
+            glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, conditions)
             
             # Glyph sequence loss
             glyph_loss = glyph_criterion(glyph_logits.reshape(-1, model.vocab_size), target_tokens.reshape(-1))
@@ -284,11 +286,9 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
             epoch_silence_loss += silence_loss.item()
             num_batches += 1
             
-            # Optimized contemplative pause (matching neural_trainer.py)
-            if len(dataloader) > 64:
-                time.sleep(0.005)  # Minimal pause to avoid CPU overheating
-            else:
-                time.sleep(0.01)   # Slightly faster than original
+            # Adaptive contemplative breathing based on GPU stress (skip for models < 6M)
+            if model.count_parameters() >= 6000000:  # Only for massive mili models (6M+)
+                contemplative_pause("ecological_training")
         
         # Print epoch results
         avg_glyph_loss = epoch_glyph_loss / num_batches if num_batches > 0 else 0.0
@@ -338,12 +338,12 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
             bandwidth=0.3      # low phosphorus
         )
         
-        # Create dummy input tokens (using proper tokens)
-        dummy_input = torch.full((1, 15), PAD_TOKEN, dtype=torch.long)  # 15 = max_length - 1, use PAD_TOKEN  
+        # Create dummy input tokens (using proper tokens) and move to same device as model
+        dummy_input = torch.full((1, 15), PAD_TOKEN, dtype=torch.long).to(device)  # 15 = max_length - 1, use PAD_TOKEN  
         dummy_input[0, 0] = START_TOKEN  # Start with START token
-        condition_tensor = torch.tensor(drought_conditions.to_condition_vector(), dtype=torch.float32).unsqueeze(0)
+        condition_tensor = torch.tensor(drought_conditions.to_condition_vector(), dtype=torch.float32).unsqueeze(0).to(device)
         
-        glyph_logits, effectiveness_pred, silence_logits, _, _ = model(dummy_input, condition_tensor)
+        glyph_logits, effectiveness_pred, silence_logits, _, _, _ = model(dummy_input, condition_tensor)
         
         # Decode predictions using fixed logic
         predicted_glyphs = torch.argmax(glyph_logits[0, :3], dim=1).tolist()  # First 3 glyphs

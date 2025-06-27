@@ -283,13 +283,22 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
         if parameter_count < 50:  # Femto-scale (< 50k parameters)
             self.model_type = "femto"
             print(f"🦠 Using Spiramycel femto-model ({self.paradigm} paradigm, ~{parameter_count:.0f}k parameters)")
-        else:
+        elif parameter_count < 1000:  # Piko-scale (50k-1M parameters)
             self.model_type = "piko" 
             print(f"🚀 Using Spiramycel piko-model ({self.paradigm} paradigm, ~{parameter_count:.0f}k parameters)")
+        else:  # Mili-scale (1M+ parameters)
+            self.model_type = "mili"
+            print(f"🌟 Using Spiramycel mili-model ({self.paradigm} paradigm, ~{parameter_count/1000:.1f}M parameters)")
         
-        # Override if force_cpu_mode is set
+        # Override if force_cpu_mode is set (but respect num_layers from config)
         if force_cpu_mode or not TORCH_AVAILABLE or DEVICE.type == "cpu":
-            self.model_type = "femto"
+            # Only override to femto if config doesn't specify 2+ layers
+            if self.num_layers == 1:
+                self.model_type = "femto"
+            elif self.num_layers == 2:
+                print(f"🔧 CPU mode with {self.num_layers} layers - keeping piko architecture for compatibility")
+            else:
+                print(f"🔧 CPU mode with {self.num_layers} layers - keeping mili architecture for compatibility")
         
         if TORCH_AVAILABLE:
             # Glyph embedding
@@ -298,13 +307,17 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
             # Network condition embedding
             self.condition_proj = nn.Linear(condition_dim, self.embed_dim)
             
-            # GRU layers (like HaikuMeadowLib)
-            if self.model_type == "femto":
-                self.gru1 = nn.GRU(self.embed_dim, self.hidden_dim, batch_first=True)
-                self.gru2 = None
-            else:
-                self.gru1 = nn.GRU(self.embed_dim, self.hidden_dim, batch_first=True)
+            # GRU layers (based on num_layers from config, not just model_type)
+            self.gru1 = nn.GRU(self.embed_dim, self.hidden_dim, batch_first=True)
+            if self.num_layers >= 2:
                 self.gru2 = nn.GRU(self.hidden_dim, self.hidden_dim, batch_first=True)
+            else:
+                self.gru2 = None
+                
+            if self.num_layers >= 3:
+                self.gru3 = nn.GRU(self.hidden_dim, self.hidden_dim, batch_first=True)
+            else:
+                self.gru3 = None
             
             # Output projection
             self.glyph_proj = nn.Linear(self.hidden_dim, vocab_size)
@@ -315,7 +328,7 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
             # Silence Majority head (predicts when to stay silent)
             self.silence_head = nn.Linear(self.hidden_dim, 1)
     
-    def forward(self, glyph_tokens, conditions, hidden1=None, hidden2=None):
+    def forward(self, glyph_tokens, conditions, hidden1=None, hidden2=None, hidden3=None):
         """Forward pass (based on HaikuMeadowLib architecture)"""
         if not TORCH_AVAILABLE:
             raise RuntimeError("PyTorch not available")
@@ -337,17 +350,25 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
         
         if self.gru2 is not None:
             gru2_out, hidden2_new = self.gru2(gru1_out, hidden2)
-            final_output = gru2_out
+            
+            if self.gru3 is not None:
+                # For 3-layer models, use provided third hidden state
+                gru3_out, hidden3_new = self.gru3(gru2_out, hidden3)
+                final_output = gru3_out
+            else:
+                final_output = gru2_out
+                hidden3_new = None
         else:
             final_output = gru1_out
             hidden2_new = None
+            hidden3_new = None
         
         # Output projections
         glyph_logits = self.glyph_proj(final_output)
         effectiveness_logits = self.effectiveness_head(final_output)
         silence_logits = self.silence_head(final_output)
         
-        return glyph_logits, effectiveness_logits, silence_logits, hidden1_new, hidden2_new
+        return glyph_logits, effectiveness_logits, silence_logits, hidden1_new, hidden2_new, hidden3_new
     
     def count_parameters(self) -> int:
         """Count total parameters"""
@@ -427,7 +448,7 @@ class SpiramycelTrainer:
                 effectiveness = effectiveness.to(DEVICE)
                 
                 # Forward pass
-                glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, conditions)
+                glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, conditions)
                 
                 # Glyph sequence loss
                 glyph_loss = glyph_criterion(glyph_logits.reshape(-1, model.vocab_size), target_tokens.reshape(-1))
@@ -455,8 +476,11 @@ class SpiramycelTrainer:
                 epoch_silence_loss += silence_loss.item()
                 batch_count += 1
                 
-                # Contemplative breathing pause (optimized for CPU)
-                if DEVICE.type == "cpu" and len(dataloader) > 64:
+                # Contemplative breathing pause (optimized for models under 6M)
+                param_count = model.count_parameters()
+                if param_count < 6000000:  # Small/medium models (< 6M params) - no delays needed
+                    pass  # Skip breathing for fast models under 6M parameters
+                elif DEVICE.type == "cpu" and len(dataloader) > 64:
                     time.sleep(0.005)  # Minimal pause to avoid CPU overheating
                 else:
                     time.sleep(0.01)   # Slightly faster than original
@@ -699,7 +723,7 @@ class SpiramycelTrainer:
                 effectiveness = effectiveness.to(DEVICE)
                 
                 # Forward pass
-                glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, conditions)
+                glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, conditions)
                 
                 # Calculate losses (using fixed loss calculations)
                 glyph_loss = glyph_criterion(glyph_logits.reshape(-1, model.vocab_size), target_tokens.reshape(-1))

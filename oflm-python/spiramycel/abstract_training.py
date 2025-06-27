@@ -21,6 +21,7 @@ import glob
 
 # Import from existing modules
 from glyph_codec import SpiramycelGlyphCodec
+from gpu_breathing import contemplative_pause
 from spore_map import Season
 from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, load_spiramycel_parameters
 
@@ -216,8 +217,9 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
         return None
     
     # Use SpiramycelNeuralModel with configuration
-    device = torch.device("cpu")  # Force CPU for democratic access
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Use GPU if available
     model = SpiramycelNeuralModel(config=config, paradigm="abstract").to(device)
+    print(f"🚀 Using device: {device} ({'GPU-accelerated!' if device.type == 'cuda' else 'CPU fallback'})")
     
     # Print actual model type that was selected
     print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
@@ -251,7 +253,7 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             optimizer.zero_grad()
             
             # Forward pass
-            glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, condition_tensor)
+            glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, condition_tensor)
             
             # Calculate losses
             glyph_loss = glyph_criterion(
@@ -285,8 +287,9 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             epoch_silence_loss += silence_loss.item()
             num_batches += 1
             
-            # Match ecological training's contemplative breathing pause
-            time.sleep(0.05)
+            # Adaptive contemplative breathing based on GPU stress (skip for models < 6M)
+            if model.count_parameters() >= 6000000:  # Only for massive mili models (6M+)
+                contemplative_pause("abstract_training")
         
         # Calculate average losses
         avg_glyph_loss = epoch_glyph_loss / num_batches if num_batches > 0 else 0.0
@@ -336,16 +339,16 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             bandwidth=0.2     # Low bandwidth from congestion
         )
         
-        test_tensor = torch.tensor([test_conditions.to_condition_vector()], dtype=torch.float32)
-        start_token = torch.tensor([[0x00]], dtype=torch.long)  # START token
+        test_tensor = torch.tensor([test_conditions.to_condition_vector()], dtype=torch.float32).to(device)
+        start_token = torch.tensor([[0x00]], dtype=torch.long).to(device)  # START token
         
         # Generate abstract repair sequence
         generated_tokens = [0x00]  # Start with START token
         hidden1, hidden2 = None, None
         
         for step in range(10):  # Generate up to 10 tokens
-            input_tensor = torch.tensor([generated_tokens[-1:]], dtype=torch.long)
-            glyph_logits, _, silence_logits, hidden1, hidden2 = model(input_tensor, test_tensor, hidden1, hidden2)
+            input_tensor = torch.tensor([generated_tokens[-1:]], dtype=torch.long).to(device)
+            glyph_logits, _, silence_logits, hidden1, hidden2, hidden3 = model(input_tensor, test_tensor, hidden1, hidden2)
             
             # Check if we should use silence
             silence_prob = torch.sigmoid(silence_logits[0, -1]).item()

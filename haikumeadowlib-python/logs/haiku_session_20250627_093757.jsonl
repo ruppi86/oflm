@@ -1,0 +1,6 @@
+{"type": "session_start", "timestamp": "2025-06-27T09:37:57.385863", "device": "cuda", "pytorch_available": true}
+{"type": "test_mode_start", "timestamp": "2025-06-27T09:37:57.386865", "mode": "template", "model_type": "nano"}
+{"type": "generation", "timestamp": "2025-06-27T09:38:02.735906", "seed_fragment": "test", "generation_type": "silence", "haiku": null, "atmospheric_conditions": {"season": "summer", "time_of_day": "dawn", "temperature": 0.5, "humidity": 0.5, "breath_phase": "exhale", "community_pressure": 0.3}}
+{"type": "generation", "timestamp": "2025-06-27T09:38:06.063760", "seed_fragment": "wind", "generation_type": "template", "haiku": "noon {silence}\nwater settles\n{breath_ending}", "atmospheric_conditions": {"season": "summer", "time_of_day": "dawn", "temperature": 0.5, "humidity": 0.5, "breath_phase": "exhale", "community_pressure": 0.3}}
+{"type": "generation", "timestamp": "2025-06-27T09:38:09.784001", "seed_fragment": "grass", "generation_type": "silence", "haiku": null, "atmospheric_conditions": {"season": "summer", "time_of_day": "dawn", "temperature": 0.5, "humidity": 0.5, "breath_phase": "exhale", "community_pressure": 0.3}}
+{"type": "test_mode_end", "timestamp": "2025-06-27T09:38:58.903717", "generations": 3}

@@ -131,7 +131,7 @@ def log_model_architecture(logger, model_path: str):
             import torch
             from neural_trainer import SpiramycelNeuralModel
             
-            model = SpiramycelNeuralModel(force_cpu_mode=True)
+            model = SpiramycelNeuralModel(force_cpu_mode=False)  # Allow GPU acceleration
             model.load_state_dict(torch.load(model_path, map_location='cpu'))
             param_count = model.count_parameters()
             
@@ -241,7 +241,7 @@ def get_file_size_kb(file_path: str) -> str:
         return "Unknown"
 
 def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt: bool = False, 
-                          condition_logger=None, timestamp: str = ""):
+                          condition_logger=None, timestamp: str = "", args=None):
     """Run ecological training with specified chaos mode"""
     
     print(f"\n🌍 ECOLOGICAL TRAINING {'(CHAOTIC)' if chaos_mode else '(CALM)'}")
@@ -256,13 +256,54 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
     ecological_dir = Path("ecological_models")
     ecological_dir.mkdir(exist_ok=True)
     
-    # Fixed: Add timestamp to avoid dataset collision (o3's issue #5)
-    dataset_name = f"ecological_controlled_{suffix}_{timestamp}.jsonl"
+    # Load configuration to get appropriate training data size
+    scale_name = getattr(args, 'scale', '25k')
+    if scale_name == "25k":
+        scale_suffix = "femto"
+    elif scale_name == "600k":
+        scale_suffix = "piko"
+    elif scale_name == "6m":
+        scale_suffix = "mili"
+    else:
+        scale_suffix = "unknown"
     
-    # Generate training data
+    # Load ecological configuration FIRST to get training data size
+    if NEURAL_AVAILABLE:
+        try:
+            # Determine config based on scale argument
+            if hasattr(args, 'scale') and args.scale == "600k":
+                config = load_spiramycel_parameters("ecological_600k")
+                print(f"🚀 Loading ecological paradigm configuration (600K piko-scale) from YAML")
+            elif hasattr(args, 'scale') and args.scale == "6m":
+                config = load_spiramycel_parameters("ecological_6m")
+                print(f"🌟 Loading ecological paradigm configuration (6M mili-scale) from YAML")
+            else:
+                config = load_spiramycel_parameters("ecological")
+                print(f"🔧 Loading ecological paradigm configuration (25K femto-scale) from YAML")
+        except Exception as e:
+            print(f"⚠ Could not load YAML config, using defaults: {e}")
+            config = None
+    else:
+        config = None
+    
+    # Get training data size from config
+    try:
+        if config:
+            num_examples = config.get('training', {}).get('num_training_examples', 5000)
+        else:
+            num_examples = 5000  # Fallback
+    except:
+        num_examples = 5000  # Fallback
+    
+    # Fixed: Add scale and timestamp to avoid dataset collision (o3's issue #5)
+    dataset_name = f"ecological_{scale_suffix}_{suffix}_{timestamp}.jsonl"
+    
+    print(f"📊 Generating {num_examples:,} training examples for {scale_suffix}-scale model...")
+    
+    # Generate training data with scale-appropriate size
     generator = EcologicalDataGenerator(random_seed=42)  # Reproducible
     data_path = generator.generate_training_dataset(
-        num_echoes=5000,
+        num_echoes=num_examples,
         output_file=dataset_name,
         chaos_mode=chaos_mode
     )
@@ -275,16 +316,7 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
     stress_mode = "chaotic" if chaos_mode else "calm"
     print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
-    # Load ecological configuration for training
-    if NEURAL_AVAILABLE:
-        try:
-            config = load_spiramycel_parameters("ecological")
-            print(f"🔧 Using ecological paradigm configuration from YAML")
-        except Exception as e:
-            print(f"⚠ Could not load YAML config, using defaults: {e}")
-            config = None
-    else:
-        config = None
+    # Config already loaded above for training data size
     
     # Train model with timing using YAML configuration
     training_start = time.time()
@@ -329,7 +361,7 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
     return None
 
 def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt: bool = False,
-                        condition_logger=None, timestamp: str = ""):
+                        condition_logger=None, timestamp: str = "", args=None):
     """Run abstract training with specified chaos mode using pre-generated data"""
     
     print(f"\n✨ ABSTRACT TRAINING {'(CHAOTIC)' if chaos_mode else '(CALM)'}")
@@ -344,13 +376,54 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
     abstract_dir = Path("abstract_models")
     abstract_dir.mkdir(exist_ok=True)
     
-    # Fixed: Add timestamp to avoid dataset collision (o3's issue #5)
-    dataset_name = f"abstract_controlled_{suffix}_{timestamp}.jsonl"
+    # Load configuration to get appropriate training data size
+    scale_name = getattr(args, 'scale', '25k')
+    if scale_name == "25k":
+        scale_suffix = "femto"
+    elif scale_name == "600k":
+        scale_suffix = "piko"
+    elif scale_name == "6m":
+        scale_suffix = "mili"
+    else:
+        scale_suffix = "unknown"
     
-    # Generate training data (pre-generate to files for speed)
+    # Load abstract configuration FIRST to get training data size
+    if NEURAL_AVAILABLE:
+        try:
+            # Determine config based on scale argument
+            if hasattr(args, 'scale') and args.scale == "600k":
+                config = load_spiramycel_parameters("abstract_600k")
+                print(f"🚀 Loading abstract paradigm configuration (600K piko-scale) from YAML")
+            elif hasattr(args, 'scale') and args.scale == "6m":
+                config = load_spiramycel_parameters("abstract_6m")
+                print(f"🌟 Loading abstract paradigm configuration (6M mili-scale) from YAML")
+            else:
+                config = load_spiramycel_parameters("abstract")
+                print(f"🔧 Loading abstract paradigm configuration (25K femto-scale) from YAML")
+        except Exception as e:
+            print(f"⚠ Could not load YAML config, using defaults: {e}")
+            config = None
+    else:
+        config = None
+    
+    # Get training data size from config
+    try:
+        if config:
+            num_examples = config.get('training', {}).get('num_training_examples', 5000)
+        else:
+            num_examples = 5000  # Fallback
+    except:
+        num_examples = 5000  # Fallback
+    
+    # Fixed: Add scale and timestamp to avoid dataset collision (o3's issue #5)
+    dataset_name = f"abstract_{scale_suffix}_{suffix}_{timestamp}.jsonl"
+    
+    print(f"📊 Generating {num_examples:,} training examples for {scale_suffix}-scale model...")
+    
+    # Generate training data (pre-generate to files for speed) with scale-appropriate size
     generator = AbstractDataGenerator(random_seed=42)  # Reproducible
     data_path = generator.generate_training_dataset(
-        num_echoes=5000,
+        num_echoes=num_examples,
         output_file=dataset_name,
         chaos_mode=chaos_mode
     )
@@ -363,16 +436,7 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
     stress_mode = "chaotic" if chaos_mode else "calm"
     print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
-    # Load abstract configuration for training
-    if NEURAL_AVAILABLE:
-        try:
-            config = load_spiramycel_parameters("abstract")
-            print(f"🔧 Using abstract paradigm configuration from YAML")
-        except Exception as e:
-            print(f"⚠ Could not load YAML config, using defaults: {e}")
-            config = None
-    else:
-        config = None
+    # Config already loaded above for training data size
     
     # Train model using fast file-based training with timing and YAML configuration
     training_start = time.time()
@@ -628,7 +692,9 @@ def main():
     # Fixed: Add --no-prompt CLI option (o3's issue #7)
     parser = argparse.ArgumentParser(description="Controlled Spiramycel Comparison Experiment")
     parser.add_argument("--no-prompt", action="store_true", 
-                       help="Skip interactive prompts (useful for automation)")
+                        help="Skip interactive prompts (useful for automation)")
+    parser.add_argument("--scale", choices=["25k", "600k", "6m"], default="25k",
+                        help="Model scale: 25k (femto), 600k (piko), or 6m (mili) parameters")
     args = parser.parse_args()
     
     # Setup experiment logging
@@ -639,7 +705,20 @@ def main():
     print("=" * 70)
     print("🎯 Goal: Separate paradigm effects from stress effects")
     print("📊 Design: 2x2 (Ecological/Abstract × Calm/Chaotic)")
-    print("⏰ Expected duration: 30-60 minutes total")
+    scale_description = {
+        "25k": "femto-scale (5K examples each)",
+        "600k": "piko-scale (60K examples each)", 
+        "6m": "mili-scale (300K examples each)"
+    }
+    
+    scale_duration = {
+        "25k": "8-15 minutes total",
+        "600k": "1-2 hours total (10x more data)",
+        "6m": "4-8 hours total (60x more data)"
+    }
+    
+    print(f"⚖️ Scale: {args.scale} parameters ({scale_description.get(args.scale, 'unknown')})")
+    print(f"⏰ Expected duration: {scale_duration.get(args.scale, 'unknown')} (GPU accelerated)")
     print("")
     print("📋 DOCUMENTATION GENERATED:")
     print("   🔬 Technical comparative analysis report")
@@ -680,7 +759,7 @@ def main():
         main_logger.info(f"Starting Ecological Calm training - log: {eco_calm_log}")
         
         model_a = run_ecological_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
-                                        condition_logger=eco_calm_logger, timestamp=timestamp)
+                                        condition_logger=eco_calm_logger, timestamp=timestamp, args=args)
         trained_models["ecological_calm"] = model_a
         main_logger.info(f"Ecological Calm completed: {model_a}")
         
@@ -690,7 +769,7 @@ def main():
         main_logger.info(f"Starting Ecological Chaotic training - log: {eco_chaos_log}")
         
         model_b = run_ecological_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
-                                        condition_logger=eco_chaos_logger, timestamp=timestamp)
+                                        condition_logger=eco_chaos_logger, timestamp=timestamp, args=args)
         trained_models["ecological_chaotic"] = model_b
         main_logger.info(f"Ecological Chaotic completed: {model_b}")
         
@@ -700,7 +779,7 @@ def main():
         main_logger.info(f"Starting Abstract Calm training - log: {abs_calm_log}")
         
         model_c = run_abstract_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
-                                      condition_logger=abs_calm_logger, timestamp=timestamp)
+                                      condition_logger=abs_calm_logger, timestamp=timestamp, args=args)
         trained_models["abstract_calm"] = model_c
         main_logger.info(f"Abstract Calm completed: {model_c}")
         
@@ -710,7 +789,7 @@ def main():
         main_logger.info(f"Starting Abstract Chaotic training - log: {abs_chaos_log}")
         
         model_d = run_abstract_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
-                                      condition_logger=abs_chaos_logger, timestamp=timestamp)
+                                      condition_logger=abs_chaos_logger, timestamp=timestamp, args=args)
         trained_models["abstract_chaotic"] = model_d
         main_logger.info(f"Abstract Chaotic completed: {model_d}")
         

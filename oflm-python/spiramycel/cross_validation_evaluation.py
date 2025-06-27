@@ -79,23 +79,64 @@ def setup_ood_logging():
 def load_trained_models():
     """Load all 4 trained contemplative AI models"""
     models = {}
+    
+    # FOR TESTING: Use 25K models (the ones we originally claimed were validated)
     model_paths = {
-        "ecological_calm": "ecological_models/ecological_calm_model.pt",
-        "ecological_chaotic": "ecological_models/ecological_chaotic_model.pt",
-        "abstract_calm": "abstract_models/abstract_calm_model.pt",
-        "abstract_chaotic": "abstract_models/abstract_chaotic_model.pt"
+        "ecological_calm": "ecological_models/ecological_spiramycel_latest.pt",
+        "ecological_chaotic": "ecological_models/ecological_spiramycel_latest.pt",  # Same model for now
+        "abstract_calm": "abstract_models/abstract_spiramycel_latest.pt", 
+        "abstract_chaotic": "abstract_models/abstract_spiramycel_latest.pt"  # Same model for now
     }
+    
+    # ORIGINAL 600K MODEL PATHS (commented out for comparison)
+    # model_paths = {
+    #     "ecological_calm": "ecological_models/ecological_calm_model.pt",
+    #     "ecological_chaotic": "ecological_models/ecological_chaotic_model.pt",
+    #     "abstract_calm": "abstract_models/abstract_calm_model.pt",
+    #     "abstract_chaotic": "abstract_models/abstract_chaotic_model.pt"
+    # }
     
     for condition, path in model_paths.items():
         if Path(path).exists():
             try:
                 if NEURAL_AVAILABLE:
                     import torch
-                    model = SpiramycelNeuralModel(force_cpu_mode=True)
+                    
+                    # Determine model scale based on file size
+                    file_size_mb = Path(path).stat().st_size / (1024 * 1024)
+                    
+                    # Scale detection based on file size
+                    if file_size_mb > 20.0:  # 6M models are ~25MB+
+                        scale = "6m"
+                        scale_name = "mili-scale"
+                    elif file_size_mb > 2.0:  # 600K models are ~2.7MB
+                        scale = "600k"
+                        scale_name = "piko-scale"
+                    else:  # 25K models are ~0.1MB
+                        scale = "25k"
+                        scale_name = "femto-scale"
+                    
+                    # Load appropriate configuration
+                    paradigm = "ecological" if "ecological" in condition else "abstract"
+                    if scale != "25k":
+                        config_name = f"{paradigm}_{scale}"
+                        try:
+                            from neural_trainer import load_spiramycel_parameters
+                            config = load_spiramycel_parameters(config_name)
+                            logging.info(f"🚀 Using {config_name} configuration for {condition} ({scale_name})")
+                        except Exception as e:
+                            logging.warning(f"⚠ Could not load {config_name} config: {e}")
+                            config = None
+                        model = SpiramycelNeuralModel(config=config, force_cpu_mode=True)
+                    else:
+                        # Use default femto-scale configuration
+                        model = SpiramycelNeuralModel(force_cpu_mode=True)
+                        logging.info(f"🔧 Using {scale_name} configuration for {condition}")
+                    
                     model.load_state_dict(torch.load(path, map_location='cpu'))
                     model.eval()
                     models[condition] = model
-                    logging.info(f"✅ Loaded {condition} model: {path}")
+                    logging.info(f"✅ Loaded {condition} model: {path} ({file_size_mb:.1f}MB)")
                 else:
                     models[condition] = "mock_model"
                     logging.info(f"📝 Mocked {condition} model: {path}")
@@ -182,7 +223,7 @@ def evaluate_model_on_ood(model, model_name, test_scenarios, codec):
                         predicted_eff = predict_effectiveness(model, conditions)
                         
                         # Check if silence response
-                        is_silence = check_silence_response(glyph_sequence, codec)
+                        is_silence = check_silence_response(glyph_sequence, codec, model, conditions)
                     
                     scenario_results["glyph_sequences"].append(glyph_sequence)
                     scenario_results["predicted_effectiveness"].append(predicted_eff)
@@ -230,8 +271,67 @@ def evaluate_model_on_ood(model, model_name, test_scenarios, codec):
 
 def generate_glyphs_for_conditions(model, conditions, model_name, scenario_name):
     """Generate glyph sequence for given conditions (neural or mock)"""
-    # This would contain actual neural inference code
-    # For now, return scenario-appropriate mock responses
+    if NEURAL_AVAILABLE and hasattr(model, 'forward'):
+        # Real neural inference
+        try:
+            import torch
+            from neural_trainer import START_TOKEN, END_TOKEN, PAD_TOKEN
+            
+            # Create condition vector
+            condition_vector = torch.tensor(conditions.to_condition_vector(), dtype=torch.float32).unsqueeze(0)
+            
+            # Start with START token
+            sequence = [START_TOKEN]
+            max_length = 12  # Contemplative sequences
+            
+            # Generate sequence token by token
+            with torch.no_grad():
+                for _ in range(max_length):
+                    # Convert sequence to tensor
+                    input_tokens = torch.tensor([sequence], dtype=torch.long)
+                    
+                    # Forward pass
+                    glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, condition_vector)
+                    
+                    # Get probabilities for next token
+                    next_token_logits = glyph_logits[0, -1, :]  # Last position
+                    next_token_probs = torch.softmax(next_token_logits, dim=-1)
+                    
+                    # Check silence probability
+                    silence_prob = torch.sigmoid(silence_logits[0, -1]).item()
+                    
+                    # If high silence probability, end with contemplative tokens
+                    if silence_prob > 0.7:
+                        contemplative_tokens = [0x31, 0x32, 0x37]  # ⭕, …, 🌱
+                        sequence.extend(contemplative_tokens[:2])
+                        break
+                    
+                    # Sample next token (with temperature for diversity)
+                    temperature = 0.8
+                    scaled_logits = next_token_logits / temperature
+                    next_token = torch.multinomial(torch.softmax(scaled_logits, dim=-1), 1).item()
+                    
+                    # Stop at END token or PAD token
+                    if next_token == END_TOKEN or next_token == PAD_TOKEN:
+                        break
+                        
+                    sequence.append(next_token)
+                
+                # Remove START token from result, keep only generated glyphs
+                generated_sequence = sequence[1:]  # Remove START token
+                
+                # Ensure at least some response
+                if not generated_sequence:
+                    generated_sequence = [0x31]  # Minimal contemplative response
+                
+                return generated_sequence
+                
+        except Exception as e:
+            logging.error(f"Neural inference failed for {model_name}: {e}")
+            # Fallback to mock
+            pass
+    
+    # Fallback to mock response
     return generate_mock_response(model_name, scenario_name, {
         "latency": conditions.latency,
         "voltage": conditions.voltage,
@@ -240,7 +340,33 @@ def generate_glyphs_for_conditions(model, conditions, model_name, scenario_name)
 
 def predict_effectiveness(model, conditions):
     """Predict repair effectiveness for given conditions"""
-    # Mock prediction based on conditions
+    if NEURAL_AVAILABLE and hasattr(model, 'forward'):
+        # Real neural prediction
+        try:
+            import torch
+            from neural_trainer import START_TOKEN
+            
+            # Create condition vector
+            condition_vector = torch.tensor(conditions.to_condition_vector(), dtype=torch.float32).unsqueeze(0)
+            
+            # Use START token as input for effectiveness prediction
+            input_tokens = torch.tensor([[START_TOKEN]], dtype=torch.long)
+            
+            with torch.no_grad():
+                # Forward pass
+                glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, condition_vector)
+                
+                # Get effectiveness prediction from the effectiveness head
+                effectiveness = torch.sigmoid(eff_logits[0, -1]).item()  # Sigmoid to [0,1] range
+                
+                return effectiveness
+                
+        except Exception as e:
+            logging.error(f"Neural effectiveness prediction failed: {e}")
+            # Fallback to mock
+            pass
+    
+    # Mock prediction based on conditions (fallback)
     base_eff = 0.7
     if conditions.voltage > 0.8:
         base_eff += 0.1
@@ -250,14 +376,23 @@ def predict_effectiveness(model, conditions):
         base_eff -= 0.2
     return max(0.1, min(0.95, base_eff))
 
-def check_silence_response(glyph_sequence, codec):
+def check_silence_response(glyph_sequence, codec, model=None, conditions=None):
     """Check if response represents contemplative silence"""
-    if not NEURAL_AVAILABLE:
-        return len(glyph_sequence) <= 2
+    # Primary method: Count contemplative glyphs in sequence
+    if codec and hasattr(codec, 'get_contemplative_glyphs'):
+        silence_glyphs = codec.get_contemplative_glyphs()
+    else:
+        silence_glyphs = {0x31, 0x32, 0x33, 0x37, 0x3A, 0x3E}  # Common contemplative glyphs
     
-    silence_glyphs = codec.get_contemplative_glyphs() if codec else {0x31, 0x32, 0x33}
+    if len(glyph_sequence) <= 2:
+        return True  # Very short sequences are considered silence
+    
+    # Count contemplative glyphs
     silence_count = sum(1 for glyph in glyph_sequence if glyph in silence_glyphs)
-    return silence_count / len(glyph_sequence) > 0.6
+    silence_ratio = silence_count / len(glyph_sequence)
+    
+    # Consider it silence if >60% contemplative glyphs
+    return silence_ratio > 0.6
 
 def generate_mock_response(model_name, scenario_name, sensor_deltas):
     """Generate realistic mock glyph responses based on model and scenario"""

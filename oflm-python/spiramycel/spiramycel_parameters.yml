@@ -29,6 +29,9 @@ models:
       scheduler_patience: 3
       scheduler_factor: 0.8
       
+      # Training data size (femto-scale appropriate)
+      num_training_examples: 5000  # ~200 examples per 1K parameters
+      
       # Ecological-specific training
       crisis_adaptation_weight: 1.5    # Learn to respond during chaos
       bioregional_memory_cycles: 75    # Days (seasonal evaporation)
@@ -85,6 +88,9 @@ models:
       scheduler_patience: 4
       scheduler_factor: 0.9
       
+      # Training data size (femto-scale appropriate)
+      num_training_examples: 5000  # ~200 examples per 1K parameters
+      
       # Abstract-specific training
       philosophical_consistency_weight: 1.2  # Maintain stable principles
       systematic_pattern_emphasis: true      # Learn systematic responses
@@ -105,6 +111,240 @@ models:
       latest_model: "abstract_spiramycel_latest.pt"
       calm_model: "abstract_calm_model.pt"       # Model C from experiment
       chaotic_model: "abstract_chaotic_model.pt" # Model D from experiment
+      
+    # Data sources
+    data:
+      training_scenarios: "training_scenarios"
+      abstract_patterns: [
+        "systematic_repair_sequences",
+        "philosophical_consistency_patterns",
+        "contemplative_stability_cycles"
+      ]
+
+  # 600K Parameter Scale Models
+  ecological_600k:
+    # Ecological paradigm - bioregional, adaptive, environmental relationship (600K scale)
+    description: "Ecological paradigm optimized for deep bioregional adaptation (600K scale)"
+    target_device: "gpu"  # GPU-optimized for larger scale
+    paradigm: "ecological"
+    
+    # Scaled model architecture (targeting ~600K parameters)
+    parameter_count: 600.0   # In thousands (24x scale-up from 25K)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (unchanged)
+    embed_dim: 128           # 4x scale-up from 32
+    hidden_dim: 256          # 4x scale-up from 64
+    num_layers: 2            # 2x scale-up from 1 (two GRU layers)
+    condition_dim: 8         # NetworkConditions: unchanged
+    max_sequence_length: 24  # Longer sequences for richer patterns
+    
+    # Training parameters (adjusted for larger scale)
+    training:
+      epochs: 20             # More epochs for larger model
+      batch_size: 2          # Smaller batch for GPU memory efficiency
+      learning_rate: 0.0008  # Slightly lower for stable training
+      weight_decay: 1e-5
+      gradient_clip_norm: 1.0
+      scheduler_patience: 4
+      scheduler_factor: 0.8
+      
+      # Training data size (piko-scale appropriate)
+      num_training_examples: 60000  # ~100 examples per 1K parameters (10x increase)
+      
+      # Ecological-specific training
+      crisis_adaptation_weight: 1.5
+      bioregional_memory_cycles: 75
+      environment_stress_testing: true
+      
+    # Contemplative generation parameters
+    generation:
+      silence_probability: 0.875
+      calm_silence_boost: 1.0
+      chaos_activation_threshold: 0.3
+      temperature_base: 0.6
+      rate_limit: 3.0
+      max_tokens: 16         # Longer contemplative sequences
+      
+    # Model persistence
+    save_paths:
+      model_dir: "ecological_models_600k"
+      latest_model: "ecological_spiramycel_600k_latest.pt"
+      calm_model: "ecological_calm_600k_model.pt"
+      chaotic_model: "ecological_chaotic_600k_model.pt"
+      
+    # Data sources
+    data:
+      training_scenarios: "training_scenarios"
+      ecological_configs: [
+        "drought_landscape_australia.json",
+        "rice_paddy_guangzhou.json", 
+        "groundwater_sweden.json"
+      ]
+
+  abstract_600k:
+    # Abstract paradigm - systematic, philosophical stability (600K scale)
+    description: "Abstract paradigm optimized for deep systematic stability (600K scale)"
+    target_device: "gpu"  # GPU-optimized for larger scale
+    paradigm: "abstract"
+    
+    # Scaled model architecture (targeting ~600K parameters)
+    parameter_count: 600.0   # In thousands (24x scale-up from 25K)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (unchanged)
+    embed_dim: 128           # 4x scale-up from 32
+    hidden_dim: 256          # 4x scale-up from 64
+    num_layers: 2            # 2x scale-up from 1 (two GRU layers)
+    condition_dim: 8         # NetworkConditions: unchanged
+    max_sequence_length: 24  # Longer sequences for richer patterns
+    
+    # Training parameters (adjusted for larger scale)
+    training:
+      epochs: 20             # More epochs for larger model
+      batch_size: 2          # Smaller batch for GPU memory efficiency
+      learning_rate: 0.0006  # Lower for philosophical stability at scale
+      weight_decay: 2e-5     # More regularization for systematic patterns
+      gradient_clip_norm: 0.8
+      scheduler_patience: 5
+      scheduler_factor: 0.9
+      
+      # Training data size (piko-scale appropriate)
+      num_training_examples: 60000  # ~100 examples per 1K parameters (10x increase)
+      
+      # Abstract-specific training
+      philosophical_consistency_weight: 1.2
+      systematic_pattern_emphasis: true
+      stress_resilience_training: true
+      
+    # Contemplative generation parameters  
+    generation:
+      silence_probability: 0.875
+      calm_silence_boost: 1.0
+      chaos_balance_threshold: 0.5
+      temperature_base: 0.5
+      rate_limit: 4.0
+      max_tokens: 14         # Longer contemplative sequences
+      
+    # Model persistence
+    save_paths:
+      model_dir: "abstract_models_600k"
+      latest_model: "abstract_spiramycel_600k_latest.pt"
+      calm_model: "abstract_calm_600k_model.pt"
+      chaotic_model: "abstract_chaotic_600k_model.pt"
+      
+    # Data sources
+    data:
+      training_scenarios: "training_scenarios"
+      abstract_patterns: [
+        "systematic_repair_sequences",
+        "philosophical_consistency_patterns",
+        "contemplative_stability_cycles"
+      ]
+
+  # 6M Parameter Scale Models (Mili-scale for scaling study)
+  ecological_6m:
+    # Ecological paradigm - bioregional, adaptive, environmental relationship (6M scale)
+    description: "Ecological paradigm optimized for deep emergent bioregional adaptation (6M mili-scale)"
+    target_device: "gpu"  # Requires GPU for efficient training
+    paradigm: "ecological"
+    
+    # Scaled model architecture (targeting ~6M parameters) 
+    parameter_count: 6000.0  # In thousands (10x scale-up from 600K)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (unchanged)
+    embed_dim: 256           # 2x scale-up from piko (128)
+    hidden_dim: 512          # 2x scale-up from piko (256)
+    num_layers: 3            # 1.5x scale-up from piko (2 layers)
+    condition_dim: 8         # NetworkConditions: unchanged
+    max_sequence_length: 32  # Even longer sequences for emergent patterns
+    
+    # Training parameters (adjusted for much larger scale)
+    training:
+      epochs: 25             # More epochs for emergent properties
+      batch_size: 1          # Very small batch for memory efficiency
+      learning_rate: 0.0005  # Lower learning rate for stable large-scale training
+      weight_decay: 1e-5
+      gradient_clip_norm: 1.0
+      scheduler_patience: 5
+      scheduler_factor: 0.8
+      
+      # Training data size (mili-scale appropriate)
+      num_training_examples: 300000  # ~50 examples per 1K parameters (massive scale)
+      
+      # Ecological-specific training
+      crisis_adaptation_weight: 1.5
+      bioregional_memory_cycles: 75
+      environment_stress_testing: true
+      
+    # Contemplative generation parameters
+    generation:
+      silence_probability: 0.875
+      calm_silence_boost: 1.0
+      chaos_activation_threshold: 0.3
+      temperature_base: 0.6
+      rate_limit: 3.0
+      max_tokens: 20         # Longer emergent contemplative sequences
+      
+    # Model persistence
+    save_paths:
+      model_dir: "ecological_models_6m"
+      latest_model: "ecological_spiramycel_6m_latest.pt"
+      calm_model: "ecological_calm_6m_model.pt"
+      chaotic_model: "ecological_chaotic_6m_model.pt"
+      
+    # Data sources
+    data:
+      training_scenarios: "training_scenarios"
+      ecological_configs: [
+        "drought_landscape_australia.json",
+        "rice_paddy_guangzhou.json", 
+        "groundwater_sweden.json"
+      ]
+
+  abstract_6m:
+    # Abstract paradigm - systematic, philosophical stability (6M scale)
+    description: "Abstract paradigm optimized for emergent systematic philosophical stability (6M mili-scale)"
+    target_device: "gpu"  # Requires GPU for efficient training  
+    paradigm: "abstract"
+    
+    # Scaled model architecture (targeting ~6M parameters)
+    parameter_count: 6000.0  # In thousands (10x scale-up from 600K)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (unchanged)
+    embed_dim: 256           # 2x scale-up from piko (128)
+    hidden_dim: 512          # 2x scale-up from piko (256)
+    num_layers: 3            # 1.5x scale-up from piko (2 layers)
+    condition_dim: 8         # NetworkConditions: unchanged
+    max_sequence_length: 32  # Even longer sequences for emergent patterns
+    
+    # Training parameters (adjusted for much larger scale)
+    training:
+      epochs: 25             # More epochs for emergent properties
+      batch_size: 1          # Very small batch for memory efficiency
+      learning_rate: 0.0004  # Even lower for philosophical stability at scale
+      weight_decay: 2e-5     # More regularization for systematic patterns
+      gradient_clip_norm: 0.8
+      scheduler_patience: 6
+      scheduler_factor: 0.9
+      
+      # Training data size (mili-scale appropriate)
+      num_training_examples: 300000  # ~50 examples per 1K parameters (massive scale)
+      
+      # Abstract-specific training
+      philosophical_consistency_weight: 1.2
+      systematic_pattern_emphasis: true
+      stress_resilience_training: true
+      
+    # Contemplative generation parameters  
+    generation:
+      silence_probability: 0.875
+      calm_silence_boost: 1.0
+      chaos_balance_threshold: 0.5
+      temperature_base: 0.5
+      rate_limit: 4.0
+      max_tokens: 18         # Longer emergent contemplative sequences
+      
+    # Model persistence
+    save_paths:
+      model_dir: "abstract_models_6m"
+      latest_model: "abstract_spiramycel_6m_latest.pt"
+      calm_model: "abstract_calm_6m_model.pt"
+      chaotic_model: "abstract_chaotic_6m_model.pt"
       
     # Data sources
     data:
