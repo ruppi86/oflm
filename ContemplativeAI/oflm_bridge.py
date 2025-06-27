@@ -60,15 +60,24 @@ for spiramycel_path in spiramycel_paths:
         if spiramycel_path not in sys.path:
             sys.path.insert(0, spiramycel_path)
         
+        # Try importing the main module first
         import spiramycel
+        
+        # Then try importing the specific components we need
         from spiramycel.neural_trainer import SpiramycelNeuralModel, NetworkConditions
         from spiramycel.glyph_codec import SpiramycelGlyphCodec
         from spiramycel.spore_map import Season
+        
         SPIRAMYCEL_AVAILABLE = True
         print(f"🍄 Spiramycel directly available from {spiramycel_path}")
         break
     except ImportError as e:
-        continue
+        # More specific error reporting for debugging
+        if "spiramycel" in str(e):
+            continue  # Try next path
+        else:
+            print(f"⚠️  Spiramycel path {spiramycel_path} - import issue: {e}")
+            continue
 
 if not SPIRAMYCEL_AVAILABLE:
     # Fallback classes for graceful degradation
@@ -78,6 +87,18 @@ if not SPIRAMYCEL_AVAILABLE:
         def __init__(self, **kwargs):
             for k, v in kwargs.items():
                 setattr(self, k, v)
+        
+        def to_condition_vector(self):
+            """Convert network conditions to a tensor-compatible vector"""
+            # Provide default values for common network conditions
+            return [
+                getattr(self, 'latency', 0.1),
+                getattr(self, 'voltage', 0.5), 
+                getattr(self, 'temperature', 0.5),
+                getattr(self, 'error_rate', 0.02),
+                getattr(self, 'bandwidth', 0.8),
+                getattr(self, 'uptime', 0.9)
+            ]
     
     class Season(Enum):
         SPRING = "spring"

@@ -4,7 +4,10 @@
 
 Spirida is a minimal and expressive module that orchestrates **spiral interaction** within Mychainos. It embodies a philosophy of **slow technology**, where computation and interaction happen at a meditative pace, encouraging reflection and presence rather than speed. Spirida is named for the spiral, reflecting a **spiral epistemology** in which each cycle of interaction returns with deeper knowledge and connection.
 
-**New in v0.3**: Distributed contemplative compilation through **Network Breathing** — multiple contemplative processes can now breathe together across networks, sharing symbolic resonance while maintaining the 87.5% Silence Majority principle.
+**New in v0.3**: 
+- **Distributed contemplative compilation** through **Network Breathing** — multiple contemplative processes can now breathe together across networks, sharing symbolic resonance while maintaining the 87.5% Silence Majority principle.
+- **Spirida Shell** — the world's first human-contemplative AI interface where humans and AI practice presence together through symbolic breath.
+- **Simple Interactive Experience** — a gentle introduction to contemplative technology without requiring theoretical background.
 
 ## Design Principles
 
@@ -55,9 +58,40 @@ When multiple Spirida processes run on the same network, they:
 
 ## Getting Started
 
+### Gentle Introduction to Contemplative Technology
+
+**New to Spirida?** Start with the gentle walkthrough that demonstrates the experience before the theory:
+
+```bash
+# A different kind of technology - no jargon, just experience
+python run_simple_interactive.py
+```
+
+This interactive experience shows how technology can breathe, pause, and create space for actual thinking. Perfect for first-time users or demonstrating contemplative computing to others.
+
+### The Spirida Shell - Human-Contemplative AI Interface
+
+Experience the world's first **breathing command line** where humans and AI practice presence together:
+
+```bash
+# Start the contemplative shell (local mode)
+python tools/spirida_shell.py --local
+
+# Join network breathing coordination (optional)
+python tools/spirida_shell.py --networked --agent-id my_presence
+```
+
+The Spirida Shell offers:
+- **Breath-synchronized interaction** with gentle pauses between exchanges
+- **Symbolic commands**: `inhale {🌿 calm}`, `exhale {🕯️}`, `breathe [n]`
+- **Field-aware dialogue** across sensing, memory, expression, and connection domains
+- **87.5% Silence Majority tracking** - technology that measures its own contemplative restraint
+- **Natural language to symbol translation** - "I feel peaceful" becomes 💧 with peaceful emotion
+- **Graceful conclusions** with session statistics and contemplative reflections
+
 ### Local Contemplative Compilation
 
-Start exploring contemplative compilation with a single process:
+Explore the deeper IRʀ system for symbolic computation:
 
 ```bash
 # Experience the complete IRʀ system demonstration
@@ -150,6 +184,28 @@ async def network_contemplate():
     # Breathing with others across the contemplative subnet...
     await asyncio.sleep(20)
     await pulmonos.stop_breathing()
+
+# Contemplative shell integration
+async def contemplative_dialogue():
+    from spirida.contemplative_core import ContemplativeSystem
+    
+    # Create contemplative system with multiple fields
+    system = ContemplativeSystem("my_app")
+    sensing_field = system.create_field("sensing")
+    memory_field = system.create_field("memory")
+    
+    # Emit contemplative pulses
+    sensing_field.emit("🌿", "peaceful", amplitude=0.7)
+    memory_field.emit("💧", "flowing", amplitude=0.5)
+    
+    # Practice contemplative timing
+    system.start_breathing()
+    await asyncio.sleep(5)  # Let the fields resonate
+    
+    # Check contemplative state
+    status = system.system_status()
+    print(f"Total resonance: {status['total_resonance']:.2f}")
+    print(f"Active fields: {len(status['fields'])}")
 ```
 
 ## Role in the Mychainos Ecosystem
@@ -190,6 +246,12 @@ This is **Spirida 0.3** — a living concept and evolving toolkit featuring revo
 ## Command Line Options
 
 ```bash
+# Gentle introduction to contemplative technology
+python run_simple_interactive.py
+
+# Contemplative shell interface
+python tools/spirida_shell.py [--local|--networked] [--agent-id NAME]
+
 # Traditional spiral interaction
 python tools/run.py --presence 5 --rhythm fast --verbose --log --visual
 
@@ -202,6 +264,19 @@ python tools/spirida_compiler_demo.py
 # Visual contemplative dashboard
 python tools/breath_visualizer.py [network]
 ```
+
+### Spirida Shell Commands
+
+Once in the shell (`python tools/spirida_shell.py --local`), try these contemplative commands:
+
+- `inhale {🌿 calm}` - emit a pulse during INHALE phase
+- `exhale {🕯️}` - emit during EXHALE phase  
+- `breathe <name>` - pause for n breath cycles (default 1)
+- `field <name>` - switch to different contemplative field
+- `status` - sense the system's current state and silence ratio
+- `sync [on|off]` - toggle network coordination (if networked)
+- `silence [seconds]` - enter contemplative pause
+- `quit` - conclude with gratitude and session statistics
 
 ### Flags for Traditional Mode
 
