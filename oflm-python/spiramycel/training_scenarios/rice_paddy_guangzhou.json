@@ -1,0 +1,223 @@
+{
+  "scenario_id": "rice_paddy_guangzhou",
+  "name": "Rice Paddy Ecosystem - Guangzhou, China",
+  "description": "Spiramycel network managing flooding cycles, nutrient flows, and bacterial balance in intensive rice agriculture",
+  "bioregion": "pearl_river_delta",
+  "ecosystem_type": "agricultural_wetland",
+  
+  "environmental_parameters": {
+    "climate_zone": "Cfa",
+    "average_annual_rainfall_mm": 1800,
+    "temperature_range": {
+      "summer_max": 35,
+      "winter_min": 8,
+      "optimal": 28
+    },
+    "soil_type": "alluvial_clay",
+    "ph_range": [6.0, 7.2]
+  },
+
+  "seasonal_cycles": {
+    "early_rice_season": {
+      "months": [3, 4, 5, 6],
+      "flooding_status": "flooded",
+      "water_depth_cm": [5, 15],
+      "nutrient_flow": "high",
+      "bacterial_activity": "moderate",
+      "description": "Spring planting to early summer harvest"
+    },
+    "late_rice_season": {
+      "months": [7, 8, 9, 10],
+      "flooding_status": "managed_flooding",
+      "water_depth_cm": [8, 20],
+      "nutrient_flow": "very_high",
+      "bacterial_activity": "high",
+      "description": "Summer planting to autumn harvest"
+    },
+    "winter_fallow": {
+      "months": [11, 12, 1, 2],
+      "flooding_status": "drained",
+      "water_depth_cm": [0, 2],
+      "nutrient_flow": "low",
+      "bacterial_activity": "low",
+      "description": "Rest period, soil restoration"
+    }
+  },
+
+  "multi_generational_patterns": {
+    "flood_cycles": {
+      "minor_flood_years": [2, 5, 7],
+      "major_flood_years": [12, 23],
+      "drought_years": [8, 15],
+      "adaptation_strategy": "water_level_management"
+    },
+    "soil_nutrient_cycles": {
+      "nitrogen_depletion_cycles": 3,
+      "phosphorus_buildup_cycles": 8,
+      "organic_matter_renewal": 5,
+      "rice_rotation_benefits": "legume_intercropping"
+    },
+    "pathogen_cycles": {
+      "rice_blast_outbreaks": [4, 9],
+      "bacterial_blight_cycles": [6, 11],
+      "prevention_strategy": "beneficial_microbe_cultivation"
+    }
+  },
+
+  "ecosystem_interactions": {
+    "host_plants": [
+      {
+        "species": "oryza_sativa",
+        "variety": "hybrid_indica",
+        "symbiosis_strength": 0.95,
+        "nutrient_exchange": "nitrogen_phosphorus",
+        "water_tolerance": "flood_adapted"
+      },
+      {
+        "species": "azolla_filiculoides",
+        "common_name": "water_fern",
+        "symbiosis_strength": 0.8,
+        "nitrogen_fixation": true,
+        "water_coverage": 0.3
+      }
+    ],
+    "beneficial_bacteria": [
+      {
+        "species": "rhizobium_leguminosarum",
+        "function": "nitrogen_fixation",
+        "optimal_ph": 7.0,
+        "collaboration_strength": 0.9
+      },
+      {
+        "species": "bacillus_subtilis",
+        "function": "pathogen_suppression",
+        "biofilm_formation": true,
+        "collaboration_strength": 0.7
+      }
+    ],
+    "pathogenic_threats": [
+      {
+        "species": "magnaporthe_oryzae",
+        "disease": "rice_blast",
+        "spread_conditions": "high_humidity + temperature_25-30C",
+        "threat_level": 0.8
+      },
+      {
+        "species": "xanthomonas_oryzae",
+        "disease": "bacterial_blight",
+        "spread_conditions": "flooding + wounded_plants",
+        "threat_level": 0.6
+      }
+    ]
+  },
+
+  "sensor_mappings": {
+    "water_level": {
+      "drought": 0.0,
+      "low": 0.2,
+      "optimal": 0.6,
+      "flooded": 0.8,
+      "over_flooded": 1.0
+    },
+    "nitrogen_concentration": {
+      "depleted": 0.1,
+      "low": 0.3,
+      "adequate": 0.6,
+      "abundant": 0.8,
+      "excessive": 1.0
+    },
+    "phosphorus_availability": {
+      "limited": 0.2,
+      "adequate": 0.5,
+      "abundant": 0.8,
+      "excessive": 0.95
+    },
+    "bacterial_balance": {
+      "pathogen_dominated": 0.1,
+      "unstable": 0.3,
+      "balanced": 0.6,
+      "beneficial_dominated": 0.9
+    },
+    "methane_production": {
+      "minimal": 0.1,
+      "low": 0.3,
+      "moderate": 0.5,
+      "high": 0.8,
+      "excessive": 1.0
+    },
+    "rice_health": {
+      "diseased": 0.1,
+      "stressed": 0.3,
+      "healthy": 0.7,
+      "thriving": 0.9
+    }
+  },
+
+  "repair_strategies": {
+    "flood_management": {
+      "glyph_sequence": [5, 51, 24],
+      "description": "flood protection, gentle hush, energy distribution",
+      "effectiveness_range": [0.7, 0.95],
+      "conditions": "water_level > 0.8"
+    },
+    "nitrogen_cycle_optimization": {
+      "glyph_sequence": [38, 53, 1],
+      "description": "adaptation active, meditative glow, fresh growth",
+      "effectiveness_range": [0.8, 0.95],
+      "conditions": "nitrogen_low AND bacterial_balance > 0.6"
+    },
+    "pathogen_defense": {
+      "glyph_sequence": [42, 36, 50],
+      "description": "immune response, self-repair, deep silence",
+      "effectiveness_range": [0.6, 0.85],
+      "conditions": "pathogen_threat_detected"
+    },
+    "methane_reduction": {
+      "glyph_sequence": [23, 3, 49],
+      "description": "cold preservation, throttle rate, contemplative pause",
+      "effectiveness_range": [0.5, 0.8],
+      "conditions": "methane_production > 0.7"
+    },
+    "nutrient_cycling": {
+      "glyph_sequence": [40, 54, 56],
+      "description": "decomposition cycle, contemplation, lotus emergence",
+      "effectiveness_range": [0.7, 0.9],
+      "conditions": "winter_fallow_period"
+    },
+    "drought_survival": {
+      "glyph_sequence": [50, 4, 20],
+      "description": "deep silence, pause transmission, sleep mode",
+      "effectiveness_range": [0.4, 0.7],
+      "conditions": "water_level < 0.2"
+    },
+    "beneficial_bacteria_cultivation": {
+      "glyph_sequence": [7, 57, 38],
+      "description": "maintain connections, cherry blossom, adaptation",
+      "effectiveness_range": [0.8, 0.95],
+      "conditions": "bacterial_balance < 0.5"
+    }
+  },
+
+  "historical_wisdom": {
+    "monsoon_prediction": {
+      "early_indicators": ["soil_temperature", "atmospheric_pressure", "wind_patterns"],
+      "confidence_buildup_days": [14, 30, 60],
+      "accuracy_improvement_years": [3, 7, 15]
+    },
+    "flood_preparation": {
+      "river_level_monitoring": "upstream_sensors",
+      "preparation_time_hours": [6, 24, 72],
+      "evacuation_strategies": ["spore_dormancy", "nutrient_storage"]
+    },
+    "harvest_timing_optimization": {
+      "grain_moisture_optimal": 0.22,
+      "weather_prediction_days": [5, 10],
+      "yield_maximization": "bacterial_symbiosis + nutrient_timing"
+    },
+    "disease_outbreak_prediction": {
+      "rice_blast_conditions": "humidity > 0.8 + temperature 25-30C + wounded_tissue",
+      "prevention_window_days": [7, 14],
+      "biocontrol_preparation": "beneficial_bacteria_population_boost"
+    }
+  }
+} 

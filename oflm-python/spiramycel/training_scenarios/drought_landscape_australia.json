@@ -1,0 +1,206 @@
+{
+  "scenario_id": "drought_landscape_australia",
+  "name": "Drought-Stressed Eucalyptus Forest - Western Australia",
+  "description": "Spiramycel network managing water stress, nutrient competition, and seasonal cycles in semi-arid eucalyptus forest",
+  "bioregion": "southwestern_australia",
+  "ecosystem_type": "mediterranean_sclerophyll",
+  
+  "environmental_parameters": {
+    "climate_zone": "BSk",
+    "average_annual_rainfall_mm": 450,
+    "temperature_range": {
+      "summer_max": 42,
+      "winter_min": 2,
+      "optimal": 22
+    },
+    "soil_type": "lateritic_sandy_loam",
+    "ph_range": [5.2, 6.8]
+  },
+
+  "seasonal_cycles": {
+    "wet_season": {
+      "months": [5, 6, 7, 8, 9],
+      "rainfall_probability": 0.75,
+      "soil_moisture_range": [0.4, 0.8],
+      "fungal_activity": "high",
+      "nutrient_availability": "moderate",
+      "description": "Cool wet winter - critical growth period"
+    },
+    "dry_season": {
+      "months": [11, 12, 1, 2, 3],
+      "rainfall_probability": 0.05,
+      "soil_moisture_range": [0.05, 0.25],
+      "fungal_activity": "survival_mode",
+      "nutrient_availability": "very_low",
+      "description": "Hot dry summer - survival critical"
+    },
+    "transition_periods": {
+      "autumn": {
+        "months": [4],
+        "rainfall_probability": 0.3,
+        "soil_moisture_range": [0.2, 0.5],
+        "description": "Preparing for wet season"
+      },
+      "spring": {
+        "months": [10],
+        "rainfall_probability": 0.4,
+        "soil_moisture_range": [0.3, 0.6],
+        "description": "Emerging from wet season"
+      }
+    }
+  },
+
+  "multi_generational_patterns": {
+    "el_nino_years": {
+      "frequency_years": [7, 3, 11, 5],
+      "rainfall_reduction": 0.6,
+      "extreme_stress": true,
+      "survival_strategy": "deep_dormancy"
+    },
+    "la_nina_years": {
+      "frequency_years": [4, 8, 2, 9],
+      "rainfall_increase": 1.4,
+      "growth_opportunity": true,
+      "expansion_strategy": "rapid_colonization"
+    },
+    "fire_cycle": {
+      "average_interval_years": 12,
+      "recovery_stages": ["spore_germination", "pioneer_growth", "network_establishment", "mature_network"],
+      "survival_strategy": "underground_reserves"
+    }
+  },
+
+  "ecosystem_interactions": {
+    "host_plants": [
+      {
+        "species": "eucalyptus_marginata",
+        "common_name": "jarrah",
+        "symbiosis_strength": 0.9,
+        "water_sharing": true,
+        "carbon_exchange": true
+      },
+      {
+        "species": "banksia_grandis", 
+        "common_name": "bull_banksia",
+        "symbiosis_strength": 0.7,
+        "phosphorus_specialist": true
+      }
+    ],
+    "competitor_fungi": [
+      {
+        "species": "phytophthora_cinnamomi",
+        "threat_level": 0.8,
+        "spreads_in": "wet_conditions",
+        "defense_strategy": "chemical_warfare"
+      },
+      {
+        "species": "armillaria_luteobubalina",
+        "threat_level": 0.6,
+        "spreads_in": "stressed_trees",
+        "defense_strategy": "resource_competition"
+      }
+    ],
+    "beneficial_bacteria": [
+      {
+        "species": "bradyrhizobium",
+        "function": "nitrogen_fixation",
+        "collaboration_strength": 0.8
+      }
+    ]
+  },
+
+  "sensor_mappings": {
+    "soil_moisture": {
+      "critical_low": 0.08,
+      "stress_threshold": 0.15,
+      "optimal_range": [0.25, 0.45],
+      "saturation": 0.8
+    },
+    "nutrient_nitrogen": {
+      "depleted": 0.1,
+      "limited": 0.3,
+      "adequate": 0.6,
+      "abundant": 0.9
+    },
+    "nutrient_phosphorus": {
+      "critical": 0.05,
+      "limited": 0.2,
+      "adequate": 0.5,
+      "abundant": 0.8
+    },
+    "temperature": {
+      "freeze_damage": 0.0,
+      "cold_stress": 0.1,
+      "optimal": 0.5,
+      "heat_stress": 0.8,
+      "lethal": 1.0
+    },
+    "competitor_pressure": {
+      "none": 0.0,
+      "low": 0.2,
+      "moderate": 0.5,
+      "high": 0.8,
+      "overwhelming": 1.0
+    },
+    "root_connections": {
+      "isolated": 0.0,
+      "few_connections": 0.3,
+      "network_node": 0.6,
+      "network_hub": 0.9
+    }
+  },
+
+  "repair_strategies": {
+    "water_stress_response": {
+      "glyph_sequence": [4, 49, 23],
+      "description": "pause transmission, contemplative rest, thermal regulation",
+      "effectiveness_range": [0.6, 0.9],
+      "conditions": "soil_moisture < 0.15"
+    },
+    "nutrient_competition": {
+      "glyph_sequence": [2, 10, 50],
+      "description": "redirect resources, heal network topology, deep silence",
+      "effectiveness_range": [0.5, 0.8],
+      "conditions": "competitor_pressure > 0.6"
+    },
+    "seasonal_preparation": {
+      "glyph_sequence": [51, 53, 20],
+      "description": "gentle hush, meditative glow, sleep mode preparation",
+      "effectiveness_range": [0.3, 0.6],
+      "conditions": "approaching_dry_season"
+    },
+    "symbiosis_strengthening": {
+      "glyph_sequence": [7, 56, 1],
+      "description": "maintain connections, lotus emergence, fresh growth",
+      "effectiveness_range": [0.7, 0.95],
+      "conditions": "wet_season AND healthy_host"
+    },
+    "fire_recovery": {
+      "glyph_sequence": [41, 54, 3],
+      "description": "regeneration, contemplative pose, reduce activity",
+      "effectiveness_range": [0.4, 0.8],
+      "conditions": "post_fire_recovery"
+    },
+    "el_nino_survival": {
+      "glyph_sequence": [50, 62, 4],
+      "description": "deep silence, cosmic quiet, pause all transmission",
+      "effectiveness_range": [0.2, 0.5],
+      "conditions": "extreme_drought"
+    }
+  },
+
+  "historical_wisdom": {
+    "monsoon_timing_prediction": {
+      "confidence_years": [5, 12, 20],
+      "pattern_recognition": "soil_temperature + day_length + pressure_changes"
+    },
+    "fire_preparation": {
+      "early_warning_signs": ["increased_temperature", "decreased_humidity", "plant_stress_chemicals"],
+      "preparation_time_days": [30, 60]
+    },
+    "competitor_outbreak_prediction": {
+      "phytophthora_conditions": "wet_season + temperature > 20C + stressed_hosts",
+      "preparation_strategy": "strengthen_defenses_early"
+    }
+  }
+} 

@@ -1,0 +1,243 @@
+{
+  "scenario_id": "groundwater_sweden",
+  "name": "Groundwater Monitoring - Västergötland, Sweden",
+  "description": "Spiramycel network monitoring well water chemistry, contamination detection, and seasonal groundwater flows",
+  "bioregion": "swedish_boreal_forest",
+  "ecosystem_type": "groundwater_aquifer",
+  
+  "environmental_parameters": {
+    "climate_zone": "Dfb",
+    "average_annual_rainfall_mm": 650,
+    "temperature_range": {
+      "summer_max": 25,
+      "winter_min": -15,
+      "optimal": 8
+    },
+    "geology": "crystalline_bedrock_with_glacial_till",
+    "aquifer_depth_m": [8, 45],
+    "ph_range": [6.8, 7.6]
+  },
+
+  "seasonal_cycles": {
+    "spring_snowmelt": {
+      "months": [3, 4, 5],
+      "recharge_rate": "very_high",
+      "water_table_change_m": [1.2, 3.5],
+      "contamination_risk": "elevated",
+      "nutrient_transport": "high",
+      "description": "Rapid recharge period, contamination vulnerability"
+    },
+    "summer_stable": {
+      "months": [6, 7, 8],
+      "recharge_rate": "low",
+      "water_table_change_m": [-0.5, 0.2],
+      "contamination_risk": "low",
+      "nutrient_transport": "minimal",
+      "description": "Stable conditions, biological activity peak"
+    },
+    "autumn_transition": {
+      "months": [9, 10, 11],
+      "recharge_rate": "moderate",
+      "water_table_change_m": [0.3, 0.8],
+      "contamination_risk": "moderate",
+      "nutrient_transport": "moderate",
+      "description": "Seasonal preparation for winter"
+    },
+    "winter_frozen": {
+      "months": [12, 1, 2],
+      "recharge_rate": "minimal",
+      "water_table_change_m": [-0.8, -0.3],
+      "contamination_risk": "very_low",
+      "nutrient_transport": "very_low",
+      "description": "Frozen surface, minimal activity"
+    }
+  },
+
+  "multi_generational_patterns": {
+    "climate_oscillations": {
+      "nao_positive_years": [3, 7, 2, 9],
+      "nao_negative_years": [5, 11, 4],
+      "temperature_impact": "±2C_average",
+      "precipitation_impact": "±20%"
+    },
+    "contamination_cycles": {
+      "agricultural_runoff_peaks": [15, 30],
+      "industrial_legacy_emergence": [25, 50, 75],
+      "natural_purification_cycles": [5, 8, 12]
+    },
+    "aquifer_renewal": {
+      "deep_water_age_years": [50, 200],
+      "shallow_water_age_years": [2, 15],
+      "mixing_events": "spring_flood_years"
+    }
+  },
+
+  "ecosystem_interactions": {
+    "subsurface_vegetation": [
+      {
+        "species": "picea_abies_roots",
+        "common_name": "spruce_deep_roots",
+        "interaction_depth_m": [0.5, 4.0],
+        "symbiosis_strength": 0.7,
+        "nutrient_cycling": "carbon_sequestration"
+      },
+      {
+        "species": "betula_pendula_shallow",
+        "common_name": "birch_surface_roots",
+        "interaction_depth_m": [0.2, 1.5],
+        "symbiosis_strength": 0.6,
+        "water_uptake": "seasonal_high"
+      }
+    ],
+    "beneficial_microbes": [
+      {
+        "species": "iron_oxidizing_bacteria",
+        "function": "metal_precipitation",
+        "optimal_ph": 7.0,
+        "collaboration_strength": 0.8
+      },
+      {
+        "species": "sulfate_reducing_bacteria",
+        "function": "heavy_metal_immobilization",
+        "anaerobic_zones": true,
+        "collaboration_strength": 0.9
+      }
+    ],
+    "contamination_sources": [
+      {
+        "type": "agricultural_nitrates",
+        "seasonal_peak": "spring_summer",
+        "concentration_range": [5, 45],
+        "health_threshold": 25,
+        "threat_level": 0.6
+      },
+      {
+        "type": "road_salt_chlorides",
+        "seasonal_peak": "late_winter_early_spring",
+        "concentration_range": [10, 200],
+        "health_threshold": 100,
+        "threat_level": 0.4
+      },
+      {
+        "type": "industrial_legacy_metals",
+        "seasonal_variation": "minimal",
+        "concentration_range": [0.1, 15],
+        "health_threshold": 5,
+        "threat_level": 0.8
+      }
+    ]
+  },
+
+  "sensor_mappings": {
+    "water_table_level": {
+      "very_low": 0.1,
+      "low": 0.3,
+      "normal": 0.6,
+      "high": 0.8,
+      "flood_risk": 1.0
+    },
+    "nitrate_concentration": {
+      "safe": 0.2,
+      "elevated": 0.5,
+      "concerning": 0.7,
+      "dangerous": 0.9,
+      "critical": 1.0
+    },
+    "heavy_metal_levels": {
+      "below_detection": 0.1,
+      "trace": 0.3,
+      "elevated": 0.6,
+      "toxic": 0.9,
+      "emergency": 1.0
+    },
+    "bacterial_activity": {
+      "dormant": 0.1,
+      "low": 0.3,
+      "active": 0.6,
+      "very_active": 0.8,
+      "blooming": 1.0
+    },
+    "ph_stability": {
+      "acidic_stress": 0.1,
+      "slightly_acidic": 0.3,
+      "neutral_optimal": 0.8,
+      "alkaline_stress": 0.2
+    },
+    "temperature": {
+      "frozen": 0.0,
+      "cold": 0.2,
+      "optimal": 0.6,
+      "warm": 0.8,
+      "too_warm": 1.0
+    }
+  },
+
+  "repair_strategies": {
+    "nitrate_bioremediation": {
+      "glyph_sequence": [38, 40, 53],
+      "description": "adaptation active, decomposition cycle, meditative glow",
+      "effectiveness_range": [0.7, 0.9],
+      "conditions": "nitrate_elevated AND bacterial_activity > 0.5"
+    },
+    "heavy_metal_sequestration": {
+      "glyph_sequence": [42, 23, 36],
+      "description": "immune response, cold preservation, self-repair",
+      "effectiveness_range": [0.6, 0.85],
+      "conditions": "heavy_metals > 0.6"
+    },
+    "ph_buffering": {
+      "glyph_sequence": [35, 49, 54],
+      "description": "chemical balance, contemplative pause, contemplation",
+      "effectiveness_range": [0.5, 0.8],
+      "conditions": "ph_instability > 0.5"
+    },
+    "spring_flood_protection": {
+      "glyph_sequence": [5, 50, 51],
+      "description": "flood protection, deep silence, gentle hush",
+      "effectiveness_range": [0.4, 0.7],
+      "conditions": "water_table_rising_rapidly"
+    },
+    "winter_dormancy": {
+      "glyph_sequence": [4, 20, 62],
+      "description": "pause transmission, sleep mode, cosmic quiet",
+      "effectiveness_range": [0.3, 0.6],
+      "conditions": "temperature < 0.2"
+    },
+    "bacterial_community_cultivation": {
+      "glyph_sequence": [7, 40, 57],
+      "description": "maintain connections, decomposition cycle, cherry blossom",
+      "effectiveness_range": [0.8, 0.95],
+      "conditions": "contamination_detected AND spring_conditions"
+    },
+    "legacy_contamination_isolation": {
+      "glyph_sequence": [23, 36, 50],
+      "description": "cold preservation, self-repair, deep silence",
+      "effectiveness_range": [0.6, 0.8],
+      "conditions": "industrial_metals_detected"
+    }
+  },
+
+  "historical_wisdom": {
+    "snowmelt_timing_prediction": {
+      "temperature_thresholds": [0, 3, 8],
+      "daylight_correlation": "spring_equinox + 30_days",
+      "prediction_accuracy_years": [3, 8, 15],
+      "early_warning_days": [14, 30]
+    },
+    "contamination_pattern_recognition": {
+      "agricultural_seasonal_cycles": "spring_application + summer_uptake + autumn_runoff",
+      "road_salt_transport": "freeze_thaw_cycles + spring_mobilization",
+      "industrial_emergence": "groundwater_level_changes + chemical_mobility"
+    },
+    "aquifer_protection_strategies": {
+      "recharge_zone_health": "forest_canopy + soil_microbes + root_systems",
+      "natural_attenuation": "beneficial_bacteria + ph_buffering + metal_precipitation",
+      "contamination_prevention": "early_detection + source_control + natural_barriers"
+    },
+    "climate_adaptation": {
+      "warming_adaptation": "deeper_root_connections + thermal_refugia",
+      "precipitation_changes": "flexible_water_table_management + flood_tolerance",
+      "extreme_event_preparation": "enhanced_bacterial_reserves + contamination_buffering"
+    }
+  }
+} 

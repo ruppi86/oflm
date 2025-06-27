@@ -14,7 +14,11 @@ print("🔍 Debugging organism.py imports...")
 # Test each import step by step
 print("\n1. Testing pulmonos import directly:")
 try:
-    from pulmonos_alpha_01_o_3 import Phase as BreathPhase, BreathConfig, PHASE_ORDER
+    if __name__ == "__main__":
+        from pulmonos_daemon import Phase as BreathPhase, BreathConfig, PHASE_ORDER
+    else:
+        from .pulmonos_daemon import Phase as BreathPhase, BreathConfig, PHASE_ORDER
+    PULMONOS_AVAILABLE = True
     print("✅ Pulmonos components imported successfully")
     print(f"   Phase: {BreathPhase}")
     print(f"   BreathConfig: {BreathConfig}")
@@ -24,7 +28,7 @@ except Exception as e:
 
 print("\n2. Testing Pulmonos class creation:")
 try:
-    from pulmonos_alpha_01_o_3 import Phase as BreathPhase, BreathConfig, PHASE_ORDER
+    from pulmonos_daemon import Phase as BreathPhase, BreathConfig, PHASE_ORDER
     
     class TestPulmonos:
         def __init__(self, breath_rhythm):
