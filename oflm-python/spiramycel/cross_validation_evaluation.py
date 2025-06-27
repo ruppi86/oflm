@@ -80,21 +80,13 @@ def load_trained_models():
     """Load all 4 trained contemplative AI models"""
     models = {}
     
-    # FOR TESTING: Use 25K models (the ones we originally claimed were validated)
+    # Use the specific trained models (600K scale with proper data ratios)
     model_paths = {
-        "ecological_calm": "ecological_models/ecological_spiramycel_latest.pt",
-        "ecological_chaotic": "ecological_models/ecological_spiramycel_latest.pt",  # Same model for now
-        "abstract_calm": "abstract_models/abstract_spiramycel_latest.pt", 
-        "abstract_chaotic": "abstract_models/abstract_spiramycel_latest.pt"  # Same model for now
+        "ecological_calm": "ecological_models/ecological_calm_model.pt",
+        "ecological_chaotic": "ecological_models/ecological_chaotic_model.pt",
+        "abstract_calm": "abstract_models/abstract_calm_model.pt",
+        "abstract_chaotic": "abstract_models/abstract_chaotic_model.pt"
     }
-    
-    # ORIGINAL 600K MODEL PATHS (commented out for comparison)
-    # model_paths = {
-    #     "ecological_calm": "ecological_models/ecological_calm_model.pt",
-    #     "ecological_chaotic": "ecological_models/ecological_chaotic_model.pt",
-    #     "abstract_calm": "abstract_models/abstract_calm_model.pt",
-    #     "abstract_chaotic": "abstract_models/abstract_chaotic_model.pt"
-    # }
     
     for condition, path in model_paths.items():
         if Path(path).exists():
@@ -105,11 +97,11 @@ def load_trained_models():
                     # Determine model scale based on file size
                     file_size_mb = Path(path).stat().st_size / (1024 * 1024)
                     
-                    # Scale detection based on file size
-                    if file_size_mb > 20.0:  # 6M models are ~25MB+
+                    # Scale detection based on file size (refined thresholds)
+                    if file_size_mb > 15.0:  # 6M models are ~25-30MB+
                         scale = "6m"
                         scale_name = "mili-scale"
-                    elif file_size_mb > 2.0:  # 600K models are ~2.7MB
+                    elif file_size_mb > 1.0:  # 600K models are ~2.8MB, 25K models are ~0.1MB
                         scale = "600k"
                         scale_name = "piko-scale"
                     else:  # 25K models are ~0.1MB
@@ -291,7 +283,7 @@ def generate_glyphs_for_conditions(model, conditions, model_name, scenario_name)
                     input_tokens = torch.tensor([sequence], dtype=torch.long)
                     
                     # Forward pass
-                    glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, condition_vector)
+                    glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, condition_vector)
                     
                     # Get probabilities for next token
                     next_token_logits = glyph_logits[0, -1, :]  # Last position
@@ -354,7 +346,7 @@ def predict_effectiveness(model, conditions):
             
             with torch.no_grad():
                 # Forward pass
-                glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, condition_vector)
+                glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, condition_vector)
                 
                 # Get effectiveness prediction from the effectiveness head
                 effectiveness = torch.sigmoid(eff_logits[0, -1]).item()  # Sigmoid to [0,1] range
