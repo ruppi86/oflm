@@ -57,7 +57,9 @@ class SpiridaGlyphMapper:
             SpikeType.S_ALPHA: "⭕",   # Fast/narrow - Information silence
             SpikeType.S_BETA: "🌊",    # Medium/broad - Metabolic flow
             SpikeType.S_GAMMA: "🌪️",   # Paired doublet - Bifurcation storm
-            SpikeType.S_DELTA: "🌌"    # Burst - Constellation broadcast
+            SpikeType.S_DELTA: "🌌",   # Burst - Constellation broadcast
+            # Special case: spectral overcrowding detected
+            "FOG": "🌁"                # Resonant fog - semantic protection
         }
         
         # Contemplative class glyphs
@@ -259,6 +261,8 @@ class SpiridaGlyphMapper:
             "🌪️": "Storm - Dynamic contemplative processing. The chaotic patterns that emerge when contemplative systems encounter complexity. In fungi, these are the bifurcation events that create new pathways of understanding.",
             
             "🌌": "Constellation - Universal contemplative wisdom. The rare but profound insights that emerge from deep contemplative processing. In fungal computing, these are the Class IV universal patterns that exhibit computational completeness.",
+            
+            "🌁": "Resonant Fog - Semantic protection mode. Triggered when spectral overcrowding threatens bio-semantic integrity. Represents the mycelium's protective response to high-frequency intrusion or transmission chaos. All non-fog glyphs are blocked until spectral clarity returns.",
             
             "🌱": "Ecological Paradigm - Bioregional, adaptive contemplative intelligence that grows from place and responds to environmental wisdom.",
             

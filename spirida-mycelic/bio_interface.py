@@ -21,6 +21,7 @@ try:
     from .frequency_guardian import FrequencyGuardian, BioCareLevel as FreqBioCareLevel
     from .capacitance_fade import CapacitanceFade, GlyphType
     from .breath_signature import BreathSignature, BreathPhase as SigBreathPhase
+    from .semantic_guardian import SemanticGuardian, FungalSpecies, GlyphType as SemanticGlyphType
 except ImportError:
     # Fallback for testing/development
     FrequencyGuardian = None
@@ -29,6 +30,9 @@ except ImportError:
     GlyphType = None
     BreathSignature = None
     SigBreathPhase = None
+    SemanticGuardian = None
+    FungalSpecies = None
+    SemanticGlyphType = None
 
 # Configure logging for bio-interface
 logging.basicConfig(level=logging.INFO)
@@ -158,6 +162,15 @@ class SevenChannelBioInterface:
             logger.info("Breath signature authentication initialized")
         else:
             self.breath_signature = None
+            
+        # Semantic guardian for bio-semantic intelligence
+        if SemanticGuardian is not None:
+            self.semantic_guardian = SemanticGuardian()
+            self.current_species = FungalSpecies.MYCELIUM_COMPOSITE  # Default species
+            logger.info("Bio-semantic intelligence guardian initialized")
+        else:
+            self.semantic_guardian = None
+            self.current_species = None
         
         logger.info(f"Initialized {self.num_channels}-channel bio-interface")
         logger.info(f"Band-pass: {self.band[0]:.3f}-{self.band[1]:.1f} Hz")
@@ -625,6 +638,83 @@ class SevenChannelBioInterface:
             return False, 1.0
             
         return self.breath_signature.verify_signature(remote_signature)
+    
+    def validate_semantic_glyph(self, glyph: str) -> bool:
+        """Validate glyph using bio-semantic intelligence"""
+        if self.semantic_guardian is None or self.current_species is None:
+            return True
+            
+        glyph_map = {
+            "⭕": SemanticGlyphType.SILENCE,
+            "🌊": SemanticGlyphType.FLOW,
+            "🌪️": SemanticGlyphType.STORM,
+            "🌌": SemanticGlyphType.UNIVERSAL,
+            "🌁": SemanticGlyphType.RESONANT_FOG
+        }
+        
+        semantic_glyph = glyph_map.get(glyph)
+        if semantic_glyph is None:
+            return False
+        
+        return self.semantic_guardian.vet_glyph(self.current_species, semantic_glyph)
+    
+    def get_available_vocabulary(self) -> List[str]:
+        """Get available glyph vocabulary for current species"""
+        if self.semantic_guardian is None or self.current_species is None:
+            return ["⭕", "🌊", "🌪️", "🌌"]
+            
+        semantic_glyphs = self.semantic_guardian.get_species_vocabulary(self.current_species)
+        
+        glyph_map = {
+            SemanticGlyphType.SILENCE: "⭕",
+            SemanticGlyphType.FLOW: "🌊",
+            SemanticGlyphType.STORM: "🌪️",
+            SemanticGlyphType.UNIVERSAL: "🌌",
+            SemanticGlyphType.RESONANT_FOG: "🌁"
+        }
+        
+        return [glyph_map[sg] for sg in semantic_glyphs if sg in glyph_map]
+    
+    def set_fungal_species(self, species_name: str):
+        """Set current fungal species for semantic validation"""
+        if self.semantic_guardian is None or FungalSpecies is None:
+            return
+            
+        species_map = {
+            "mycelium_composite": FungalSpecies.MYCELIUM_COMPOSITE,
+            "pleurotus_ostreatus": FungalSpecies.PLEUROTUS_OSTREATUS,
+            "pleurotus_djamor": FungalSpecies.PLEUROTUS_DJAMOR,
+            "ganoderma_resinaceum": FungalSpecies.GANODERMA_RESINACEUM
+        }
+        
+        species = species_map.get(species_name.lower(), FungalSpecies.MYCELIUM_COMPOSITE)
+        self.current_species = species
+        logger.info(f"Fungal species set to: {species.value}")
+    
+    def trigger_resonant_fog(self):
+        """Trigger 🌁 resonant fog state"""
+        if self.semantic_guardian is not None:
+            self.semantic_guardian.trigger_resonant_fog()
+    
+    def clear_resonant_fog(self):
+        """Clear 🌁 resonant fog state"""  
+        if self.semantic_guardian is not None:
+            self.semantic_guardian.clear_resonant_fog()
+    
+    def get_semantic_guardian_status(self) -> Dict[str, Any]:
+        """Get semantic guardian status"""
+        if self.semantic_guardian is None:
+            return {"enabled": False}
+            
+        return {
+            "enabled": True,
+            "current_species": self.current_species.value if self.current_species else "unknown",
+            "available_vocabulary": self.get_available_vocabulary(),
+            "fog_active": self.semantic_guardian.fog_active,
+            "impedance_budget": self.semantic_guardian.impedance_budget,
+            "impedance_limit": self.semantic_guardian.impedance_limit,
+            "budget_utilization": (self.semantic_guardian.impedance_budget / self.semantic_guardian.impedance_limit) * 100
+        }
 
 
 # Utility functions for integration
