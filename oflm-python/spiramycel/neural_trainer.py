@@ -247,7 +247,7 @@ class SpiramycelDataset(Dataset if TORCH_AVAILABLE else object):
 
 class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
     """
-    Neural glyph generator based on HaikuMeadowLib's PikoHaikuModel
+    Neural glyph generator based on HaikuMeadowLib's nanoHaikuModel
     
     Generates repair glyph sequences from network sensor conditions.
     """
@@ -283,9 +283,9 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
         if parameter_count < 50:  # Femto-scale (< 50k parameters)
             self.model_type = "femto"
             print(f"🦠 Using Spiramycel femto-model ({self.paradigm} paradigm, ~{parameter_count:.0f}k parameters)")
-        elif parameter_count < 1000:  # Piko-scale (50k-1M parameters)
-            self.model_type = "piko" 
-            print(f"🚀 Using Spiramycel piko-model ({self.paradigm} paradigm, ~{parameter_count:.0f}k parameters)")
+        elif parameter_count < 1000:  # nano-scale (50k-1M parameters)
+            self.model_type = "nano" 
+            print(f"🚀 Using Spiramycel nano-model ({self.paradigm} paradigm, ~{parameter_count:.0f}k parameters)")
         else:  # Mili-scale (1M+ parameters)
             self.model_type = "mili"
             print(f"🌟 Using Spiramycel mili-model ({self.paradigm} paradigm, ~{parameter_count/1000:.1f}M parameters)")
@@ -296,7 +296,7 @@ class SpiramycelNeuralModel(nn.Module if TORCH_AVAILABLE else object):
             if self.num_layers == 1:
                 self.model_type = "femto"
             elif self.num_layers == 2:
-                print(f"🔧 CPU mode with {self.num_layers} layers - keeping piko architecture for compatibility")
+                print(f"🔧 CPU mode with {self.num_layers} layers - keeping nano architecture for compatibility")
             else:
                 print(f"🔧 CPU mode with {self.num_layers} layers - keeping mili architecture for compatibility")
         
@@ -386,13 +386,48 @@ class SpiramycelTrainer:
         self.output_dir.mkdir(exist_ok=True)
         self.codec = SpiramycelGlyphCodec()
     
+    def determine_model_scale_and_folder(self, model, paradigm: str = "ecological"):
+        """
+        Determine model scale and return appropriate scale-specific folder path
+        
+        Args:
+            model: Trained SpiramycelNeuralModel
+            paradigm: "ecological" or "abstract"
+            
+        Returns:
+            Tuple of (scale_name, model_dir, scale_suffix)
+        """
+        param_count = model.count_parameters()
+        
+        # Determine scale based on parameter count
+        if param_count < 50_000:  # < 50K parameters
+            scale_name = "25k"
+            scale_suffix = "25k"
+        elif param_count < 300_000:  # 50K - 300K parameters  
+            scale_name = "200k"
+            scale_suffix = "200k"
+        elif param_count < 2_000_000:  # 300K - 2M parameters
+            scale_name = "600k" 
+            scale_suffix = "600k"
+        else:  # 2M+ parameters
+            scale_name = "6m"
+            scale_suffix = "6m"
+        
+        # Construct scale-specific model directory
+        model_dir = f"{paradigm}_models_{scale_suffix}"
+        
+        print(f"🏷️  Auto-detected {scale_name} scale model ({param_count:,} parameters)")
+        print(f"📁 Using scale-specific directory: {model_dir}/")
+        
+        return scale_name, model_dir, scale_suffix
+    
     def train_on_spore_echoes(self,
                              spore_ledger: SporeMapLedger,
                              epochs: int = 10,
                              batch_size: int = 8,
                              learning_rate: float = 0.001,
                              save_checkpoints: bool = False) -> Optional[Path]:
-        """Train neural model on spore echoes (adapts train_piko_model)"""
+        """Train neural model on spore echoes (adapts train_nano_model)"""
         
         if not TORCH_AVAILABLE:
             print("❌ PyTorch not available - cannot train neural Spiramycel model")
@@ -434,7 +469,12 @@ class SpiramycelTrainer:
         best_loss = float('inf')
         
         for epoch in range(epochs):
-            print(f"\n🍄 Epoch {epoch + 1}/{epochs}")
+            # Scale-aware epoch output (less verbose for large models)
+            if param_count > 1_000_000:  # Large models (6M+)
+                if (epoch + 1) % 5 == 0 or epoch == 0 or epoch == epochs - 1:  # Only every 5th epoch
+                    print(f"\n🍄 Epoch {epoch + 1}/{epochs}")
+            else:
+                print(f"\n🍄 Epoch {epoch + 1}/{epochs}")
             
             epoch_glyph_loss = 0.0
             epoch_effectiveness_loss = 0.0
@@ -476,14 +516,12 @@ class SpiramycelTrainer:
                 epoch_silence_loss += silence_loss.item()
                 batch_count += 1
                 
-                # Contemplative breathing pause (optimized for models under 6M)
+                # Contemplative breathing pause (only for large models > 1M parameters)
                 param_count = model.count_parameters()
-                if param_count < 6000000:  # Small/medium models (< 6M params) - no delays needed
-                    pass  # Skip breathing for fast models under 6M parameters
-                elif DEVICE.type == "cpu" and len(dataloader) > 64:
-                    time.sleep(0.005)  # Minimal pause to avoid CPU overheating
-                else:
-                    time.sleep(0.01)   # Slightly faster than original
+                if param_count > 1_000_000:  # Only for large models (> 1M params)
+                    from gpu_breathing import mili_pause
+                    mili_pause(f"large_model_batch_{batch_idx}")
+                # Small models (< 1M params) run without breathing for maximum speed
             
             # Epoch summary
             avg_glyph_loss = epoch_glyph_loss / batch_count if batch_count > 0 else 0.0
@@ -491,9 +529,16 @@ class SpiramycelTrainer:
             avg_silence_loss = epoch_silence_loss / batch_count if batch_count > 0 else 0.0
             total_avg_loss = avg_glyph_loss + 0.5 * avg_eff_loss + 0.3 * avg_silence_loss
             
-            print(f"   🌊 Glyph loss: {avg_glyph_loss:.4f}")
-            print(f"   📈 Effectiveness loss: {avg_eff_loss:.4f}")
-            print(f"   🤫 Silence loss: {avg_silence_loss:.4f}")
+            # Scale-aware loss output (matches epoch output verbosity)
+            if param_count > 1_000_000:  # Large models (6M+)
+                if (epoch + 1) % 5 == 0 or epoch == 0 or epoch == epochs - 1:  # Only every 5th epoch
+                    print(f"   🌊 Glyph loss: {avg_glyph_loss:.4f}")
+                    print(f"   📈 Effectiveness loss: {avg_eff_loss:.4f}")
+                    print(f"   🤫 Silence loss: {avg_silence_loss:.4f}")
+            else:
+                print(f"   🌊 Glyph loss: {avg_glyph_loss:.4f}")
+                print(f"   📈 Effectiveness loss: {avg_eff_loss:.4f}")
+                print(f"   🤫 Silence loss: {avg_silence_loss:.4f}")
             
             # Save checkpoint if best
             if total_avg_loss < best_loss:
@@ -676,16 +721,26 @@ class SpiramycelTrainer:
                 season=season
             )
             
-            if i % 500 == 0 and i > 0:
+            # Scale-aware progress output (reduced for large datasets)
+            if num_examples > 50000:  # Large datasets (50K+ examples)
+                if i % 10000 == 0 and i > 0:  # Only every 10K for large datasets
+                    print(f"   Generated {i:,}/{num_examples:,} examples...")
+            elif i % 500 == 0 and i > 0:
                 print(f"   Generated {i}/{num_examples} enhanced spore echoes...")
         
-        print(f"✅ Created {len(spore_ledger.spores)} enhanced spore echoes")
-        print(f"   Scenarios: {len(abstract_scenarios)} distinct abstract scenarios")
-        print(f"   • Urban Fiber: {len(abstract_scenarios['urban_fiber']['bioregions'])} bioregions")
-        print(f"   • Satellite/Remote: {len(abstract_scenarios['satellite_remote']['bioregions'])} bioregions") 
-        print(f"   • Industrial IoT: {len(abstract_scenarios['industrial_iot']['bioregions'])} bioregions")
-        print(f"   Total bioregions: {sum(len(s['bioregions']) for s in abstract_scenarios.values())}")
-        print(f"   Seasonal variation: All 4 seasons with scenario-specific patterns")
+        print(f"✅ Created {len(spore_ledger.spores):,} enhanced spore echoes")
+        
+        # Scale-aware detailed output (reduced for large datasets)
+        if num_examples <= 50000:  # Only show details for smaller datasets
+            print(f"   Scenarios: {len(abstract_scenarios)} distinct abstract scenarios")
+            print(f"   • Urban Fiber: {len(abstract_scenarios['urban_fiber']['bioregions'])} bioregions")
+            print(f"   • Satellite/Remote: {len(abstract_scenarios['satellite_remote']['bioregions'])} bioregions") 
+            print(f"   • Industrial IoT: {len(abstract_scenarios['industrial_iot']['bioregions'])} bioregions")
+            print(f"   Total bioregions: {sum(len(s['bioregions']) for s in abstract_scenarios.values())}")
+            print(f"   Seasonal variation: All 4 seasons with scenario-specific patterns")
+        else:  # Large datasets get minimal output
+            print(f"   3 scenarios × 5 bioregions × 4 seasons (large scale - details suppressed)")
+        
         print(f"   💾 Saved to: {spore_ledger.ledger_path}")
         
         return spore_ledger

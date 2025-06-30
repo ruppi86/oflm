@@ -246,3 +246,8 @@ todo.md
 *all_markdown_files_*.txt
 python_summary*.py
 markdown_summary.py
+
+# test sets:
+*ood_test_set_same_100x4_*.jsonl
+*ecological*.pt
+*abstract*.pt

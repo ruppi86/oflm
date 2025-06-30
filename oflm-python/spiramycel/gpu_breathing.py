@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """
-GPU Contemplative Breathing Monitor
+GPU Contemplative Breathing Monitor - OPTIMIZED VERSION
 
-Adaptive time.sleep based on actual GPU load, temperature, and memory usage.
+Lightweight adaptive breathing based on actual GPU load with minimal overhead.
 The AI breathes slower when the GPU is under stress - both practical and contemplative!
+
+Key optimizations:
+- Cached monitoring (only check GPU every 5-10 seconds)
+- Light monitoring mode for models under 1M parameters  
+- Configurable thresholds and intervals
+- Optional monitoring (can be completely disabled)
+- Minimal subprocess overhead
 """
 
 import time
@@ -26,42 +33,81 @@ class GPUState:
     utilization: Optional[float] = None      # 0.0-1.0  
     power_draw: Optional[float] = None       # Watts
     available: bool = False
+    timestamp: float = 0.0                   # When this state was captured
 
 class ContemplativeGPUMonitor:
     """
-    Monitors GPU stress and provides adaptive breathing pauses.
+    Lightweight GPU stress monitor with adaptive breathing pauses.
     
     Philosophy: The AI breathes slower when hardware is under stress,
     embodying contemplative response to environmental pressure.
+    
+    Optimizations:
+    - Cached GPU state (avoid constant subprocess calls)
+    - Light monitoring mode for small models
+    - Configurable thresholds and behavior
     """
     
-    def __init__(self):
-        self.baseline_sleep = 0.001          # Minimum breathing pause (1ms)
-        self.stress_multiplier = 50.0        # Max multiplier for high stress
-        self.temp_threshold = 70.0           # °C - Start increasing sleep above this
-        self.memory_threshold = 0.8          # 80% memory usage threshold
-        self.util_threshold = 0.9            # 90% utilization threshold
+    def __init__(self, 
+                 cache_duration: float = 5.0,      # Cache GPU state for 5 seconds
+                 light_mode: bool = False,         # Light monitoring (less frequent checks)
+                 enabled: bool = True):            # Can disable entirely
         
-        # Try to detect GPU monitoring capability
-        self.nvidia_smi_available = self._check_nvidia_smi()
-        self.torch_cuda_available = TORCH_AVAILABLE and torch.cuda.is_available()
+        self.enabled = enabled
+        self.light_mode = light_mode
+        self.cache_duration = cache_duration
         
-        print(f"🌬️ Contemplative GPU Monitor initialized:")
-        print(f"   NVIDIA-SMI available: {self.nvidia_smi_available}")
-        print(f"   PyTorch CUDA available: {self.torch_cuda_available}")
+        # Breathing parameters (optimized for lighter overhead)
+        self.baseline_sleep = 0.001 if not light_mode else 0.0005  # Even faster baseline
+        self.stress_multiplier = 20.0 if not light_mode else 10.0  # Reduced multiplier  
+        
+        # Thresholds (more realistic for modern hardware)
+        self.temp_threshold = 75.0           # °C - Most GPUs are fine up to 80-85°C
+        self.memory_threshold = 0.85         # 85% memory usage (was 80%)
+        self.util_threshold = 0.95           # 95% utilization (was 90%)
+        
+        # Cached state
+        self._cached_state = GPUState()
+        self._last_check_time = 0.0
+        
+        # Monitoring capability detection (only if enabled)
+        if self.enabled:
+            self.nvidia_smi_available = self._check_nvidia_smi()
+            self.torch_cuda_available = TORCH_AVAILABLE and torch.cuda.is_available()
+            
+            print(f"🌬️ Contemplative GPU Monitor initialized:")
+            print(f"   Mode: {'Light' if light_mode else 'Full'} monitoring")
+            print(f"   Cache duration: {cache_duration}s")
+            print(f"   NVIDIA-SMI: {self.nvidia_smi_available}")
+            print(f"   PyTorch CUDA: {self.torch_cuda_available}")
+        else:
+            self.nvidia_smi_available = False
+            self.torch_cuda_available = False
+            print(f"🌬️ GPU Monitor disabled - using minimal static breathing")
     
     def _check_nvidia_smi(self) -> bool:
-        """Check if nvidia-smi is available"""
+        """Check if nvidia-smi is available (cached result)"""
         try:
             result = subprocess.run(['nvidia-smi', '--version'], 
-                                  capture_output=True, text=True, timeout=5)
+                                  capture_output=True, text=True, timeout=3)
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
     
-    def get_gpu_state(self) -> GPUState:
-        """Get current GPU state using available monitoring tools"""
-        state = GPUState()
+    def get_gpu_state(self, force_refresh: bool = False) -> GPUState:
+        """Get current GPU state with caching to reduce overhead"""
+        
+        if not self.enabled:
+            return GPUState(available=False, timestamp=time.time())
+        
+        current_time = time.time()
+        
+        # Use cached state if recent enough (key optimization!)
+        if not force_refresh and (current_time - self._last_check_time) < self.cache_duration:
+            return self._cached_state
+        
+        # Refresh GPU state
+        state = GPUState(timestamp=current_time)
         
         # Try nvidia-smi first (most comprehensive)
         if self.nvidia_smi_available:
@@ -71,18 +117,23 @@ class ContemplativeGPUMonitor:
         if not state.available and self.torch_cuda_available:
             state = self._get_torch_cuda_state()
         
+        # Cache the result
+        self._cached_state = state
+        self._last_check_time = current_time
+        
         return state
     
     def _get_nvidia_smi_state(self) -> GPUState:
-        """Get GPU state via nvidia-smi"""
+        """Get GPU state via nvidia-smi (optimized query)"""
         try:
+            # Optimized query - only get essential metrics
             cmd = [
                 'nvidia-smi', 
-                '--query-gpu=temperature.gpu,memory.used,memory.total,utilization.gpu,power.draw',
+                '--query-gpu=temperature.gpu,memory.used,memory.total,utilization.gpu',
                 '--format=csv,noheader,nounits'
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=2)  # Faster timeout
             
             if result.returncode == 0:
                 line = result.stdout.strip().split('\n')[0]  # First GPU
@@ -100,21 +151,23 @@ class ContemplativeGPUMonitor:
                         temperature=temp,
                         memory_used=memory_ratio,
                         utilization=utilization / 100.0 if utilization else None,
-                        available=True
+                        available=True,
+                        timestamp=time.time()
                     )
         
         except (subprocess.TimeoutExpired, ValueError, IndexError) as e:
-            print(f"⚠ nvidia-smi query failed: {e}")
+            if not self.light_mode:  # Only log in full mode
+                print(f"⚠ nvidia-smi query failed: {e}")
         
-        return GPUState(available=False)
+        return GPUState(available=False, timestamp=time.time())
     
     def _get_torch_cuda_state(self) -> GPUState:
-        """Get GPU state via PyTorch CUDA (limited info)"""
+        """Get GPU state via PyTorch CUDA (limited info, fast)"""
         try:
             if torch.cuda.is_available():
                 device = torch.cuda.current_device()
                 
-                # Memory info
+                # Memory info (fast operation)
                 mem_total = torch.cuda.get_device_properties(device).total_memory
                 mem_allocated = torch.cuda.memory_allocated(device)
                 mem_cached = torch.cuda.memory_reserved(device)
@@ -123,38 +176,39 @@ class ContemplativeGPUMonitor:
                 
                 return GPUState(
                     memory_used=memory_ratio,
-                    available=True
+                    available=True,
+                    timestamp=time.time()
                 )
         
-        except Exception as e:
-            print(f"⚠ PyTorch CUDA query failed: {e}")
+        except Exception:
+            pass  # Silent fail in optimized version
         
-        return GPUState(available=False)
+        return GPUState(available=False, timestamp=time.time())
     
     def calculate_stress_level(self, state: GPUState) -> float:
         """
         Calculate overall GPU stress level (0.0 = no stress, 1.0 = maximum stress)
         
-        Combines temperature, memory usage, and utilization into single stress metric.
+        Optimized with more realistic thresholds.
         """
         if not state.available:
             return 0.0  # No monitoring = assume low stress
         
         stress_factors = []
         
-        # Temperature stress (above threshold)
+        # Temperature stress (above 75°C threshold)
         if state.temperature is not None:
-            temp_stress = max(0.0, (state.temperature - self.temp_threshold) / 20.0)  # 20°C range
+            temp_stress = max(0.0, (state.temperature - self.temp_threshold) / 15.0)  # 15°C range to 90°C
             stress_factors.append(min(1.0, temp_stress))
         
-        # Memory stress (above threshold)
+        # Memory stress (above 85% threshold)
         if state.memory_used is not None:
-            mem_stress = max(0.0, (state.memory_used - self.memory_threshold) / 0.2)  # 20% range
+            mem_stress = max(0.0, (state.memory_used - self.memory_threshold) / 0.15)  # 15% range
             stress_factors.append(min(1.0, mem_stress))
         
-        # Utilization stress (above threshold)
+        # Utilization stress (above 95% threshold)
         if state.utilization is not None:
-            util_stress = max(0.0, (state.utilization - self.util_threshold) / 0.1)  # 10% range
+            util_stress = max(0.0, (state.utilization - self.util_threshold) / 0.05)  # 5% range
             stress_factors.append(min(1.0, util_stress))
         
         # Return maximum stress factor (most conservative)
@@ -164,79 +218,112 @@ class ContemplativeGPUMonitor:
         """
         Perform adaptive contemplative pause based on GPU stress.
         
-        Returns the actual sleep time used for logging.
+        Optimized for minimal overhead while still being contemplative.
         """
-        state = self.get_gpu_state()
+        if not self.enabled:
+            return 0.0  # No breathing if disabled
+        
+        state = self.get_gpu_state()  # Uses caching automatically
         stress_level = self.calculate_stress_level(state)
         
         # Calculate adaptive sleep time
         sleep_time = self.baseline_sleep * (1.0 + stress_level * self.stress_multiplier)
         
-        # Log occasionally for visibility
-        if hasattr(self, '_last_log_time'):
-            if time.time() - self._last_log_time > 30:  # Log every 30 seconds
-                self._log_gpu_state(state, stress_level, sleep_time, context)
-                self._last_log_time = time.time()
-        else:
+        # Optimized logging - only log occasionally and when there's actually stress
+        if stress_level > 0.1 or (hasattr(self, '_last_log_time') and 
+                                 time.time() - self._last_log_time > 300):  # 5 minutes
             self._log_gpu_state(state, stress_level, sleep_time, context)
             self._last_log_time = time.time()
         
-        # Perform the contemplative pause
-        time.sleep(sleep_time)
+        # Perform the contemplative pause (if any)
+        if sleep_time > 0:
+            time.sleep(sleep_time)
         
         return sleep_time
     
     def _log_gpu_state(self, state: GPUState, stress_level: float, sleep_time: float, context: str):
-        """Log current GPU state and breathing response"""
-        if state.available:
-            temp_str = f"{state.temperature:.1f}°C" if state.temperature else "N/A"
+        """Log current GPU state and breathing response (optimized for key info only)"""
+        if state.available and (stress_level > 0.05 or not self.light_mode):
+            temp_str = f"{state.temperature:.0f}°C" if state.temperature else "N/A"
             mem_str = f"{state.memory_used:.1%}" if state.memory_used else "N/A"
             util_str = f"{state.utilization:.1%}" if state.utilization else "N/A"
             
-            print(f"🌬️ GPU Breathing ({context}): Temp={temp_str} Memory={mem_str} Util={util_str} "
-                  f"→ Stress={stress_level:.2f} Sleep={sleep_time*1000:.1f}ms")
-        else:
-            print(f"🌬️ GPU Breathing ({context}): No monitoring → Sleep={sleep_time*1000:.1f}ms")
+            print(f"🌬️ GPU: {temp_str} Mem={mem_str} Util={util_str} "
+                  f"→ Stress={stress_level:.2f} Sleep={sleep_time*1000:.1f}ms ({context})")
+        elif not state.available and not self.light_mode:
+            print(f"🌬️ GPU: No monitoring → Sleep={sleep_time*1000:.1f}ms ({context})")
 
-# Global monitor instance
+# Global monitor instance (lazy initialization)
 _gpu_monitor = None
 
-def get_gpu_monitor() -> ContemplativeGPUMonitor:
-    """Get global GPU monitor instance"""
+def get_gpu_monitor(light_mode: bool = False, enabled: bool = True, 
+                   cache_duration: float = 5.0) -> ContemplativeGPUMonitor:
+    """Get global GPU monitor instance with configuration"""
     global _gpu_monitor
     if _gpu_monitor is None:
-        _gpu_monitor = ContemplativeGPUMonitor()
+        _gpu_monitor = ContemplativeGPUMonitor(
+            light_mode=light_mode, 
+            enabled=enabled,
+            cache_duration=cache_duration
+        )
     return _gpu_monitor
 
-def contemplative_pause(context: str = "training") -> float:
+def contemplative_pause(context: str = "training", 
+                       light_mode: bool = False, 
+                       enabled: bool = True) -> float:
     """
     Convenience function for adaptive contemplative breathing.
     
-    Usage:
-        contemplative_pause("training_batch")  # Adaptive pause based on GPU stress
+    Args:
+        context: What operation is being performed
+        light_mode: Use lightweight monitoring (for small models)
+        enabled: Enable GPU monitoring at all (False = no breathing)
     
     Returns:
         float: Actual sleep time in seconds
     """
-    monitor = get_gpu_monitor()
+    monitor = get_gpu_monitor(light_mode=light_mode, enabled=enabled)
+    return monitor.contemplative_pause(context)
+
+# Convenience functions for different model scales
+def femto_pause(context: str = "femto_training") -> float:
+    """Optimized for femto-scale models (< 50K params) - minimal overhead"""
+    return contemplative_pause(context, light_mode=True, enabled=False)  # Disabled for tiny models
+
+def piko_pause(context: str = "piko_training") -> float:
+    """Optimized for piko-scale models (50K-300K params) - light monitoring"""
+    return contemplative_pause(context, light_mode=True, enabled=True)
+
+def nano_pause(context: str = "nano_training") -> float:
+    """Optimized for nano-scale models (300K-2M params) - full monitoring"""
+    return contemplative_pause(context, light_mode=False, enabled=True)
+
+def mili_pause(context: str = "mili_training") -> float:
+    """Optimized for mili-scale models (2M+ params) - full monitoring with longer cache"""
+    monitor = get_gpu_monitor(light_mode=False, enabled=True, cache_duration=10.0)  # Longer cache
     return monitor.contemplative_pause(context)
 
 # Demo/test function
 def demo_gpu_monitoring():
-    """Demo the GPU monitoring and adaptive breathing"""
-    monitor = ContemplativeGPUMonitor()
+    """Demo the optimized GPU monitoring"""
+    print("🧪 Optimized GPU Monitoring Demo - 5 samples over 15 seconds")
     
-    print("🧪 GPU Monitoring Demo - 10 samples over 30 seconds")
+    # Test different modes
+    modes = [
+        ("femto", femto_pause),
+        ("piko", piko_pause), 
+        ("nano", nano_pause),
+        ("mili", mili_pause)
+    ]
     
-    for i in range(10):
-        state = monitor.get_gpu_state()
-        stress = monitor.calculate_stress_level(state)
-        sleep_time = monitor.contemplative_pause(f"demo_sample_{i+1}")
-        
-        print(f"Sample {i+1}: Stress={stress:.2f}, Sleep={sleep_time*1000:.1f}ms")
-        time.sleep(3)  # Wait between samples
+    for mode_name, pause_func in modes:
+        print(f"\n🔬 Testing {mode_name} mode:")
+        for i in range(2):
+            sleep_time = pause_func(f"{mode_name}_demo_{i+1}")
+            print(f"  Sample {i+1}: Sleep={sleep_time*1000:.1f}ms")
+            time.sleep(1)  # Wait between samples
     
-    print("✅ Demo complete!")
+    print("✅ Optimized demo complete!")
 
 if __name__ == "__main__":
     demo_gpu_monitoring() 

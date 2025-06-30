@@ -24,6 +24,41 @@ from glyph_codec import SpiramycelGlyphCodec
 from gpu_breathing import contemplative_pause
 from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, START_TOKEN, END_TOKEN, PAD_TOKEN, load_spiramycel_parameters
 
+def determine_model_scale_and_folders(model, paradigm: str):
+    """
+    Determine model scale and return appropriate scale-specific folder paths
+    
+    Args:
+        model: Trained SpiramycelNeuralModel
+        paradigm: "ecological" or "abstract"
+        
+    Returns:
+        Tuple of (scale_name, model_dir, scale_suffix)
+    """
+    param_count = model.count_parameters()
+    
+    # Determine scale based on parameter count
+    if param_count < 50_000:  # < 50K parameters
+        scale_name = "25k"
+        scale_suffix = "25k"
+    elif param_count < 300_000:  # 50K - 300K parameters  
+        scale_name = "200k"
+        scale_suffix = "200k"
+    elif param_count < 2_000_000:  # 300K - 2M parameters
+        scale_name = "600k" 
+        scale_suffix = "600k"
+    else:  # 2M+ parameters
+        scale_name = "6m"
+        scale_suffix = "6m"
+    
+    # Construct scale-specific model directory
+    model_dir = f"{paradigm}_models_{scale_suffix}"
+    
+    print(f"🏷️  Auto-detected {scale_name} scale model ({param_count:,} parameters)")
+    print(f"📁 Using scale-specific directory: {model_dir}/")
+    
+    return scale_name, model_dir, scale_suffix
+
 def discover_training_data(paradigm: str = "ecological", data_dir: str = "training_scenarios") -> List[Path]:
     """
     Dynamically discover training data files with smart date-based sorting
@@ -192,7 +227,7 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
     print("🌍 Ecological Spiramycel Training")
     print("=" * 50)
     
-    # Load configuration
+    # Load configuration (respect passed config for scale-specific training)
     if config is None:
         config = load_spiramycel_parameters("ecological")
     
@@ -286,8 +321,8 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
             epoch_silence_loss += silence_loss.item()
             num_batches += 1
             
-            # Adaptive contemplative breathing based on GPU stress (skip for models < 6M)
-            if model.count_parameters() >= 6000000:  # Only for massive mili models (6M+)
+            # Adaptive contemplative breathing based on GPU stress (skip for models < 1M)
+            if model.count_parameters() >= 1000000:  # Only for large models (1M+)
                 contemplative_pause("ecological_training")
         
         # Print epoch results
@@ -302,9 +337,9 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
     training_time = time.time() - start_time
     print(f"⏱ Training completed in {training_time:.1f} seconds")
     
-    # Efficient file saving using configuration paths
-    save_paths = config.get('save_paths', {})
-    models_dir = Path(save_paths.get('model_dir', 'ecological_models'))
+    # Auto-detect model scale and use appropriate scale-specific folder
+    scale_name, scale_model_dir, scale_suffix = determine_model_scale_and_folders(model, "ecological")
+    models_dir = Path(scale_model_dir)
     models_dir.mkdir(exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -313,8 +348,8 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
     torch.save(model.state_dict(), model_path)
     print(f"💾 Model saved to {model_path}")
     
-    # Latest model link using configuration
-    latest_model_name = save_paths.get('latest_model', 'ecological_spiramycel_latest.pt')
+    # Latest model link using scale-specific naming
+    latest_model_name = f"ecological_spiramycel_latest.pt"
     latest_path = models_dir / latest_model_name
     try:
         # Remove old latest if exists, then create new one
@@ -324,6 +359,24 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
         print(f"📎 Latest model link: {latest_path}")
     except Exception as e:
         print(f"⚠ Could not create latest link: {e}")
+    
+    # Also save with standard naming for controlled comparison compatibility
+    standard_names = {
+        "ecological_calm_model.pt": "calm",
+        "ecological_chaotic_model.pt": "chaotic"
+    }
+    
+    # Determine model type based on config or training characteristics
+    model_type = config.get('model_type', 'calm')  # Default to calm if not specified
+    for standard_name, model_variant in standard_names.items():
+        if model_variant in str(model_path).lower() or model_type == model_variant:
+            standard_path = models_dir / standard_name
+            try:
+                shutil.copy2(model_path, standard_path)
+                print(f"📋 Standard model link: {standard_path}")
+                break
+            except Exception as e:
+                print(f"⚠ Could not create standard link: {e}")
     
     # Test ecological inference
     print("\n🌿 Testing ecological inference:")

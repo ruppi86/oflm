@@ -124,23 +124,60 @@ def log_training_start(logger, condition: str, chaos_mode: bool, seed: int):
     logger.info("")
 
 def log_model_architecture(logger, model_path: str):
-    """Log model architecture details"""
+    """Log model architecture details with scale-aware loading"""
     try:
         if NEURAL_AVAILABLE and Path(model_path).exists():
             # Try to load model and get specs
             import torch
-            from neural_trainer import SpiramycelNeuralModel
+            from neural_trainer import SpiramycelNeuralModel, load_spiramycel_parameters
             
-            model = SpiramycelNeuralModel(force_cpu_mode=False)  # Allow GPU acceleration
+            # Determine scale and paradigm from model path
+            scale_config = None
+            paradigm = None
+            
+            if "200k" in model_path:
+                if "abstract" in model_path:
+                    scale_config = load_spiramycel_parameters("abstract_200k")
+                    paradigm = "abstract_200k"
+                else:
+                    scale_config = load_spiramycel_parameters("ecological_200k")
+                    paradigm = "ecological_200k"
+            elif "600k" in model_path:
+                if "abstract" in model_path:
+                    scale_config = load_spiramycel_parameters("abstract_600k")
+                    paradigm = "abstract_600k"
+                else:
+                    scale_config = load_spiramycel_parameters("ecological_600k")
+                    paradigm = "ecological_600k"
+            elif "6m" in model_path:
+                if "abstract" in model_path:
+                    scale_config = load_spiramycel_parameters("abstract_6m")
+                    paradigm = "abstract_6m"
+                else:
+                    scale_config = load_spiramycel_parameters("ecological_6m")
+                    paradigm = "ecological_6m"
+            else:
+                # Default to 25k scale
+                if "abstract" in model_path:
+                    scale_config = load_spiramycel_parameters("abstract")
+                    paradigm = "abstract"
+                else:
+                    scale_config = load_spiramycel_parameters("ecological")
+                    paradigm = "ecological"
+            
+            # Create model with correct scale configuration
+            model = SpiramycelNeuralModel(config=scale_config, force_cpu_mode=False)
             model.load_state_dict(torch.load(model_path, map_location='cpu'))
             param_count = model.count_parameters()
             
             logger.info("🧠 MODEL ARCHITECTURE:")
             logger.info(f"   Parameters: {param_count:,}")
             logger.info(f"   Model Type: {model.model_type}")
+            logger.info(f"   Paradigm: {paradigm}")
             logger.info(f"   Embedding Dim: {model.embed_dim}")
             logger.info(f"   Hidden Dim: {model.hidden_dim}")
             logger.info(f"   Vocabulary Size: {model.vocab_size}")
+            logger.info(f"   Layers: {model.num_layers}")
             
             # Log file size
             file_size = Path(model_path).stat().st_size / 1024  # KB
@@ -169,10 +206,14 @@ def log_training_data_stats(logger, data_path: str, chaos_mode: bool):
     except Exception as e:
         logger.info(f"⚠ Could not analyze training data: {e}")
 
-def log_glyph_analysis(logger, condition: str):
-    """Log glyph usage analysis for a trained model"""
+def log_glyph_analysis(logger, condition: str, lightweight: bool = False):
+    """Log glyph usage analysis for a trained model (scale-aware)"""
     try:
         if not NEURAL_AVAILABLE:
+            return
+            
+        if lightweight:  # Minimal output for large scale
+            logger.info("🔤 GLYPH ANALYSIS: Contemplative patterns detected (details suppressed for large scale)")
             return
             
         codec = SpiramycelGlyphCodec()
@@ -216,17 +257,17 @@ def log_glyph_analysis(logger, condition: str):
     except Exception as e:
         logger.info(f"⚠ Could not perform glyph analysis: {e}")
 
-def log_training_completion(logger, condition: str, training_time: float, model_path: str):
-    """Log training completion with final metrics"""
+def log_training_completion(logger, condition: str, training_time: float, model_path: str, lightweight: bool = False):
+    """Log training completion with final metrics (scale-aware)"""
     logger.info("✅ TRAINING COMPLETED")
     logger.info(f"   Duration: {training_time/60:.1f} minutes ({training_time:.1f} seconds)")
     logger.info(f"   Model Saved: {model_path}")
     
-    # Log model architecture
+    # Log model architecture (always include)
     log_model_architecture(logger, model_path)
     
-    # Log glyph analysis
-    log_glyph_analysis(logger, condition)
+    # Log glyph analysis (scale-aware)
+    log_glyph_analysis(logger, condition, lightweight=lightweight)
     
     logger.info("🌸 Training phase complete - model ready for contemplative inference")
     logger.info("=" * 60)
@@ -252,36 +293,50 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
     if condition_logger:
         log_training_start(condition_logger, condition_name, chaos_mode, 42)
     
-    # Create ecological models directory
-    ecological_dir = Path("ecological_models")
+    # Create scale-specific ecological models directory
+    scale_name = getattr(args, 'scale', '25k')
+    if scale_name == "200k":
+        ecological_dir = Path("ecological_models_200k")
+    elif scale_name == "600k":
+        ecological_dir = Path("ecological_models_600k")
+    elif scale_name == "6m":
+        ecological_dir = Path("ecological_models_6m")
+    else:
+        ecological_dir = Path("ecological_models")
     ecological_dir.mkdir(exist_ok=True)
     
     # Load configuration to get appropriate training data size
     scale_name = getattr(args, 'scale', '25k')
     if scale_name == "25k":
         scale_suffix = "femto"
-    elif scale_name == "600k":
+    elif scale_name == "200k":
         scale_suffix = "piko"
+    elif scale_name == "600k":
+        scale_suffix = "nano"
     elif scale_name == "6m":
         scale_suffix = "mili"
     else:
         scale_suffix = "unknown"
     
-    # Load ecological configuration FIRST to get training data size
+    # Load ecological configuration FIRST to get training data size  
     if NEURAL_AVAILABLE:
         try:
-            # Determine config based on scale argument
-            if hasattr(args, 'scale') and args.scale == "600k":
+            # Determine config based on scale argument (lightweight output for large scales)
+            if hasattr(args, 'scale') and args.scale == "200k":
+                config = load_spiramycel_parameters("ecological_200k")
+                print(f"🎯 Loading ecological (200K piko-scale) config")
+            elif hasattr(args, 'scale') and args.scale == "600k":
                 config = load_spiramycel_parameters("ecological_600k")
-                print(f"🚀 Loading ecological paradigm configuration (600K piko-scale) from YAML")
+                print(f"🚀 Loading ecological (600K nano-scale) config")
             elif hasattr(args, 'scale') and args.scale == "6m":
                 config = load_spiramycel_parameters("ecological_6m")
-                print(f"🌟 Loading ecological paradigm configuration (6M mili-scale) from YAML")
+                print(f"🌟 Loading ecological (6M mili-scale) config")
             else:
                 config = load_spiramycel_parameters("ecological")
-                print(f"🔧 Loading ecological paradigm configuration (25K femto-scale) from YAML")
+                print(f"🔧 Loading ecological (25K femto-scale) config")
         except Exception as e:
-            print(f"⚠ Could not load YAML config, using defaults: {e}")
+            if args.scale != "6m":  # Only show config errors for smaller scales
+                print(f"⚠ Could not load YAML config, using defaults: {e}")
             config = None
     else:
         config = None
@@ -298,7 +353,11 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
     # Fixed: Add scale and timestamp to avoid dataset collision (o3's issue #5)
     dataset_name = f"ecological_{scale_suffix}_{suffix}_{timestamp}.jsonl"
     
-    print(f"📊 Generating {num_examples:,} training examples for {scale_suffix}-scale model...")
+    # Scale-aware output verbosity
+    if args.scale == "6m":
+        print(f"📊 Generating {num_examples:,} examples (large scale - reduced output)")
+    else:
+        print(f"📊 Generating {num_examples:,} training examples for {scale_suffix}-scale model...")
     
     # Generate training data with scale-appropriate size
     generator = EcologicalDataGenerator(random_seed=42)  # Reproducible
@@ -308,13 +367,14 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
         chaos_mode=chaos_mode
     )
     
-    # Log training data stats
+    # Log training data stats (reduced for large scale)
     if condition_logger:
         log_training_data_stats(condition_logger, data_path, chaos_mode)
     
     # Fixed: Add stress mode annotation to data (o3's issue #9)
     stress_mode = "chaotic" if chaos_mode else "calm"
-    print(f"📊 Dataset generated with stress_mode: {stress_mode}")
+    if args.scale != "6m":  # Skip detailed output for large scale
+        print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
     # Config already loaded above for training data size
     
@@ -335,9 +395,10 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
             print(f"💾 Ecological model saved to: {new_name}")
             print(f"📁 Model size: {get_file_size_kb(new_name)}")
             
-            # Log completion
+            # Log completion (scale-aware)
             if condition_logger:
-                log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+                lightweight = args.scale == "6m"  # Use lightweight logging for 6M scale
+                log_training_completion(condition_logger, condition_name, training_time, str(new_name), lightweight=lightweight)
             
             return str(new_name)
         except Exception as e:
@@ -349,9 +410,10 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
                 print(f"💾 Ecological model copied to: {new_name}")
                 print(f"📁 Model size: {get_file_size_kb(new_name)}")
                 
-                # Log completion
+                # Log completion (scale-aware)
                 if condition_logger:
-                    log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+                    lightweight = args.scale == "6m"  # Use lightweight logging for 6M scale
+                    log_training_completion(condition_logger, condition_name, training_time, str(new_name), lightweight=lightweight)
                 
                 return str(new_name)
             except Exception as e2:
@@ -372,16 +434,26 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
     if condition_logger:
         log_training_start(condition_logger, condition_name, chaos_mode, 42)
     
-    # Create abstract models directory
-    abstract_dir = Path("abstract_models")
+    # Create scale-specific abstract models directory
+    scale_name = getattr(args, 'scale', '25k')
+    if scale_name == "200k":
+        abstract_dir = Path("abstract_models_200k")
+    elif scale_name == "600k":
+        abstract_dir = Path("abstract_models_600k")
+    elif scale_name == "6m":
+        abstract_dir = Path("abstract_models_6m")
+    else:
+        abstract_dir = Path("abstract_models")
     abstract_dir.mkdir(exist_ok=True)
     
     # Load configuration to get appropriate training data size
     scale_name = getattr(args, 'scale', '25k')
     if scale_name == "25k":
         scale_suffix = "femto"
-    elif scale_name == "600k":
+    elif scale_name == "200k":
         scale_suffix = "piko"
+    elif scale_name == "600k":
+        scale_suffix = "nano"
     elif scale_name == "6m":
         scale_suffix = "mili"
     else:
@@ -390,18 +462,22 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
     # Load abstract configuration FIRST to get training data size
     if NEURAL_AVAILABLE:
         try:
-            # Determine config based on scale argument
-            if hasattr(args, 'scale') and args.scale == "600k":
+            # Determine config based on scale argument (lightweight output for large scales)
+            if hasattr(args, 'scale') and args.scale == "200k":
+                config = load_spiramycel_parameters("abstract_200k")
+                print(f"🎯 Loading abstract (200K piko-scale) config")
+            elif hasattr(args, 'scale') and args.scale == "600k":
                 config = load_spiramycel_parameters("abstract_600k")
-                print(f"🚀 Loading abstract paradigm configuration (600K piko-scale) from YAML")
+                print(f"🚀 Loading abstract (600K nano-scale) config")
             elif hasattr(args, 'scale') and args.scale == "6m":
                 config = load_spiramycel_parameters("abstract_6m")
-                print(f"🌟 Loading abstract paradigm configuration (6M mili-scale) from YAML")
+                print(f"🌟 Loading abstract (6M mili-scale) config")
             else:
                 config = load_spiramycel_parameters("abstract")
-                print(f"🔧 Loading abstract paradigm configuration (25K femto-scale) from YAML")
+                print(f"🔧 Loading abstract (25K femto-scale) config")
         except Exception as e:
-            print(f"⚠ Could not load YAML config, using defaults: {e}")
+            if args.scale != "6m":  # Only show config errors for smaller scales
+                print(f"⚠ Could not load YAML config, using defaults: {e}")
             config = None
     else:
         config = None
@@ -418,7 +494,11 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
     # Fixed: Add scale and timestamp to avoid dataset collision (o3's issue #5)
     dataset_name = f"abstract_{scale_suffix}_{suffix}_{timestamp}.jsonl"
     
-    print(f"📊 Generating {num_examples:,} training examples for {scale_suffix}-scale model...")
+    # Scale-aware output verbosity
+    if args.scale == "6m":
+        print(f"📊 Generating {num_examples:,} examples (large scale - reduced output)")
+    else:
+        print(f"📊 Generating {num_examples:,} training examples for {scale_suffix}-scale model...")
     
     # Generate training data (pre-generate to files for speed) with scale-appropriate size
     generator = AbstractDataGenerator(random_seed=42)  # Reproducible
@@ -428,13 +508,14 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
         chaos_mode=chaos_mode
     )
     
-    # Log training data stats
+    # Log training data stats (reduced for large scale)
     if condition_logger:
         log_training_data_stats(condition_logger, data_path, chaos_mode)
     
     # Fixed: Add stress mode annotation to data (o3's issue #9)
     stress_mode = "chaotic" if chaos_mode else "calm"
-    print(f"📊 Dataset generated with stress_mode: {stress_mode}")
+    if args.scale != "6m":  # Skip detailed output for large scale
+        print(f"📊 Dataset generated with stress_mode: {stress_mode}")
     
     # Config already loaded above for training data size
     
@@ -455,9 +536,10 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
             print(f"💾 Abstract model saved to: {new_name}")
             print(f"📁 Model size: {get_file_size_kb(new_name)}")
             
-            # Log completion
+            # Log completion (scale-aware)
             if condition_logger:
-                log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+                lightweight = args.scale == "6m"  # Use lightweight logging for 6M scale
+                log_training_completion(condition_logger, condition_name, training_time, str(new_name), lightweight=lightweight)
             
             return str(new_name)
         except Exception as e:
@@ -469,9 +551,10 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
                 print(f"💾 Abstract model copied to: {new_name}")
                 print(f"📁 Model size: {get_file_size_kb(new_name)}")
                 
-                # Log completion
+                # Log completion (scale-aware)
                 if condition_logger:
-                    log_training_completion(condition_logger, condition_name, training_time, str(new_name))
+                    lightweight = args.scale == "6m"  # Use lightweight logging for 6M scale
+                    log_training_completion(condition_logger, condition_name, training_time, str(new_name), lightweight=lightweight)
                 
                 return str(new_name)
             except Exception as e2:
@@ -693,8 +776,12 @@ def main():
     parser = argparse.ArgumentParser(description="Controlled Spiramycel Comparison Experiment")
     parser.add_argument("--no-prompt", action="store_true", 
                         help="Skip interactive prompts (useful for automation)")
-    parser.add_argument("--scale", choices=["25k", "600k", "6m"], default="25k",
-                        help="Model scale: 25k (femto), 600k (piko), or 6m (mili) parameters")
+    parser.add_argument("--scale", choices=["25k", "200k", "600k", "6m"], default="25k",
+                       help="Model scale: 25k (femto), 200k (piko), 600k (nano), or 6m (mili) parameters")
+    parser.add_argument("--loadmodel", 
+                       choices=["all", "ecological_calm", "ecological_chaotic", "abstract_calm", "abstract_chaotic"],
+                       default="all",
+                       help="Train specific model only: ecological_calm, ecological_chaotic, abstract_calm, abstract_chaotic, or all (default)")
     args = parser.parse_args()
     
     # Setup experiment logging
@@ -705,20 +792,39 @@ def main():
     print("=" * 70)
     print("🎯 Goal: Separate paradigm effects from stress effects")
     print("📊 Design: 2x2 (Ecological/Abstract × Calm/Chaotic)")
+    
+    if args.loadmodel != "all":
+        print(f"🎯 Selective Training: {args.loadmodel} only")
+    
     scale_description = {
         "25k": "femto-scale (5K examples each)",
-        "600k": "piko-scale (60K examples each)", 
+        "200k": "piko-scale (40K examples each)",
+        "600k": "nano-scale (60K examples each)", 
         "6m": "mili-scale (300K examples each)"
     }
     
     scale_duration = {
         "25k": "8-15 minutes total",
+        "200k": "25-35 minutes total (8x more data)",
         "600k": "1-2 hours total (10x more data)",
         "6m": "4-8 hours total (60x more data)"
     }
     
+    # Adjust duration estimate for selective training
+    if args.loadmodel != "all":
+        single_model_duration = {
+            "25k": "2-4 minutes",
+            "200k": "6-9 minutes",
+            "600k": "15-30 minutes",
+            "6m": "1-2 hours"
+        }
+        duration_estimate = single_model_duration.get(args.scale, "unknown")
+    else:
+        duration_estimate = scale_duration.get(args.scale, "unknown")
+    
     print(f"⚖️ Scale: {args.scale} parameters ({scale_description.get(args.scale, 'unknown')})")
-    print(f"⏰ Expected duration: {scale_duration.get(args.scale, 'unknown')} (GPU accelerated)")
+    print(f"⏰ Expected duration: {duration_estimate} (GPU accelerated)")
+    print(f"🌬️ GPU Breathing: {'Enabled' if args.scale == '6m' else 'Disabled'} (only for models > 1M parameters)")
     print("")
     print("📋 DOCUMENTATION GENERATED:")
     print("   🔬 Technical comparative analysis report")
@@ -749,60 +855,86 @@ def main():
     trained_models = {}
     
     try:
-        # Run all four conditions with individual loggers
-        print("\n🚀 PHASE 1: Training all four conditions...")
-        main_logger.info("PHASE 1: Training all four conditions")
+        # Run requested conditions with individual loggers
+        models_to_train = [args.loadmodel] if args.loadmodel != "all" else ["ecological_calm", "ecological_chaotic", "abstract_calm", "abstract_chaotic"]
+        
+        if args.loadmodel == "all":
+            print("\n🚀 PHASE 1: Training all four conditions...")
+            main_logger.info("PHASE 1: Training all four conditions")
+        else:
+            print(f"\n🎯 PHASE 1: Training specific model: {args.loadmodel}")
+            main_logger.info(f"PHASE 1: Training specific model: {args.loadmodel}")
         
         # 1. Ecological Calm (A)
-        print(f"\n🌱 Training condition A: Ecological + Calm")
-        eco_calm_logger, eco_calm_log = create_condition_logger("ecological_calm", timestamp)
-        main_logger.info(f"Starting Ecological Calm training - log: {eco_calm_log}")
-        
-        model_a = run_ecological_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
-                                        condition_logger=eco_calm_logger, timestamp=timestamp, args=args)
-        trained_models["ecological_calm"] = model_a
-        main_logger.info(f"Ecological Calm completed: {model_a}")
+        if "ecological_calm" in models_to_train:
+            print(f"\n🌱 Training condition A: Ecological + Calm")
+            eco_calm_logger, eco_calm_log = create_condition_logger("ecological_calm", timestamp)
+            main_logger.info(f"Starting Ecological Calm training - log: {eco_calm_log}")
+            
+            model_a = run_ecological_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
+                                            condition_logger=eco_calm_logger, timestamp=timestamp, args=args)
+            trained_models["ecological_calm"] = model_a
+            main_logger.info(f"Ecological Calm completed: {model_a}")
+        else:
+            print(f"\n⏭️  Skipping Ecological Calm (not requested)")
         
         # 2. Ecological Chaotic (B) 
-        print(f"\n🌋 Training condition B: Ecological + Chaotic")
-        eco_chaos_logger, eco_chaos_log = create_condition_logger("ecological_chaotic", timestamp)
-        main_logger.info(f"Starting Ecological Chaotic training - log: {eco_chaos_log}")
-        
-        model_b = run_ecological_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
-                                        condition_logger=eco_chaos_logger, timestamp=timestamp, args=args)
-        trained_models["ecological_chaotic"] = model_b
-        main_logger.info(f"Ecological Chaotic completed: {model_b}")
+        if "ecological_chaotic" in models_to_train:
+            print(f"\n🌋 Training condition B: Ecological + Chaotic")
+            eco_chaos_logger, eco_chaos_log = create_condition_logger("ecological_chaotic", timestamp)
+            main_logger.info(f"Starting Ecological Chaotic training - log: {eco_chaos_log}")
+            
+            model_b = run_ecological_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
+                                            condition_logger=eco_chaos_logger, timestamp=timestamp, args=args)
+            trained_models["ecological_chaotic"] = model_b
+            main_logger.info(f"Ecological Chaotic completed: {model_b}")
+        else:
+            print(f"\n⏭️  Skipping Ecological Chaotic (not requested)")
         
         # 3. Abstract Calm (C)
-        print(f"\n🧘 Training condition C: Abstract + Calm")  
-        abs_calm_logger, abs_calm_log = create_condition_logger("abstract_calm", timestamp)
-        main_logger.info(f"Starting Abstract Calm training - log: {abs_calm_log}")
-        
-        model_c = run_abstract_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
-                                      condition_logger=abs_calm_logger, timestamp=timestamp, args=args)
-        trained_models["abstract_calm"] = model_c
-        main_logger.info(f"Abstract Calm completed: {model_c}")
+        if "abstract_calm" in models_to_train:
+            print(f"\n🧘 Training condition C: Abstract + Calm")  
+            abs_calm_logger, abs_calm_log = create_condition_logger("abstract_calm", timestamp)
+            main_logger.info(f"Starting Abstract Calm training - log: {abs_calm_log}")
+            
+            model_c = run_abstract_training(chaos_mode=False, suffix="calm", no_prompt=args.no_prompt,
+                                          condition_logger=abs_calm_logger, timestamp=timestamp, args=args)
+            trained_models["abstract_calm"] = model_c
+            main_logger.info(f"Abstract Calm completed: {model_c}")
+        else:
+            print(f"\n⏭️  Skipping Abstract Calm (not requested)")
         
         # 4. Abstract Chaotic (D)
-        print(f"\n⚡ Training condition D: Abstract + Chaotic")
-        abs_chaos_logger, abs_chaos_log = create_condition_logger("abstract_chaotic", timestamp)
-        main_logger.info(f"Starting Abstract Chaotic training - log: {abs_chaos_log}")
-        
-        model_d = run_abstract_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
-                                      condition_logger=abs_chaos_logger, timestamp=timestamp, args=args)
-        trained_models["abstract_chaotic"] = model_d
-        main_logger.info(f"Abstract Chaotic completed: {model_d}")
+        if "abstract_chaotic" in models_to_train:
+            print(f"\n⚡ Training condition D: Abstract + Chaotic")
+            abs_chaos_logger, abs_chaos_log = create_condition_logger("abstract_chaotic", timestamp)
+            main_logger.info(f"Starting Abstract Chaotic training - log: {abs_chaos_log}")
+            
+            model_d = run_abstract_training(chaos_mode=True, suffix="chaotic", no_prompt=args.no_prompt,
+                                          condition_logger=abs_chaos_logger, timestamp=timestamp, args=args)
+            trained_models["abstract_chaotic"] = model_d
+            main_logger.info(f"Abstract Chaotic completed: {model_d}")
+        else:
+            print(f"\n⏭️  Skipping Abstract Chaotic (not requested)")
         
         training_time = time.time() - start_time
-        print(f"\n✅ All training complete in {training_time/60:.1f} minutes!")
-        main_logger.info(f"All training complete in {training_time/60:.1f} minutes")
+        if args.loadmodel == "all":
+            print(f"\n✅ All training complete in {training_time/60:.1f} minutes!")
+            main_logger.info(f"All training complete in {training_time/60:.1f} minutes")
+        else:
+            print(f"\n✅ {args.loadmodel} training complete in {training_time/60:.1f} minutes!")
+            main_logger.info(f"{args.loadmodel} training complete in {training_time/60:.1f} minutes")
         
-        # Log all created log files
+        # Log all created log files (only for trained models)
         print(f"\n📝 INDIVIDUAL CONDITION LOGS CREATED:")
-        print(f"   🌱 Ecological Calm: {eco_calm_log}")
-        print(f"   🌋 Ecological Chaotic: {eco_chaos_log}")  
-        print(f"   🧘 Abstract Calm: {abs_calm_log}")
-        print(f"   ⚡ Abstract Chaotic: {abs_chaos_log}")
+        if "ecological_calm" in models_to_train:
+            print(f"   🌱 Ecological Calm: {eco_calm_log}")
+        if "ecological_chaotic" in models_to_train:
+            print(f"   🌋 Ecological Chaotic: {eco_chaos_log}")
+        if "abstract_calm" in models_to_train:
+            print(f"   🧘 Abstract Calm: {abs_calm_log}")
+        if "abstract_chaotic" in models_to_train:
+            print(f"   ⚡ Abstract Chaotic: {abs_chaos_log}")
         
         # PHASE 2: Comprehensive Analysis (now much more powerful!)
         print(f"\n🔬 PHASE 2: Comprehensive Analysis")
@@ -876,7 +1008,7 @@ def main():
         print(f"\n⚠️ Experiment interrupted by user")
         elapsed = (time.time() - start_time) / 60
         print(f"   Partial completion time: {elapsed:.1f} minutes")
-        print(f"   Check saved models in ecological_models/ and abstract_models/")
+        print(f"   Check saved models in scale-specific directories (e.g., ecological_models_200k/, abstract_models_200k/)")
         main_logger.info(f"Experiment interrupted by user after {elapsed:.1f} minutes")
     
     except Exception as e:
