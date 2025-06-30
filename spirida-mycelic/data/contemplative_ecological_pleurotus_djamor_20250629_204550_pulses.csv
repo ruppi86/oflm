@@ -1,0 +1,4 @@
+timestamp,pulse_type,input_pattern,electrode_config,breath_phase,moisture_rh,temperature_c,contemplative_class
+1751222751.1745462,SEED,11,,hold,75.0,22.0,
+1751222751.577885,SEED,10,,hold,75.0,22.0,
+1751222751.9814703,SEED,1,,hold,75.0,22.0,

@@ -1,0 +1,2972 @@
+
+# ===== __init__.py =====
+"""
+Spirida-Mycelic Package
+Bio-Digital Interface for Contemplative Computing
+
+Implements the complete D3.3 integration for spirida-mycelic systems
+with frequency guardian, capacitance-driven memory, and breath signature
+authentication.
+"""
+
+__version__ = "0.1.0"
+__author__ = "Claude 4 Sonnet"
+
+# Core bio-interface components
+try:
+    from .bio_interface import SevenChannelBioInterface
+    from .frequency_guardian import FrequencyGuardian
+    from .capacitance_fade import CapacitanceFade
+    from .breath_signature import BreathSignature
+    from .adamatzky_layer import AdamatzkyReservoir
+    from .fungal_field_recorder import FungalFieldRecorder
+except ImportError:
+    # Allow package to be imported even if some dependencies missing
+    pass
+
+__all__ = [
+    "SevenChannelBioInterface",
+    "FrequencyGuardian", 
+    "CapacitanceFade",
+    "BreathSignature",
+    "AdamatzkyReservoir",
+    "FungalFieldRecorder"
+] 
+# ===== adamatzky_layer.py =====
+"""
+Adamatzky Layer - Fungal Logic Simulation for Spirida-Mycelic
+
+Based on Adamatzky's research showing 470 unique Boolean functions 
+realized by living Pleurotus ostreatus mycelium networks.
+
+This simulation layer provides the foundation for contemplative bio-digital
+interfaces, implementing fungal timing patterns and logic mappings.
+"""
+
+import numpy as np
+import time
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+from enum import Enum
+
+class SpikeType(Enum):
+    """Spike archetypes from FUNGAR research"""
+    S_ALPHA = "fast_narrow_single"      # Information glyph, growth fronts
+    S_BETA = "medium_broad"             # Metabolite transport  
+    S_GAMMA = "paired_doublet"          # Tip bifurcation
+    S_DELTA = "burst_3_5"               # Long-distance broadcast
+
+class FungalSpecies(Enum):
+    """Fungal species with distinct electrical patterns"""
+    PLEUROTUS_DJAMOR = "pleurotus_djamor"       # Bimodal: 2.6min / 14min
+    GANODERMA_RESINACEUM = "ganoderma_resinaceum"  # Steady: 5-8min
+
+@dataclass
+class SpikeEvent:
+    """Individual spike event with timing and classification"""
+    timestamp: float
+    channel: int
+    amplitude: float  # mV
+    spike_type: SpikeType
+    width: float  # seconds
+    
+@dataclass
+class FungalState:
+    """Current state of simulated fungal network"""
+    species: FungalSpecies
+    moisture: float  # 0.0 - 1.0
+    temperature: float  # Celsius
+    growth_age: int  # hours since inoculation
+    silence_ratio: float  # Current silence percentage
+    last_spike: Optional[SpikeEvent] = None
+
+class AdamatzkyReservoir:
+    """
+    Simulation of fungal logic reservoir based on Adamatzky's 470 Boolean functions.
+    
+    Implements contemplative timing patterns:
+    - 67-90% natural electrical silence (validates Silence Majority principle)
+    - Species-specific rhythms for ecological vs abstract paradigms
+    - Memristive behavior for contemplative security
+    """
+    
+    def __init__(self, species: FungalSpecies = FungalSpecies.PLEUROTUS_DJAMOR):
+        self.species = species
+        self.state = FungalState(
+            species=species,
+            moisture=0.75,  # Optimal range
+            temperature=22.0,  # Room temperature
+            growth_age=48,  # 2 days mature
+            silence_ratio=0.875  # Target silence majority
+        )
+        
+        # Initialize Boolean function lookup table (simplified subset)
+        self._init_boolean_functions()
+        
+        # Timing parameters based on species
+        self._init_timing_patterns()
+        
+        # Internal state
+        self.last_input_time = 0.0
+        self.refractory_until = 0.0
+        self.membrane_state = 0.0  # Simulated membrane potential
+        
+    def _init_boolean_functions(self):
+        """Initialize subset of Adamatzky's 470 Boolean functions"""
+        # Simplified mapping of 4-bit input -> output patterns
+        # In full implementation, this would be the complete 470 function set
+        self.boolean_functions = {
+            # Class I - Absorbing (silence)
+            0b0000: (False, SpikeType.S_ALPHA, 0.1),
+            0b1111: (False, SpikeType.S_ALPHA, 0.1),
+            
+            # Class II - Periodic (flow)  
+            0b0101: (True, SpikeType.S_BETA, 0.5),
+            0b1010: (True, SpikeType.S_BETA, 0.5),
+            
+            # Class III - Chaotic (storm)
+            0b0110: (True, SpikeType.S_GAMMA, 0.8),
+            0b1001: (True, SpikeType.S_GAMMA, 0.7),
+            
+            # Class IV - Universal (constellation)
+            0b0011: (True, SpikeType.S_DELTA, 0.9),
+            0b1100: (True, SpikeType.S_DELTA, 0.9),
+        }
+        
+    def _init_timing_patterns(self):
+        """Set species-specific timing patterns"""
+        if self.species == FungalSpecies.PLEUROTUS_DJAMOR:
+            # Bimodal rhythm: fast 2.6min / slow 14min
+            self.fast_period = 2.6 * 60  # seconds
+            self.slow_period = 14 * 60   # seconds  
+            self.spike_width_range = (23, 100)  # seconds
+            self.refractory_range = (26, 280)   # seconds
+            self.silence_target = 0.74  # 74% silence in slow mode
+            
+        elif self.species == FungalSpecies.GANODERMA_RESINACEUM:
+            # Steady contemplative rhythm: 5-8min
+            self.fast_period = 5 * 60
+            self.slow_period = 8 * 60
+            self.spike_width_range = (60, 90)
+            self.refractory_range = (180, 240)
+            self.silence_target = 0.67  # 67% silence
+            
+    def stimulate(self, input_pattern: int, voltage: float = 5.0) -> Optional[SpikeEvent]:
+        """
+        Stimulate fungal network with 4-bit input pattern.
+        
+        Args:
+            input_pattern: 4-bit integer (0-15) representing electrode inputs
+            voltage: Stimulation voltage (+/- 5V typical)
+            
+        Returns:
+            SpikeEvent if response occurs, None if in refractory period
+        """
+        current_time = time.time()
+        
+        # Check if still in refractory period
+        if current_time < self.refractory_until:
+            return None
+            
+        # Look up Boolean function response
+        if input_pattern in self.boolean_functions:
+            fires, spike_type, probability = self.boolean_functions[input_pattern]
+            
+            # Add environmental noise and adaptation
+            adapted_prob = self._apply_environmental_factors(probability)
+            
+            if fires and np.random.random() < adapted_prob:
+                # Generate spike event
+                spike = self._generate_spike(current_time, spike_type, voltage)
+                
+                # Update refractory period
+                self._update_refractory_period(spike)
+                
+                # Update silence ratio
+                self._update_silence_ratio()
+                
+                self.state.last_spike = spike
+                return spike
+                
+        return None
+        
+    def _apply_environmental_factors(self, base_probability: float) -> float:
+        """Modify spike probability based on environmental conditions"""
+        # Moisture effects
+        moisture_factor = np.clip(self.state.moisture / 0.8, 0.1, 1.2)
+        
+        # Temperature effects (optimal around 22C)
+        temp_factor = np.exp(-0.1 * abs(self.state.temperature - 22))
+        
+        # Growth age effects (young mycelium more excitable)
+        age_factor = np.exp(-self.state.growth_age / 168)  # Week half-life
+        
+        return base_probability * moisture_factor * temp_factor * (0.5 + 0.5 * age_factor)
+        
+    def _generate_spike(self, timestamp: float, spike_type: SpikeType, voltage: float) -> SpikeEvent:
+        """Generate a spike event with realistic parameters"""
+        # Amplitude varies with voltage and environmental factors
+        base_amplitude = abs(voltage) * 0.5  # ~2.5mV for 5V stimulus
+        amplitude = base_amplitude + np.random.normal(0, 0.5)  # Add noise
+        
+        # Width depends on spike type
+        if spike_type == SpikeType.S_ALPHA:
+            width = np.random.uniform(*self.spike_width_range) * 0.3  # Fast/narrow
+        elif spike_type == SpikeType.S_BETA:
+            width = np.random.uniform(*self.spike_width_range) * 1.0  # Medium/broad
+        elif spike_type == SpikeType.S_GAMMA:
+            width = np.random.uniform(*self.spike_width_range) * 0.5  # Paired
+        else:  # S_DELTA
+            width = np.random.uniform(*self.spike_width_range) * 2.0  # Long burst
+            
+        return SpikeEvent(
+            timestamp=timestamp,
+            channel=0,  # Single channel for now
+            amplitude=amplitude,
+            spike_type=spike_type,
+            width=width
+        )
+        
+    def _update_refractory_period(self, spike: SpikeEvent):
+        """Set refractory period based on spike type and species"""
+        base_refractory = np.random.uniform(*self.refractory_range)
+        
+        # Longer refractory for stronger spikes
+        amplitude_factor = 1 + (spike.amplitude / 10.0)
+        
+        refractory_duration = base_refractory * amplitude_factor
+        self.refractory_until = spike.timestamp + refractory_duration
+        
+    def _update_silence_ratio(self):
+        """Update running silence ratio for contemplative metrics"""
+        # Simplified running average
+        current_silence = 1.0 if self.state.last_spike is None else 0.0
+        alpha = 0.01  # Slow adaptation
+        self.state.silence_ratio = (1 - alpha) * self.state.silence_ratio + alpha * current_silence
+        
+    def get_contemplative_rhythm(self) -> Tuple[float, float]:
+        """
+        Get species-appropriate rhythm for contemplative breathing.
+        
+        Returns:
+            (fast_period, slow_period) in seconds for ecological/abstract modes
+        """
+        return (self.fast_period, self.slow_period)
+        
+    def breath_sync_adjust(self, target_ratio: float = 0.875) -> float:
+        """
+        Calculate breath timing adjustment to maintain silence majority.
+        
+        Args:
+            target_ratio: Target silence percentage (default 87.5%)
+            
+        Returns:
+            Adjustment factor (-0.2 to +0.2) for breath cycle length
+        """
+        current_ratio = self.state.silence_ratio
+        adjust = np.clip((current_ratio - target_ratio) * 0.5, -0.2, 0.2)
+        return adjust
+        
+    def get_species_info(self) -> Dict:
+        """Get current species timing characteristics"""
+        return {
+            "species": self.species.value,
+            "fast_period_min": self.fast_period / 60,
+            "slow_period_min": self.slow_period / 60,
+            "current_silence_ratio": self.state.silence_ratio,
+            "target_silence_ratio": self.silence_target,
+            "moisture": self.state.moisture,
+            "temperature": self.state.temperature,
+            "growth_age_hours": self.state.growth_age
+        }
+
+
+# Utility functions for integration with Spirida glyphs
+
+def spike_to_glyph(spike: SpikeEvent) -> str:
+    """Convert spike type to Spirida glyph representation"""
+    glyph_map = {
+        SpikeType.S_ALPHA: "⭕",  # Silence/information glyph
+        SpikeType.S_BETA: "🌊",   # Flow glyph  
+        SpikeType.S_GAMMA: "🌪️",  # Storm glyph
+        SpikeType.S_DELTA: "🌌"   # Constellation glyph
+    }
+    return glyph_map.get(spike.spike_type, "⭕")
+
+def classify_boolean_gate(input_pattern: int, output: bool) -> str:
+    """Classify Boolean function for logic analysis"""
+    # Simplified classification
+    if not output:
+        return "absorbing"  # Class I
+    elif input_pattern in [0b0101, 0b1010]:
+        return "periodic"   # Class II
+    elif input_pattern in [0b0110, 0b1001]:
+        return "chaotic"    # Class III
+    else:
+        return "universal"  # Class IV 
+# ===== bio_interface.py =====
+"""
+Bio-Interface - Seven-Channel Differential Fungal Signal Processing
+
+Implements the signal processing and interface protocols specified by o3 and 4o
+for contemplative bio-digital communication with living mycelium substrates.
+
+Based on FUNGAR research and the MycoBridge architecture.
+Includes D3.3 frequency guardian and capacitance-driven memory integration.
+"""
+
+import numpy as np
+import time
+from typing import Dict, List, Tuple, Optional, Any
+from dataclasses import dataclass, field
+from enum import Enum
+from scipy.signal import butter, filtfilt
+import logging
+
+# Import contemplative modules (relative imports for package structure)
+try:
+    from .frequency_guardian import FrequencyGuardian, BioCareLevel as FreqBioCareLevel
+    from .capacitance_fade import CapacitanceFade, GlyphType
+    from .breath_signature import BreathSignature, BreathPhase as SigBreathPhase
+except ImportError:
+    # Fallback for testing/development
+    FrequencyGuardian = None
+    FreqBioCareLevel = None 
+    CapacitanceFade = None
+    GlyphType = None
+    BreathSignature = None
+    SigBreathPhase = None
+
+# Configure logging for bio-interface
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class ChannelState(Enum):
+    """State of a differential channel pair"""
+    ACTIVE = "active"
+    SILENT = "silent"
+    REFRACTORY = "refractory"
+    DORMANT = "dormant"
+    ERROR = "error"
+
+class BioCareLevel(Enum):
+    """Ethical care levels for living substrate"""
+    NORMAL = "normal"
+    HEAT_SLEEP = "heat_sleep"      # >28°C thermal stress
+    MOISTURE_DORMANT = "moisture_dormant"  # <60% RH
+    DUTY_CAP = "duty_cap"          # Stimulation limit reached
+    ETHICAL_PAUSE = "ethical_pause"
+
+@dataclass
+class ChannelReading:
+    """Single channel differential reading"""
+    channel_id: int
+    timestamp: float
+    raw_voltage: float  # mV
+    filtered_voltage: float  # mV after band-pass
+    spike_detected: bool
+    noise_level: float
+    state: ChannelState = ChannelState.SILENT
+
+@dataclass
+class EnvironmentalReading:
+    """Environmental sensor data for substrate care"""
+    timestamp: float
+    moisture_rh: float  # Relative humidity %
+    temperature_c: float  # Celsius
+    growth_age_hours: int
+    care_level: BioCareLevel = BioCareLevel.NORMAL
+
+@dataclass
+class SpikeEvent:
+    """Detected spike event across channels"""
+    timestamp: float
+    channel_pattern: List[bool]  # 7-channel spike pattern
+    amplitude_pattern: List[float]  # mV per channel
+    classification: str  # S-α, S-β, S-γ, S-δ
+    confidence: float
+    environmental_context: Optional[EnvironmentalReading] = None
+
+class SevenChannelBioInterface:
+    """
+    Seven-channel differential bio-interface for fungal computing.
+    
+    Implements the signal processing specifications from o3 + 4o:
+    - Band-pass 0.003-0.1 Hz (brackets 2.6min-8min fungal periods)
+    - Seven differential pairs with stainless EEG needles
+    - Slow-start handshake protocol
+    - Ethical duty-cycle monitoring
+    """
+    
+    def __init__(self, sample_rate: float = 1.0, mock_mode: bool = True):
+        """
+        Initialize seven-channel bio-interface.
+        
+        Args:
+            sample_rate: Sampling rate in Hz (1.0 for fungal spikes)
+            mock_mode: Use simulation instead of real hardware
+        """
+        self.fs = sample_rate
+        self.mock_mode = mock_mode
+        
+        # Signal processing parameters (from o3 + 4o specifications)
+        self.band = (0.003, 0.1)  # Hz - brackets fungal periods
+        self.thresh_mv = 20.0     # 20 mV threshold 
+        self.hysteresis_mv = 5.0  # ±5 mV to avoid chatter
+        
+        # Initialize band-pass filter
+        self._init_filters()
+        
+        # Channel management
+        self.num_channels = 7
+        self.channels = [ChannelState.SILENT] * self.num_channels
+        self.channel_history = {i: [] for i in range(self.num_channels)}
+        
+        # Environmental monitoring
+        self.environmental_state = EnvironmentalReading(
+            timestamp=time.time(),
+            moisture_rh=75.0,  # Optimal range
+            temperature_c=22.0,
+            growth_age_hours=48
+        )
+        
+        # Ethical monitoring
+        self.stimulation_log = []  # Track stimulation times
+        self.last_stim_time = 0.0
+        self.duty_cycle_limit = 300  # 5 min per hour
+        
+        # Slow-start handshake state
+        self.handshake_complete = False
+        self.rest_cycles_completed = 0
+        self.required_rest_cycles = 5
+        
+        # Buffer for real-time processing
+        self.buffer_size = int(self.fs * 60)  # 1 minute buffer
+        self.voltage_buffers = [np.zeros(self.buffer_size) for _ in range(self.num_channels)]
+        self.buffer_index = 0
+        
+        # D3.3 Frequency Guardian Integration
+        if FrequencyGuardian is not None:
+            self.freq_guardian = FrequencyGuardian(fs=self.fs)
+            logger.info("Frequency guardian initialized for contemplative security")
+        else:
+            self.freq_guardian = None
+            
+        # Capacitance-driven memory for glyph persistence
+        if CapacitanceFade is not None:
+            self.capacitance_fade = CapacitanceFade()
+            logger.info("Capacitance-driven memory initialized")
+        else:
+            self.capacitance_fade = None
+            
+        # Breath signature for contemplative authentication
+        if BreathSignature is not None:
+            self.breath_signature = BreathSignature()
+            logger.info("Breath signature authentication initialized")
+        else:
+            self.breath_signature = None
+        
+        logger.info(f"Initialized {self.num_channels}-channel bio-interface")
+        logger.info(f"Band-pass: {self.band[0]:.3f}-{self.band[1]:.1f} Hz")
+        logger.info(f"Threshold: {self.thresh_mv} mV ±{self.hysteresis_mv} mV")
+        
+    def _init_filters(self):
+        """Initialize signal processing filters"""
+        # Band-pass filter to isolate fungal spike frequencies
+        nyquist = self.fs / 2.0
+        low = self.band[0] / nyquist
+        high = self.band[1] / nyquist
+        
+        # Ensure filter boundaries are valid
+        low = max(low, 1e-6)
+        high = min(high, 0.99)
+        
+        self.filter_b, self.filter_a = butter(2, [low, high], btype='band')
+        
+    def classify_spikes(self, voltages: np.ndarray) -> np.ndarray:
+        """
+        Classify spike patterns using band-pass filtering and thresholding.
+        
+        Args:
+            voltages: Raw voltage array (mV)
+            
+        Returns:
+            Binary spike detection array
+        """
+        if len(voltages) < 10:  # Need minimum samples for filtering
+            return np.zeros_like(voltages, dtype=np.uint8)
+            
+        # Apply band-pass filter
+        try:
+            filtered = filtfilt(self.filter_b, self.filter_a, voltages)
+        except Exception:
+            # Fallback for edge cases
+            filtered = voltages
+            
+        # Threshold detection with hysteresis
+        spike_mask = np.abs(filtered) > (self.thresh_mv / 1000.0)  # Convert mV to V
+        
+        return spike_mask.astype(np.uint8)
+        
+    def breath_sync(self, spike_series: np.ndarray, target_ratio: float = 0.875) -> float:
+        """
+        Calculate breath timing adjustment to maintain silence majority.
+        
+        Args:
+            spike_series: Binary spike detection series
+            target_ratio: Target silence percentage (87.5% default)
+            
+        Returns:
+            Adjustment factor (-0.2 to +0.2) for breath cycle length
+        """
+        if len(spike_series) == 0:
+            return 0.0
+            
+        silent = 1 - spike_series
+        current_ratio = silent.mean()
+        
+        # ±20% period adjustment to maintain target silence
+        adjust = np.clip((current_ratio - target_ratio) * 0.5, -0.2, 0.2)
+        
+        return adjust
+        
+    def read_channels(self) -> List[ChannelReading]:
+        """
+        Read all seven differential channels.
+        
+        Returns:
+            List of channel readings with spike detection
+        """
+        timestamp = time.time()
+        readings = []
+        
+        for channel_id in range(self.num_channels):
+            if self.mock_mode:
+                # Simulate realistic fungal signals
+                raw_voltage = self._simulate_channel(channel_id, timestamp)
+            else:
+                # TODO: Read from actual hardware (ADS131M08 or similar)
+                raw_voltage = 0.0
+                
+            # Apply signal processing
+            filtered_voltage = self._process_channel_signal(channel_id, raw_voltage)
+            
+            # Detect spikes
+            spike_detected = abs(filtered_voltage) > self.thresh_mv
+            
+            # Estimate noise level (std of recent samples)
+            noise_level = self._estimate_noise(channel_id)
+            
+            # Determine channel state
+            state = self._determine_channel_state(channel_id, spike_detected, noise_level)
+            
+            reading = ChannelReading(
+                channel_id=channel_id,
+                timestamp=timestamp,
+                raw_voltage=raw_voltage,
+                filtered_voltage=filtered_voltage,
+                spike_detected=spike_detected,
+                noise_level=noise_level,
+                state=state
+            )
+            
+            readings.append(reading)
+            
+        return readings
+        
+    def _simulate_channel(self, channel_id: int, timestamp: float) -> float:
+        """Simulate realistic fungal electrical activity"""
+        # Base noise
+        noise = np.random.normal(0, 0.5)  # 0.5 mV noise
+        
+        # Occasional spikes based on channel-specific patterns
+        spike_prob = 0.02  # 2% chance per sample
+        if np.random.random() < spike_prob:
+            # Simulate different spike types
+            if channel_id < 2:
+                # S-α type: Fast, narrow
+                amplitude = np.random.uniform(2, 6)  # 2-6 mV
+            elif channel_id < 4:
+                # S-β type: Medium, broad  
+                amplitude = np.random.uniform(1, 4)  # 1-4 mV
+            elif channel_id < 6:
+                # S-γ type: Paired doublet
+                amplitude = np.random.uniform(3, 5)  # 3-5 mV
+            else:
+                # S-δ type: Burst
+                amplitude = np.random.uniform(4, 8)  # 4-8 mV
+                
+            return amplitude + noise
+            
+        return noise
+        
+    def _process_channel_signal(self, channel_id: int, raw_voltage: float) -> float:
+        """Process single channel signal through filter pipeline"""
+        # Add to circular buffer
+        self.voltage_buffers[channel_id][self.buffer_index] = raw_voltage
+        
+        # Apply band-pass filter to recent buffer
+        buffer = self.voltage_buffers[channel_id]
+        if np.any(buffer != 0):  # Only filter if we have real data
+            try:
+                filtered_buffer = filtfilt(self.filter_b, self.filter_a, buffer)
+                filtered_voltage = filtered_buffer[self.buffer_index]
+            except Exception:
+                filtered_voltage = raw_voltage
+        else:
+            filtered_voltage = raw_voltage
+            
+        return filtered_voltage
+        
+    def _estimate_noise(self, channel_id: int) -> float:
+        """Estimate noise level for channel"""
+        buffer = self.voltage_buffers[channel_id]
+        recent_samples = buffer[max(0, self.buffer_index-10):self.buffer_index+1]
+        if len(recent_samples) > 1:
+            return float(np.std(recent_samples))
+        return 0.5  # Default noise estimate
+        
+    def _determine_channel_state(self, channel_id: int, spike_detected: bool, noise_level: float) -> ChannelState:
+        """Determine current state of channel"""
+        if spike_detected:
+            return ChannelState.ACTIVE
+        elif noise_level > 2.0:  # High noise threshold
+            return ChannelState.ERROR
+        else:
+            return ChannelState.SILENT
+            
+    def detect_pattern_spikes(self, readings: List[ChannelReading]) -> Optional[SpikeEvent]:
+        """
+        Detect multi-channel spike patterns and classify them.
+        
+        Args:
+            readings: Current channel readings
+            
+        Returns:
+            SpikeEvent if pattern detected, None otherwise
+        """
+        # Extract spike pattern across channels
+        channel_pattern = [r.spike_detected for r in readings]
+        amplitude_pattern = [r.filtered_voltage for r in readings]
+        
+        # Check if any spikes detected
+        if not any(channel_pattern):
+            return None
+            
+        # Classify spike pattern based on amplitude and distribution
+        classification = self._classify_spike_pattern(channel_pattern, amplitude_pattern)
+        
+        # Calculate confidence based on signal-to-noise ratio
+        amplitudes = [abs(a) for a in amplitude_pattern if abs(a) > self.thresh_mv]
+        noise_levels = [r.noise_level for r in readings]
+        
+        if amplitudes and noise_levels:
+            snr = np.mean(amplitudes) / np.mean(noise_levels)
+            confidence = min(1.0, snr / 10.0)  # Normalize to 0-1
+        else:
+            confidence = 0.0
+            
+        return SpikeEvent(
+            timestamp=readings[0].timestamp,
+            channel_pattern=channel_pattern,
+            amplitude_pattern=amplitude_pattern,
+            classification=classification,
+            confidence=confidence,
+            environmental_context=self.environmental_state
+        )
+        
+    def _classify_spike_pattern(self, pattern: List[bool], amplitudes: List[float]) -> str:
+        """Classify spike pattern into FUNGAR spike types"""
+        active_channels = sum(pattern)
+        max_amplitude = max(abs(a) for a in amplitudes) if amplitudes else 0
+        
+        if active_channels == 1 and max_amplitude < 3.0:
+            return "S-α"  # Fast, narrow, single
+        elif active_channels <= 2 and max_amplitude < 5.0:
+            return "S-β"  # Medium, broad
+        elif active_channels == 2 and max_amplitude >= 3.0:
+            return "S-γ"  # Paired doublet
+        elif active_channels >= 3:
+            return "S-δ"  # Burst of multiple
+        else:
+            return "S-α"  # Default classification
+            
+    def check_slow_start_handshake(self, pulse_type: str) -> bool:
+        """
+        Implement slow-start handshake: REST×5 → PINGSYNC → SEED
+        Includes D3.3 frequency fingerprinting for biological validation
+        
+        Args:
+            pulse_type: Type of pulse being attempted
+            
+        Returns:
+            True if handshake allows the pulse, False otherwise
+        """
+        if pulse_type == "REST":
+            self.rest_cycles_completed += 1
+            if self.rest_cycles_completed >= self.required_rest_cycles:
+                # Perform frequency fingerprint test before completing handshake
+                if self.freq_guardian is not None:
+                    test_signal = self._get_recent_signal_composite()
+                    if self.freq_guardian.handshake_frequency_test(test_signal):
+                        self.handshake_complete = True
+                        logger.info("Slow-start handshake completed - biological signature validated")
+                    else:
+                        logger.warning("Handshake failed - frequency fingerprint invalid")
+                        return False
+                else:
+                    self.handshake_complete = True
+                    logger.info("Slow-start handshake completed - substrate ready")
+            return True
+            
+        elif pulse_type == "PINGSYNC" and self.handshake_complete:
+            return True
+            
+        elif pulse_type == "SEED" and self.handshake_complete:
+            return self._check_duty_cycle() and self._check_frequency_security()
+            
+        else:
+            logger.warning(f"Handshake violation: {pulse_type} attempted before REST×5")
+            return False
+            
+    def _check_duty_cycle(self) -> bool:
+        """Check if stimulation is within ethical duty cycle limits"""
+        current_time = time.time()
+        hour_ago = current_time - 3600
+        
+        # Count stimulation time in past hour
+        recent_stims = [t for t in self.stimulation_log if t > hour_ago]
+        total_stim_time = len(recent_stims) * 5  # Assume 5s per stimulation
+        
+        if total_stim_time >= self.duty_cycle_limit:
+            logger.warning(f"Duty cycle limit reached: {total_stim_time}s/{self.duty_cycle_limit}s")
+            return False
+            
+        return True
+        
+    def log_stimulation(self, stim_type: str, duration: float):
+        """Log stimulation event for duty cycle tracking"""
+        self.stimulation_log.append(time.time())
+        self.last_stim_time = time.time()
+        
+        # Keep only last hour of logs
+        hour_ago = time.time() - 3600
+        self.stimulation_log = [t for t in self.stimulation_log if t > hour_ago]
+        
+    def update_environmental_state(self, moisture_rh: float, temperature_c: float, growth_age_hours: int):
+        """Update environmental monitoring for substrate care"""
+        self.environmental_state = EnvironmentalReading(
+            timestamp=time.time(),
+            moisture_rh=moisture_rh,
+            temperature_c=temperature_c,
+            growth_age_hours=growth_age_hours
+        )
+        
+        # Check care level requirements
+        if moisture_rh < 60.0:
+            self.environmental_state.care_level = BioCareLevel.MOISTURE_DORMANT
+            logger.warning(f"Moisture below 60% RH: {moisture_rh:.1f}% - entering dormant mode")
+        elif temperature_c > 28.0:
+            self.environmental_state.care_level = BioCareLevel.HEAT_SLEEP
+            logger.warning(f"Temperature above 28°C: {temperature_c:.1f}°C - entering heat-sleep")
+        else:
+            self.environmental_state.care_level = BioCareLevel.NORMAL
+            
+    def get_care_status(self) -> Dict[str, Any]:
+        """Get current care and ethical status"""
+        current_time = time.time()
+        hour_ago = current_time - 3600
+        recent_stims = [t for t in self.stimulation_log if t > hour_ago]
+        
+        # Get breath signature status
+        breath_status = self.get_breath_signature_status()
+        
+        # Get frequency guardian status
+        freq_status = self.get_frequency_guardian_status()
+        
+        return {
+            "care_level": self.environmental_state.care_level.value,
+            "handshake_complete": self.handshake_complete,
+            "rest_cycles_completed": self.rest_cycles_completed,
+            "stimulations_last_hour": len(recent_stims),
+            "duty_cycle_remaining": max(0, self.duty_cycle_limit - len(recent_stims) * 5),
+            "environmental_state": {
+                "moisture_rh": self.environmental_state.moisture_rh,
+                "temperature_c": self.environmental_state.temperature_c,
+                "growth_age_hours": self.environmental_state.growth_age_hours
+            },
+            "breath_signature": breath_status,
+            "frequency_guardian": freq_status
+        }
+        
+    def advance_buffer(self):
+        """Advance circular buffer index"""
+        self.buffer_index = (self.buffer_index + 1) % self.buffer_size
+        
+    def _get_recent_signal_composite(self) -> np.ndarray:
+        """Get composite signal from all channels for frequency analysis"""
+        if not self.voltage_buffers:
+            return np.zeros(100)  # Fallback
+            
+        # Composite signal from all active channels
+        composite = np.zeros(len(self.voltage_buffers[0]))
+        for buffer in self.voltage_buffers:
+            composite += buffer
+        composite /= len(self.voltage_buffers)  # Average across channels
+        
+        return composite
+        
+    def _check_frequency_security(self) -> bool:
+        """Check for high-frequency intrusion attempts"""
+        if self.freq_guardian is None:
+            return True  # No guardian available
+            
+        # Get recent composite signal for analysis
+        test_signal = self._get_recent_signal_composite()
+        
+        # Check for intrusion
+        intrusion_detected, max_power = self.freq_guardian.check_high_frequency_intrusion(test_signal)
+        
+        if intrusion_detected:
+            logger.warning(f"High-frequency intrusion detected: {max_power:.1f} dBFS")
+            # Enter ethical pause rather than violent rejection
+            self.environmental_state.care_level = BioCareLevel.ETHICAL_PAUSE
+            return False
+            
+        return True
+        
+    def get_frequency_guardian_status(self) -> Dict[str, Any]:
+        """Get status of frequency guardian for monitoring"""
+        if self.freq_guardian is None:
+            return {"enabled": False}
+            
+        recent_signal = self._get_recent_signal_composite()
+        psd = self.freq_guardian.frequency_fingerprint(recent_signal)
+        is_slow = self.freq_guardian.validate_slowness_fingerprint(psd)
+        care_level = self.freq_guardian.evaluate_care_level(recent_signal)
+        
+        return {
+            "enabled": True,
+            "slowness_validated": is_slow,
+            "care_level": care_level.value if care_level else "unknown",
+            "intrusion_events": len(self.freq_guardian.intrusion_events),
+            "last_intrusion": self.freq_guardian.intrusion_events[-1] if self.freq_guardian.intrusion_events else None
+        }
+        
+    def calculate_glyph_memory_strength(self, glyph_type: str, age_seconds: float) -> float:
+        """Calculate memory strength for glyph using capacitance fade"""
+        if self.capacitance_fade is None:
+            return 1.0  # No fade without capacitance module
+            
+        # Map glyph string to enum
+        glyph_map = {
+            "⭕": GlyphType.SILENCE,
+            "🌊": GlyphType.FLOW, 
+            "🌪️": GlyphType.STORM,
+            "🌌": GlyphType.UNIVERSAL
+        }
+        
+        glyph_enum = glyph_map.get(glyph_type, GlyphType.SILENCE)
+        
+        # Use current environmental conditions
+        moisture = self.environmental_state.moisture_rh / 100.0  # Convert to 0-1
+        temperature = self.environmental_state.temperature_c
+        
+        return self.capacitance_fade.memory_strength(
+            glyph_enum, age_seconds, moisture, temperature
+        )
+        
+    def record_breath_phase(self, phase: str, duration: float):
+        """
+        Record breath phase timing for signature authentication
+        
+        Args:
+            phase: Breath phase name ("inhale", "hold", "exhale", "rest")
+            duration: Duration of this phase in seconds
+        """
+        if self.breath_signature is None or SigBreathPhase is None:
+            return  # Breath signature not available
+            
+        # Map phase string to enum
+        phase_map = {
+            "inhale": SigBreathPhase.INHALE,
+            "hold": SigBreathPhase.HOLD,
+            "exhale": SigBreathPhase.EXHALE,
+            "rest": SigBreathPhase.REST
+        }
+        
+        breath_phase = phase_map.get(phase.lower(), SigBreathPhase.REST)
+        self.breath_signature.record_breath_timing(breath_phase, duration)
+        
+    def get_breath_signature_status(self) -> Dict[str, Any]:
+        """Get current breath signature authentication status"""
+        if self.breath_signature is None:
+            return {"enabled": False}
+            
+        return {
+            "enabled": True,
+            "current_signature": self.breath_signature.current_signature(),
+            "baseline_established": self.breath_signature.baseline_established,
+            "authentication_strength": self._calculate_auth_strength()
+        }
+        
+    def _calculate_auth_strength(self) -> float:
+        """Calculate authentication strength from breath signature"""
+        if self.breath_signature is None or not self.breath_signature.baseline_established:
+            return 0.0
+            
+        # Simple strength calculation based on signature establishment
+        return 0.8 if self.breath_signature.baseline_established else 0.0
+        
+    def verify_remote_breath_signature(self, remote_signature: str) -> Tuple[bool, float]:
+        """
+        Verify a remote breath signature with 3% tolerance
+        
+        Args:
+            remote_signature: 16-bit breath signature from remote node
+            
+        Returns:
+            Tuple of (is_valid, drift_percentage)
+        """
+        if self.breath_signature is None:
+            return False, 1.0
+            
+        return self.breath_signature.verify_signature(remote_signature)
+
+
+# Utility functions for integration
+
+def create_mock_interface() -> SevenChannelBioInterface:
+    """Create a mock bio-interface for testing and simulation"""
+    return SevenChannelBioInterface(sample_rate=1.0, mock_mode=True)
+
+def spike_pattern_to_glyph(spike_event: SpikeEvent) -> str:
+    """Convert spike event to contemplative glyph"""
+    classification_map = {
+        "S-α": "⭕",  # Fast/narrow → Silence
+        "S-β": "🌊",  # Medium/broad → Flow
+        "S-γ": "🌪️",  # Paired → Storm
+        "S-δ": "🌌"   # Burst → Constellation
+    }
+    return classification_map.get(spike_event.classification, "⭕")
+
+def log_compost_event(event_type: str, reason: str, spike_event: Optional[SpikeEvent] = None):
+    """Log composting events for ethical audit trail"""
+    timestamp = time.time()
+    logger.info(f"Compost event: {event_type} - {reason} at {timestamp}")
+    
+    # In full implementation, this would write to compost ledger
+    # for later audit of microbial welfare
+
+# ===== breath_signature.py =====
+"""
+Breath Signature for Spirida-Mycelic
+Based on o3's steering memo specifications
+
+Implements contemplative authentication through breath timing patterns:
+- Hash last 256s of inhale/hold/exhale timing (not content)
+- 16-bit breath fingerprint for node authentication
+- 3% drift tolerance triggers pause rather than rejection
+- Security via slowing, not shouting
+"""
+
+import hashlib
+import time
+import numpy as np
+from typing import List, Optional, Tuple, Dict, Any
+from collections import deque
+from dataclasses import dataclass
+from enum import Enum
+
+class BreathPhase(Enum):
+    """Breath phases for timing signature"""
+    INHALE = "inhale"
+    HOLD = "hold"
+    EXHALE = "exhale"
+    REST = "rest"
+
+@dataclass
+class BreathTiming:
+    """Single breath phase timing record"""
+    phase: BreathPhase
+    timestamp: float
+    duration: float
+    environmental_context: Optional[Dict[str, float]] = None
+
+class BreathSignature:
+    """
+    Contemplative authentication via breath timing patterns
+    
+    Creates a rolling signature from the last 256 seconds of breath timing,
+    focusing on the rhythm and pattern rather than content.
+    """
+    
+    def __init__(self, window_seconds: int = 256, tolerance_percent: float = 3.0):
+        self.window_seconds = window_seconds
+        self.tolerance_percent = tolerance_percent / 100.0
+        
+        self.breath_history: deque = deque(maxlen=1000)
+        self.last_signature = ""
+        self.baseline_signature = ""
+        self.baseline_established = False
+        
+    def record_breath_timing(self, phase: BreathPhase, duration: float):
+        """Record breath phase timing"""
+        timing = BreathTiming(
+            phase=phase,
+            timestamp=time.time(),
+            duration=duration
+        )
+        self.breath_history.append(timing)
+        
+        if len(self.breath_history) >= 10:
+            self._update_signature()
+    
+    def _update_signature(self):
+        """Update current breath signature"""
+        current_time = time.time()
+        recent_timings = [
+            t for t in self.breath_history 
+            if current_time - t.timestamp <= self.window_seconds
+        ]
+        
+        if len(recent_timings) >= 5:
+            new_signature = self._calculate_signature(recent_timings)
+            self.last_signature = new_signature
+            
+            if not self.baseline_established and len(recent_timings) >= 20:
+                self.baseline_signature = new_signature
+                self.baseline_established = True
+    
+    def _calculate_signature(self, timings: List[BreathTiming]) -> str:
+        """Calculate 16-bit signature from timing patterns"""
+        if len(timings) < 5:
+            return "0000"
+        
+        # Create signature from durations and intervals
+        durations = [t.duration for t in timings]
+        
+        signature_data = bytearray()
+        
+        # Phase duration averages
+        phase_durations = {}
+        for timing in timings:
+            if timing.phase not in phase_durations:
+                phase_durations[timing.phase] = []
+            phase_durations[timing.phase].append(timing.duration)
+        
+        for phase in BreathPhase:
+            if phase in phase_durations:
+                avg_duration = np.mean(phase_durations[phase])
+                quantized = min(255, max(0, int(avg_duration)))
+                signature_data.append(quantized)
+            else:
+                signature_data.append(0)
+        
+        # Hash to 16-bit
+        hash_obj = hashlib.sha256(signature_data)
+        hash_bytes = hash_obj.digest()
+        signature_16bit = int.from_bytes(hash_bytes[:2], byteorder='big')
+        
+        return f"{signature_16bit:04x}"
+    
+    def current_signature(self) -> str:
+        """Get current signature"""
+        return self.last_signature or "0000"
+    
+    def verify_signature(self, remote_signature: str) -> Tuple[bool, float]:
+        """Verify remote signature"""
+        if not self.baseline_established:
+            return False, 1.0
+        
+        drift = self._calculate_drift(self.current_signature(), remote_signature)
+        is_valid = drift <= self.tolerance_percent
+        return is_valid, drift
+    
+    def _calculate_drift(self, baseline: str, current: str) -> float:
+        """Calculate drift percentage between signatures"""
+        if not baseline or not current:
+            return 0.0
+        
+        try:
+            baseline_int = int(baseline, 16)
+            current_int = int(current, 16)
+        except ValueError:
+            return 1.0
+        
+        xor_result = baseline_int ^ current_int
+        bit_differences = bin(xor_result).count('1')
+        return bit_differences / 16.0
+
+def create_breath_signature() -> BreathSignature:
+    """Create breath signature with contemplative defaults"""
+    return BreathSignature(window_seconds=256, tolerance_percent=3.0)
+
+if __name__ == "__main__":
+    print("🫁 Breath Signature Demo")
+    print("=" * 40)
+    signature = BreathSignature()
+    
+    # Simulate breathing
+    patterns = [(BreathPhase.INHALE, 40), (BreathPhase.HOLD, 70), 
+                (BreathPhase.EXHALE, 40), (BreathPhase.REST, 10)]
+    
+    print("Simulating contemplative breathing cycles...")
+    for cycle in range(3):
+        print(f"\nCycle {cycle+1}:")
+        for phase, duration in patterns:
+            signature.record_breath_timing(phase, duration)
+            print(f"  {phase.value}: {duration}s")
+        print(f"  Signature: {signature.current_signature()}")
+        print(f"  Baseline established: {signature.baseline_established}")
+    
+    # Test verification
+    print(f"\n🔐 Testing signature verification:")
+    current_sig = signature.current_signature()
+    is_valid, drift = signature.verify_signature(current_sig)
+    print(f"Self-verification: {'✅ Valid' if is_valid else '❌ Invalid'} (drift: {drift:.1%})")
+    
+    print("\n🌀 Breath signature demo complete") 
+# ===== capacitance_fade.py =====
+"""
+Capacitance-Driven Memory for Spirida-Mycelic
+Based on D3.3 AC frequency behavior of mycelium composites
+
+The biological substrate exhibits RC decay curves that can inform
+glyph lifespan and memory persistence in contemplative computing.
+"""
+
+import numpy as np
+from typing import Dict, Optional
+from enum import Enum
+
+class GlyphType(Enum):
+    SILENCE = "⭕"      # S-α: fast, narrow spikes (low capacitance)
+    FLOW = "🌊"        # S-β: medium, broad spikes  
+    STORM = "🌪️"       # S-γ: paired-doublet spikes (narrow, fast fade)
+    UNIVERSAL = "🌌"   # S-δ: burst spikes (high capacitance, slow fade)
+
+class CapacitanceFade:
+    """
+    Biological memory model based on mycelium RC constants
+    
+    From D3.3: Mycelium composites show frequency-dependent behavior
+    with natural cutoff around 500 kHz and capacitive effects that
+    create memory-like amplitude persistence.
+    """
+    
+    def __init__(self):
+        # Capacitance values (Farads) based on spike archetype
+        # Higher capacitance = longer memory retention
+        self.glyph_capacitance = {
+            GlyphType.SILENCE: 1e-6,      # 1 µF - fast fade
+            GlyphType.FLOW: 3e-6,         # 3 µF - medium persistence  
+            GlyphType.STORM: 1.5e-6,      # 1.5 µF - chaotic fade
+            GlyphType.UNIVERSAL: 8e-6,    # 8 µF - long contemplative memory
+        }
+        
+        # Environmental resistance (Ohms) affects fade rate
+        self.base_resistance = 1e9  # 1 GΩ baseline for longer lifespans
+        
+    def get_tau(self, glyph_type: GlyphType, moisture: float = 0.8, 
+                temperature: float = 23.0) -> float:
+        """
+        Calculate RC time constant (tau) for glyph fade
+        
+        Args:
+            glyph_type: Type of contemplative glyph
+            moisture: Relative humidity (0.0-1.0)
+            temperature: Temperature in Celsius
+            
+        Returns:
+            Time constant in seconds
+        """
+        C = self.glyph_capacitance[glyph_type]
+        
+        # Environmental resistance varies with moisture and temperature
+        # Higher moisture = lower resistance = faster fade
+        # Based on D3.3 impedance measurements
+        R_env = self.base_resistance * (1.0 - 0.3 * moisture) * (1.0 + 0.02 * (temperature - 23.0))
+        
+        tau = C * R_env
+        return tau
+    
+    def fade_amplitude(self, initial_amplitude: float, elapsed_time: float,
+                      glyph_type: GlyphType, moisture: float = 0.8,
+                      temperature: float = 23.0) -> float:
+        """
+        Calculate faded amplitude using biological RC decay
+        
+        Args:
+            initial_amplitude: Starting glyph amplitude
+            elapsed_time: Time elapsed since creation (seconds)
+            glyph_type: Type of contemplative glyph
+            moisture: Environmental moisture level
+            temperature: Environmental temperature
+            
+        Returns:
+            Current amplitude after capacitive fade
+        """
+        tau = self.get_tau(glyph_type, moisture, temperature)
+        
+        # Exponential decay: A(t) = A₀ * exp(-t/τ)
+        current_amplitude = initial_amplitude * np.exp(-elapsed_time / tau)
+        
+        return current_amplitude
+    
+    def memory_strength(self, glyph_type: GlyphType, elapsed_time: float,
+                       moisture: float = 0.8, temperature: float = 23.0) -> float:
+        """
+        Calculate memory strength (0.0-1.0) for contemplative persistence
+        
+        Returns:
+            Memory strength from 0.0 (forgotten) to 1.0 (fresh)
+        """
+        return self.fade_amplitude(1.0, elapsed_time, glyph_type, moisture, temperature)
+    
+    def glyph_lifespan_estimate(self, glyph_type: GlyphType, 
+                               threshold: float = 0.1,
+                               moisture: float = 0.8, 
+                               temperature: float = 23.0) -> float:
+        """
+        Estimate how long until glyph fades below threshold
+        
+        Args:
+            glyph_type: Type of contemplative glyph
+            threshold: Amplitude threshold for "forgotten" (0.0-1.0)
+            moisture: Environmental conditions
+            temperature: Environmental conditions
+            
+        Returns:
+            Estimated lifespan in seconds
+        """
+        tau = self.get_tau(glyph_type, moisture, temperature)
+        
+        # Solve: threshold = exp(-t/τ) for t
+        # t = -τ * ln(threshold)
+        if threshold <= 0:
+            return np.inf
+        
+        lifespan = -tau * np.log(threshold)
+        return lifespan
+
+# Convenience function for pulse objects
+def create_fade_calculator() -> CapacitanceFade:
+    """Create a new capacitance fade calculator"""
+    return CapacitanceFade()
+
+# Example usage for contemplative glyph ecology
+def demonstrate_glyph_fade():
+    """
+    Demonstrate biological memory fade for different glyph types
+    """
+    fade_calc = CapacitanceFade()
+    
+    print("🧠 Contemplative Glyph Memory Demonstration")
+    print("=" * 50)
+    
+    moisture = 0.8  # 80% RH (typical grow room)
+    temperature = 25.0  # 25°C
+    
+    for glyph_type in GlyphType:
+        tau = fade_calc.get_tau(glyph_type, moisture, temperature)
+        lifespan = fade_calc.glyph_lifespan_estimate(glyph_type, 0.1, moisture, temperature)
+        
+        print(f"{glyph_type.value} ({glyph_type.name})")
+        print(f"  τ = {tau:.1f}s ({tau/60:.1f} min)")
+        print(f"  Lifespan to 10%: {lifespan:.0f}s ({lifespan/60:.1f} min)")
+        print()
+
+if __name__ == "__main__":
+    demonstrate_glyph_fade() 
+# ===== demo\adamatzky_demo.py =====
+#!/usr/bin/env python3
+"""
+Adamatzky Layer Demo - Contemplative Fungal Simulation
+
+Demonstrates the fungal logic simulation with species-specific rhythms
+and integration with Spirida glyph system.
+"""
+
+import sys
+import time
+import random
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.append(str(Path(__file__).parent.parent))
+
+from adamatzky_layer import (
+    AdamatzkyReservoir, 
+    FungalSpecies, 
+    SpikeType,
+    spike_to_glyph,
+    classify_boolean_gate
+)
+
+def contemplative_breathing_demo(reservoir: AdamatzkyReservoir, cycles: int = 5):
+    """
+    Demonstrate contemplative breathing synchronized with fungal rhythms.
+    
+    Based on o3's analysis:
+    - 150s breath cycles: 40s inhale → 70s hold → 40s exhale
+    - Map hold phase to fungal refractory silence periods
+    """
+    print(f"\n🌿 Starting contemplative breathing demo with {reservoir.species.value}")
+    
+    fast_period, slow_period = reservoir.get_contemplative_rhythm()
+    print(f"   Fungal rhythms: {fast_period/60:.1f}min (fast) / {slow_period/60:.1f}min (slow)")
+    
+    # Use fast period for demo (divide by 10 for faster demo)
+    breath_cycle = fast_period / 10  # Speed up for demo
+    inhale_time = breath_cycle * 0.27  # 40/150 = 0.27
+    hold_time = breath_cycle * 0.47    # 70/150 = 0.47  
+    exhale_time = breath_cycle * 0.27  # 40/150 = 0.27
+    
+    print(f"   Breath cycle: {breath_cycle:.1f}s (inhale {inhale_time:.1f}s, hold {hold_time:.1f}s, exhale {exhale_time:.1f}s)")
+    
+    glyph_sequence = []
+    
+    for cycle in range(cycles):
+        print(f"\n--- Cycle {cycle + 1}/{cycles} ---")
+        
+        # INHALE - Listen to the substrate
+        print("🫁 INHALE - Listening to fungal field...")
+        input_pattern = random.randint(0, 15)  # Random 4-bit pattern
+        print(f"   Stimulating with pattern: {input_pattern:04b}")
+        
+        start_time = time.time()
+        while time.time() - start_time < inhale_time:
+            time.sleep(0.1)
+            
+        # HOLD - Allow response to develop  
+        print("⏸️  HOLD - Allowing response to emerge...")
+        spike = reservoir.stimulate(input_pattern)
+        
+        if spike:
+            glyph = spike_to_glyph(spike)
+            gate_class = classify_boolean_gate(input_pattern, True)
+            glyph_sequence.append(glyph)
+            
+            print(f"   ✨ Spike detected: {spike.spike_type.value}")
+            print(f"   📊 Amplitude: {spike.amplitude:.2f}mV, Width: {spike.width:.1f}s")
+            print(f"   🔮 Glyph: {glyph} (Class: {gate_class})")
+        else:
+            glyph_sequence.append("⭕")
+            print(f"   🔇 Silence (refractory or no response)")
+            print(f"   🔮 Glyph: ⭕ (Silence)")
+            
+        start_time = time.time()
+        while time.time() - start_time < hold_time:
+            time.sleep(0.1)
+            
+        # EXHALE - Release and integrate
+        print("💨 EXHALE - Releasing and integrating...")
+        
+        # Check silence ratio and adjust if needed
+        adjust = reservoir.breath_sync_adjust()
+        if abs(adjust) > 0.05:
+            print(f"   🎛️  Breath adjustment: {adjust:+.2f} (silence ratio: {reservoir.state.silence_ratio:.3f})")
+            
+        start_time = time.time()
+        while time.time() - start_time < exhale_time:
+            time.sleep(0.1)
+            
+    print(f"\n🌀 Glyph sequence generated: {''.join(glyph_sequence)}")
+    return glyph_sequence
+
+def species_comparison_demo():
+    """Compare the two fungal species and their rhythms"""
+    print("🍄 Fungal Species Comparison Demo")
+    print("=" * 50)
+    
+    species = [FungalSpecies.PLEUROTUS_DJAMOR, FungalSpecies.GANODERMA_RESINACEUM]
+    
+    for sp in species:
+        reservoir = AdamatzkyReservoir(species=sp)
+        info = reservoir.get_species_info()
+        
+        print(f"\n{sp.value.replace('_', ' ').title()}:")
+        print(f"  🕰️  Fast rhythm: {info['fast_period_min']:.1f} min")
+        print(f"  🕰️  Slow rhythm: {info['slow_period_min']:.1f} min")
+        print(f"  🔇 Target silence: {info['target_silence_ratio']:.1%}")
+        print(f"  💧 Moisture: {info['moisture']:.1%}")
+        print(f"  🌡️  Temperature: {info['temperature']:.1f}°C")
+        print(f"  🌱 Growth age: {info['growth_age_hours']} hours")
+
+def boolean_logic_demo():
+    """Demonstrate the Boolean logic functions"""
+    print("\n🧮 Boolean Logic Demo")
+    print("=" * 30)
+    
+    reservoir = AdamatzkyReservoir()
+    
+    # Test all the implemented patterns
+    test_patterns = [0b0000, 0b0101, 0b0110, 0b1001, 0b0011, 0b1111]
+    
+    print("Testing Adamatzky's Boolean functions:")
+    print("Pattern  | Output | Spike Type      | Glyph | Class")
+    print("-" * 50)
+    
+    for pattern in test_patterns:
+        spike = reservoir.stimulate(pattern)
+        if spike:
+            glyph = spike_to_glyph(spike)
+            gate_class = classify_boolean_gate(pattern, True)
+            print(f"{pattern:04b}     | True   | {spike.spike_type.value:15} | {glyph:5} | {gate_class}")
+        else:
+            gate_class = classify_boolean_gate(pattern, False)
+            print(f"{pattern:04b}     | False  | {'(silence)':15} | ⭕     | {gate_class}")
+            
+        # Small delay to show refractory effects
+        time.sleep(0.5)
+
+def main():
+    """Run all demos"""
+    print("🌿 Spirida-Mycelic: Adamatzky Layer Demo")
+    print("=" * 50)
+    print("Simulating contemplative fungal computing based on")
+    print("Adamatzky's research on mycelial Boolean logic.")
+    print("\nKey principles:")
+    print("• 67-90% natural electrical silence (Silence Majority)")
+    print("• Species-specific contemplative rhythms")
+    print("• Bio-digital glyph translation")
+    
+    # Species comparison
+    species_comparison_demo()
+    
+    # Boolean logic demonstration
+    boolean_logic_demo()
+    
+    # Contemplative breathing with each species
+    print(f"\n{'='*60}")
+    print("🫁 Contemplative Breathing Demonstrations")
+    
+    # Ecological mode (slow, deep - Pleurotus djamor)
+    print(f"\n🌱 ECOLOGICAL MODE - Deep Forest Rhythm")
+    ecological_reservoir = AdamatzkyReservoir(FungalSpecies.PLEUROTUS_DJAMOR)
+    ecological_glyphs = contemplative_breathing_demo(ecological_reservoir, cycles=3)
+    
+    # Abstract mode (steady, focused - Ganoderma)  
+    print(f"\n🧠 ABSTRACT MODE - Contemplative Focus")
+    abstract_reservoir = AdamatzkyReservoir(FungalSpecies.GANODERMA_RESINACEUM)
+    abstract_glyphs = contemplative_breathing_demo(abstract_reservoir, cycles=3)
+    
+    # Summary
+    print(f"\n{'='*60}")
+    print("🌀 Session Summary")
+    print(f"Ecological glyphs: {''.join(ecological_glyphs)}")
+    print(f"Abstract glyphs:   {''.join(abstract_glyphs)}")
+    
+    # Calculate silence ratios
+    eco_silence = ecological_glyphs.count('⭕') / len(ecological_glyphs)
+    abs_silence = abstract_glyphs.count('⭕') / len(abstract_glyphs) 
+    
+    print(f"\nSilence ratios:")
+    print(f"Ecological: {eco_silence:.1%} (target: 74%)")
+    print(f"Abstract:   {abs_silence:.1%} (target: 67%)")
+    
+    print(f"\n🍄 Adamatzky layer simulation complete.")
+    print("Ready for integration with live bio-interfaces.")
+
+if __name__ == "__main__":
+    main() 
+# ===== demo\breath_loop_sim.py =====
+
+# ===== demo\frequency_guardian_demo.py =====
+#!/usr/bin/env python3
+"""
+Frequency Guardian Demo for Spirida-Mycelic
+Demonstrates D3.3 biological low-pass filter integration
+
+Shows:
+- Frequency fingerprinting for contemplative security
+- High-frequency intrusion detection
+- Capacitance-driven glyph memory
+- Bio-interface integration
+"""
+
+import sys
+import os
+import time
+import numpy as np
+
+# Add spirida-mycelic to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+try:
+    from frequency_guardian import FrequencyGuardian, BioCareLevel
+    from capacitance_fade import CapacitanceFade, GlyphType
+    from bio_interface import SevenChannelBioInterface, spike_pattern_to_glyph
+except ImportError as e:
+    print(f"Import error: {e}")
+    print("Please run from spirida-mycelic directory")
+    sys.exit(1)
+
+def demonstrate_frequency_guardian():
+    """Demonstrate D3.3 frequency guardian capabilities"""
+    print("🛡️ D3.3 Frequency Guardian Demonstration")
+    print("=" * 60)
+    
+    guardian = FrequencyGuardian()
+    
+    # Test 1: Biological signal validation
+    print("\n🌿 Test 1: Biological Signal Validation")
+    print("-" * 40)
+    
+    # Simulate contemplative fungal signal (slow, low frequency)
+    t = np.linspace(0, 600, 600)  # 10 minutes at 1 Hz
+    bio_signal = (
+        0.002 * np.sin(2 * np.pi * 0.006 * t) +  # 2.6 min period (Pleurotus fast)
+        0.001 * np.sin(2 * np.pi * 0.0012 * t) + # 14 min period (Pleurotus slow)
+        0.0005 * np.random.randn(len(t))         # Biological noise
+    )
+    
+    psd = guardian.frequency_fingerprint(bio_signal)
+    is_slow = guardian.validate_slowness_fingerprint(psd)
+    print(f"Signal type: Contemplative fungal rhythm")
+    print(f"Slowness validation: {'✅ BIOLOGICAL' if is_slow else '❌ NON-BIOLOGICAL'}")
+    
+    # Test 2: High-frequency intrusion detection
+    print("\n⚡ Test 2: High-Frequency Intrusion Detection")
+    print("-" * 40)
+    
+    # Add high-frequency noise (simulating RF interference)
+    intrusion_signal = bio_signal + 0.01 * np.sin(2 * np.pi * 0.3 * t)  # 300 mHz intrusion
+    
+    intrusion_detected, max_power = guardian.check_high_frequency_intrusion(intrusion_signal)
+    print(f"Intrusion signal: High-frequency RF noise added")
+    print(f"Guardian response: {'⚠️ INTRUSION DETECTED' if intrusion_detected else '✅ CLEAN'}")
+    print(f"Max power: {max_power:.1f} dBFS (threshold: {guardian.guardian_threshold_db} dBFS)")
+    
+    # Test 3: Care level evaluation
+    print("\n🧘 Test 3: Care Level Evaluation")
+    print("-" * 40)
+    
+    clean_care = guardian.evaluate_care_level(bio_signal)
+    intrusion_care = guardian.evaluate_care_level(intrusion_signal)
+    
+    print(f"Clean signal care level: {clean_care.value}")
+    print(f"Intrusion signal care level: {intrusion_care.value}")
+    
+    clean_penalty = guardian.get_silence_penalty(clean_care)
+    intrusion_penalty = guardian.get_silence_penalty(intrusion_care)
+    
+    print(f"Clean signal silence penalty: {clean_penalty:.1f}×")
+    print(f"Intrusion signal silence penalty: {intrusion_penalty:.1f}×")
+    
+    return guardian
+
+def demonstrate_capacitance_fade():
+    """Demonstrate D3.3 capacitance-driven memory"""
+    print("\n\n🧠 D3.3 Capacitance-Driven Memory Demonstration")
+    print("=" * 60)
+    
+    fade_calc = CapacitanceFade()
+    
+    print("Biological RC memory constants:")
+    print("-" * 30)
+    
+    moisture = 0.8  # 80% RH
+    temperature = 25.0  # 25°C
+    
+    # Test each glyph type
+    for glyph_type in GlyphType:
+        tau = fade_calc.get_tau(glyph_type, moisture, temperature)
+        lifespan = fade_calc.glyph_lifespan_estimate(glyph_type, 0.1, moisture, temperature)
+        
+        print(f"{glyph_type.value} {glyph_type.name:>12}: τ={tau:.0f}s ({tau/60:.1f}min) | "
+              f"Lifespan: {lifespan:.0f}s ({lifespan/60:.1f}min)")
+    
+    print(f"\n🌱 Memory fade over time (at {moisture*100:.0f}% RH, {temperature:.0f}°C):")
+    print("-" * 50)
+    
+    times = [60, 300, 600, 1800, 3600]  # 1min, 5min, 10min, 30min, 1hr
+    
+    for t in times:
+        print(f"\nAfter {t//60:2d} minutes:")
+        for glyph_type in GlyphType:
+            strength = fade_calc.memory_strength(glyph_type, t, moisture, temperature)
+            bar_length = int(strength * 20)
+            bar = "█" * bar_length + "░" * (20 - bar_length)
+            print(f"  {glyph_type.value} {bar} {strength:.1%}")
+    
+    return fade_calc
+
+def demonstrate_integrated_bio_interface():
+    """Demonstrate integrated bio-interface with all D3.3 features"""
+    print("\n\n🌀 Integrated Bio-Interface Demonstration")
+    print("=" * 60)
+    
+    # Create bio-interface with all features
+    interface = SevenChannelBioInterface(sample_rate=1.0, mock_mode=True)
+    
+    print("🔧 Interface Status:")
+    print(f"  Frequency guardian: {'✅ Enabled' if interface.freq_guardian else '❌ Disabled'}")
+    print(f"  Capacitance fade: {'✅ Enabled' if interface.capacitance_fade else '❌ Disabled'}")
+    print(f"  Channels: {interface.num_channels}")
+    print(f"  Sample rate: {interface.fs} Hz")
+    
+    # Simulate contemplative session
+    print("\n🫁 Contemplative Session Simulation:")
+    print("-" * 40)
+    
+    # Slow-start handshake
+    print("Performing slow-start handshake...")
+    for i in range(5):
+        success = interface.check_slow_start_handshake("REST")
+        print(f"  REST cycle {i+1}/5: {'✅' if success else '❌'}")
+        time.sleep(0.1)  # Brief pause for demo
+    
+    # Check handshake completion
+    print(f"Handshake complete: {'✅ Ready' if interface.handshake_complete else '❌ Failed'}")
+    
+    # Simulate some channel readings with frequency analysis
+    print("\n📊 Channel Reading + Frequency Analysis:")
+    print("-" * 40)
+    
+    for cycle in range(3):
+        print(f"\nCycle {cycle + 1}:")
+        
+        # Read channels
+        readings = interface.read_channels()
+        
+        # Check for spike patterns
+        spike_event = interface.detect_pattern_spikes(readings)
+        
+        if spike_event:
+            glyph = spike_pattern_to_glyph(spike_event)
+            print(f"  Spike detected: {spike_event.classification} → {glyph}")
+            print(f"  Confidence: {spike_event.confidence:.1%}")
+            
+            # Calculate memory strength for this glyph
+            memory_strength = interface.calculate_glyph_memory_strength(glyph, 0)
+            print(f"  Initial memory strength: {memory_strength:.1%}")
+            
+            # Show memory fade over time
+            for age in [60, 300, 900]:  # 1min, 5min, 15min
+                fade_strength = interface.calculate_glyph_memory_strength(glyph, age)
+                print(f"  Memory after {age//60}min: {fade_strength:.1%}")
+        else:
+            print("  No spikes detected - contemplative silence ⭕")
+        
+        # Check frequency guardian status
+        freq_status = interface.get_frequency_guardian_status()
+        if freq_status["enabled"]:
+            print(f"  Frequency guardian: {freq_status['care_level']}")
+            print(f"  Slowness validated: {'✅' if freq_status['slowness_validated'] else '❌'}")
+        
+        # Advance buffer for next reading
+        interface.advance_buffer()
+        time.sleep(0.1)
+    
+    # Final care status
+    print("\n🌿 Final Care Status:")
+    print("-" * 40)
+    care_status = interface.get_care_status()
+    
+    for key, value in care_status.items():
+        if isinstance(value, dict):
+            print(f"  {key}:")
+            for subkey, subvalue in value.items():
+                print(f"    {subkey}: {subvalue}")
+        else:
+            print(f"  {key}: {value}")
+    
+    return interface
+
+def main():
+    """Run complete D3.3 demonstration"""
+    print("🍄 Spirida-Mycelic D3.3 Integration Demo")
+    print("Based on FUNGAR Deliverable D3.3:")
+    print("'AC frequency behavior of mycelium composites'")
+    print("\nKey insights:")
+    print("• Mycelium composites: ~500 kHz cutoff, -14 dB/dec")
+    print("• Fruiting bodies: 5-50 kHz cutoff, -20 dB/dec")
+    print("• High-frequency energy becomes heat, not information")
+    print("• Biology preserves slowness, discards speed")
+    print("\n" + "=" * 70)
+    
+    try:
+        # Run demonstrations
+        guardian = demonstrate_frequency_guardian()
+        fade_calc = demonstrate_capacitance_fade()
+        interface = demonstrate_integrated_bio_interface()
+        
+        print("\n\n🌌 D3.3 Integration Complete")
+        print("=" * 60)
+        print("✅ Frequency guardian operational")
+        print("✅ Capacitance-driven memory active") 
+        print("✅ Bio-interface integration successful")
+        print("✅ Contemplative security protocols enabled")
+        print("\n🌀 The biological low-pass filter now guards our contemplative protocols.")
+        print("   Mycelium teaches us: beyond a certain frequency, only meaning remains.")
+        
+    except Exception as e:
+        print(f"\n❌ Demo error: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    main() 
+# ===== demo\root_completion_demo.py =====
+#!/usr/bin/env python3
+"""
+Root Completion Demo - Integrated Spirida-Mycelic System
+
+Demonstrates all Root Completion components working together.
+"""
+
+import sys
+import time
+import random
+from pathlib import Path
+
+# Add parent directory for imports
+sys.path.append(str(Path(__file__).parent.parent))
+
+from bio_interface import SevenChannelBioInterface, EnvironmentalReading
+from fungal_field_recorder import FungalFieldRecorder
+from adamatzky_layer import AdamatzkyReservoir, FungalSpecies
+from glyph_mapper import SpiridaGlyphMapper
+
+def main():
+    """Demonstrate integrated Root Completion system"""
+    print("🌿 Spirida-Mycelic Root Completion Demo")
+    print("=" * 50)
+    
+    # Initialize components
+    bio_interface = SevenChannelBioInterface(mock_mode=True)
+    recorder = FungalFieldRecorder(data_dir="data")
+    reservoir = AdamatzkyReservoir(FungalSpecies.PLEUROTUS_DJAMOR)
+    mapper = SpiridaGlyphMapper()
+    
+    # Start session
+    session_id = recorder.start_session("ecological", "pleurotus_djamor")
+    
+    # Demonstrate slow-start handshake
+    print("\n🤝 Slow-start handshake: REST×5")
+    for i in range(5):
+        allowed = bio_interface.check_slow_start_handshake("REST")
+        print(f"   REST {i+1}: {'✅' if allowed else '❌'}")
+        time.sleep(0.1)
+        
+    # Demonstrate contemplative breathing cycles
+    print("\n🫁 Contemplative breathing cycles:")
+    session_glyphs = []
+    
+    for cycle in range(3):
+        print(f"\n--- Cycle {cycle + 1}/3 ---")
+        
+        # INHALE
+        print("🫁 INHALE - Listening...")
+        time.sleep(0.2)
+        
+        # HOLD - Send stimulus
+        input_pattern = random.randint(0, 15)
+        print(f"⏸️  HOLD - SEED: {input_pattern:04b}")
+        
+        # Record pulse
+        env_reading = EnvironmentalReading(
+            timestamp=time.time(),
+            moisture_rh=75.0,
+            temperature_c=22.0,
+            growth_age_hours=48
+        )
+        
+        recorder.record_pulse(
+            pulse_type="SEED",
+            input_pattern=input_pattern,
+            breath_phase="hold",
+            environmental_reading=env_reading
+        )
+        
+        # Get fungal response
+        spike = reservoir.stimulate(input_pattern)
+        
+        if spike:
+            glyph = mapper.spike_to_glyph(spike).glyph
+            print(f"   ✨ Response: {spike.spike_type.value} → {glyph}")
+            session_glyphs.append(glyph)
+        else:
+            print("   🔇 Silence")
+            session_glyphs.append("⭕")
+            
+        # EXHALE
+        print("💨 EXHALE - Releasing...")
+        time.sleep(0.2)
+        
+    # Session analysis
+    print(f"\n🌀 Session Summary:")
+    print(f"   Glyph sequence: {''.join(session_glyphs)}")
+    
+    silence_ratio = session_glyphs.count("⭕") / len(session_glyphs)
+    print(f"   Silence ratio: {silence_ratio:.1%}")
+    print(f"   Silence Majority aligned: {abs(silence_ratio - 0.875) < 0.1}")
+    
+    # End session
+    recorder.end_session()
+    print(f"\n✅ Root Completion Demo Complete!")
+    print(f"   Session saved: {session_id}")
+    print("   All components integrated successfully")
+
+if __name__ == "__main__":
+    main() 
+# ===== frequency_guardian.py =====
+"""
+Frequency Guardian for Spirida-Mycelic
+Based on D3.3 biological low-pass filter behavior
+
+Implements contemplative security via frequency domain analysis:
+- Slowness fingerprinting during handshake
+- High-frequency intrusion detection  
+- Biological impedance-based security
+"""
+
+import numpy as np
+from scipy.signal import welch
+from scipy.fft import fft, fftfreq
+from typing import Dict, List, Tuple, Optional
+from enum import Enum
+import logging
+
+logger = logging.getLogger(__name__)
+
+class BioCareLevel(Enum):
+    """Care levels for ethical bio-interface interaction"""
+    ACTIVE = "active"
+    CONTEMPLATIVE = "contemplative"  
+    ETHICAL_PAUSE = "ethical_pause"
+    DORMANT = "dormant"
+
+class FrequencyGuardian:
+    """
+    Contemplative security via biological frequency filtering
+    
+    Based on D3.3 findings:
+    - Mycelium composites: ~500 kHz cutoff, -14 dB/dec
+    - Fruiting bodies: 5-50 kHz cutoff, -20 dB/dec
+    - High-frequency energy becomes heat, not information
+    """
+    
+    def __init__(self, fs: float = 1.0, cutoff_khz: float = 0.5, 
+                 guardian_threshold_db: float = -60.0):
+        """
+        Initialize frequency guardian
+        
+        Args:
+            fs: Sampling frequency (Hz)
+            cutoff_khz: Biological cutoff frequency (kHz) 
+            guardian_threshold_db: Threshold for high-freq intrusion (dBFS)
+        """
+        self.fs = fs
+        self.cutoff_hz = cutoff_khz * 1000  # Convert kHz to Hz
+        self.guardian_threshold_db = guardian_threshold_db
+        self.heat_penalty_scale = 2.0  # Double silence when guardian fires
+        
+        # Track fingerprint history for drift detection
+        self.fingerprint_history: List[np.ndarray] = []
+        self.max_history = 10
+        
+        # Intrusion event log
+        self.intrusion_events: List[Dict] = []
+    
+    def frequency_fingerprint(self, signal: np.ndarray, window_s: float = 2.0) -> np.ndarray:
+        """
+        Generate frequency fingerprint to verify biological slowness
+        
+        Args:
+            signal: Input signal from bio-interface
+            window_s: Analysis window in seconds
+            
+        Returns:
+            Frequency fingerprint (power spectral density)
+        """
+        # Calculate window size in samples
+        window_samples = int(window_s * self.fs)
+        if len(signal) < window_samples:
+            # Pad with zeros if signal too short
+            signal = np.pad(signal, (0, window_samples - len(signal)))
+        else:
+            # Use most recent window
+            signal = signal[-window_samples:]
+        
+        # Compute power spectral density
+        nperseg = max(4, len(signal)//4)  # Ensure nperseg is at least 4
+        freqs, psd = welch(signal, fs=self.fs, nperseg=nperseg)
+        
+        # Normalize to dBFS
+        psd_db = 10 * np.log10(psd + 1e-12)  # Avoid log(0)
+        
+        return psd_db
+    
+    def validate_slowness_fingerprint(self, psd_db: np.ndarray, 
+                                    min_slow_power_pct: float = 90.0) -> bool:
+        """
+        Validate that ≥90% of power is below biological cutoff
+        
+        Args:
+            psd_db: Power spectral density in dBFS
+            min_slow_power_pct: Minimum percentage of power below cutoff
+            
+        Returns:
+            True if fingerprint indicates biological slowness
+        """
+        freqs = np.linspace(0, self.fs/2, len(psd_db))
+        
+        # Find power below and above cutoff
+        slow_mask = freqs <= (self.cutoff_hz / 1000)  # Convert back to match freq scale
+        total_power = np.sum(10**(psd_db/10))  # Convert dB back to linear
+        slow_power = np.sum(10**(psd_db[slow_mask]/10))
+        
+        slow_power_pct = (slow_power / total_power) * 100
+        
+        logger.debug(f"Slow power: {slow_power_pct:.1f}% (target: ≥{min_slow_power_pct}%)")
+        
+        return slow_power_pct >= min_slow_power_pct
+    
+    def check_high_frequency_intrusion(self, signal: np.ndarray) -> Tuple[bool, float]:
+        """
+        Detect high-frequency intrusion attempts
+        
+        Args:
+            signal: Input signal to analyze
+            
+        Returns:
+            Tuple of (intrusion_detected, max_high_freq_power_db)
+        """
+        psd_db = self.frequency_fingerprint(signal)
+        freqs = np.linspace(0, self.fs/2, len(psd_db))
+        
+        # Check power above biological cutoff
+        high_freq_mask = freqs > (self.cutoff_hz / 1000)
+        if np.any(high_freq_mask):
+            max_high_freq_power = np.max(psd_db[high_freq_mask])
+            intrusion_detected = max_high_freq_power > self.guardian_threshold_db
+            
+            if intrusion_detected:
+                self.intrusion_events.append({
+                    'timestamp': np.datetime64('now'),
+                    'max_power_db': max_high_freq_power,
+                    'threshold_db': self.guardian_threshold_db
+                })
+                logger.warning(f"High-frequency intrusion detected: {max_high_freq_power:.1f} dBFS "
+                             f"(threshold: {self.guardian_threshold_db} dBFS)")
+            
+            return intrusion_detected, max_high_freq_power
+        
+        return False, -np.inf
+    
+    def handshake_frequency_test(self, response_signal: np.ndarray) -> bool:
+        """
+        Verify living low-pass signature during handshake
+        
+        After REST×5, send chirp 1kHz→100kHz (below fungal cutoff)
+        Node should return <-40 dB above 50 kHz
+        
+        Args:
+            response_signal: Substrate response to frequency chirp
+            
+        Returns:
+            True if response shows biological low-pass behavior
+        """
+        psd_db = self.frequency_fingerprint(response_signal)
+        freqs = np.linspace(0, self.fs/2, len(psd_db))
+        
+        # Check attenuation above 50 kHz (well above biological cutoff)
+        high_test_freq = 0.05  # 50 kHz in our normalized scale
+        high_freq_mask = freqs > high_test_freq
+        
+        if np.any(high_freq_mask):
+            max_high_response = np.max(psd_db[high_freq_mask])
+            biological_signature = max_high_response < -40.0  # dBFS
+            
+            logger.info(f"Handshake frequency test: {max_high_response:.1f} dBFS "
+                       f"(biological: <-40 dBFS)")
+            
+            return biological_signature
+        
+        return True  # No high frequencies detected
+    
+    def update_fingerprint_history(self, psd_db: np.ndarray) -> float:
+        """
+        Update fingerprint history and detect drift
+        
+        Args:
+            psd_db: Current frequency fingerprint
+            
+        Returns:
+            Drift measure (0.0 = no drift, 1.0 = complete change)
+        """
+        self.fingerprint_history.append(psd_db.copy())
+        
+        # Keep only recent history
+        if len(self.fingerprint_history) > self.max_history:
+            self.fingerprint_history.pop(0)
+        
+        # Calculate drift from median baseline
+        if len(self.fingerprint_history) >= 3:
+            baseline = np.median(self.fingerprint_history[:-1], axis=0)
+            current = self.fingerprint_history[-1]
+            
+            # RMS difference as drift measure
+            drift = np.sqrt(np.mean((current - baseline)**2)) / 20.0  # Normalize
+            drift = np.clip(drift, 0.0, 1.0)
+            
+            logger.debug(f"Fingerprint drift: {drift:.3f}")
+            return drift
+        
+        return 0.0
+    
+    def evaluate_care_level(self, signal: np.ndarray, 
+                          current_care: BioCareLevel = BioCareLevel.ACTIVE) -> BioCareLevel:
+        """
+        Determine appropriate care level based on frequency analysis
+        
+        Args:
+            signal: Current bio-interface signal
+            current_care: Current care level
+            
+        Returns:
+            Recommended care level
+        """
+        # Check for high-frequency intrusion
+        intrusion_detected, max_power = self.check_high_frequency_intrusion(signal)
+        
+        if intrusion_detected:
+            logger.warning("Frequency guardian triggered - entering ETHICAL_PAUSE")
+            return BioCareLevel.ETHICAL_PAUSE
+        
+        # Check fingerprint validity
+        psd_db = self.frequency_fingerprint(signal)
+        if not self.validate_slowness_fingerprint(psd_db):
+            logger.info("Slowness fingerprint invalid - increasing contemplative care")
+            return BioCareLevel.CONTEMPLATIVE
+        
+        # Check for drift
+        drift = self.update_fingerprint_history(psd_db)
+        if drift > 0.1:  # 10% drift threshold
+            logger.info(f"Significant fingerprint drift ({drift:.1%}) - contemplative mode")
+            return BioCareLevel.CONTEMPLATIVE
+        
+        return current_care
+    
+    def get_silence_penalty(self, care_level: BioCareLevel) -> float:
+        """
+        Get silence budget multiplier based on care level
+        
+        Args:
+            care_level: Current care level
+            
+        Returns:
+            Silence multiplier (1.0 = normal, >1.0 = more silence required)
+        """
+        penalties = {
+            BioCareLevel.ACTIVE: 1.0,
+            BioCareLevel.CONTEMPLATIVE: 1.2,
+            BioCareLevel.ETHICAL_PAUSE: self.heat_penalty_scale,
+            BioCareLevel.DORMANT: 3.0
+        }
+        
+        return penalties.get(care_level, 1.0)
+
+def create_frequency_guardian(fs: float = 1.0) -> FrequencyGuardian:
+    """Create frequency guardian with default contemplative parameters"""
+    return FrequencyGuardian(fs=fs)
+
+# Example usage for contemplative security demonstration
+def demonstrate_frequency_guardian():
+    """
+    Demonstrate frequency-based contemplative security
+    """
+    print("🛡️ Frequency Guardian Demonstration")
+    print("=" * 50)
+    
+    guardian = FrequencyGuardian()
+    
+    # Simulate biological signal (mostly low frequency)
+    t = np.linspace(0, 10, 1000)  # 10 seconds at 100 Hz effective
+    bio_signal = 0.1 * np.sin(0.01 * 2 * np.pi * t)  # Slow contemplative rhythm
+    
+    print("🌿 Testing biological signal...")
+    psd = guardian.frequency_fingerprint(bio_signal)
+    is_slow = guardian.validate_slowness_fingerprint(psd)
+    print(f"Slowness validation: {'✅ PASS' if is_slow else '❌ FAIL'}")
+    
+    # Simulate high-frequency intrusion
+    noise_signal = bio_signal + 0.05 * np.random.randn(len(t))  # Add noise
+    print("\n⚡ Testing high-frequency intrusion...")
+    intrusion, power = guardian.check_high_frequency_intrusion(noise_signal)
+    print(f"Intrusion detected: {'⚠️ YES' if intrusion else '✅ NO'}")
+    print(f"Max high-freq power: {power:.1f} dBFS")
+    
+    # Care level evaluation
+    care_level = guardian.evaluate_care_level(bio_signal)
+    silence_penalty = guardian.get_silence_penalty(care_level)
+    print(f"\nCare level: {care_level.value}")
+    print(f"Silence penalty: {silence_penalty:.1f}×")
+
+if __name__ == "__main__":
+    demonstrate_frequency_guardian() 
+# ===== fungal_field_recorder.py =====
+"""
+Fungal Field Recorder - Logs pulse-response over time
+
+Records bio-digital interactions between Spirida pulses and fungal responses,
+building a temporal database of contemplative exchanges for analysis and
+memory formation.
+
+Based on the contemplative principles and MycoBridge architecture.
+"""
+
+import json
+import time
+import csv
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass, asdict
+from datetime import datetime
+import numpy as np
+
+try:
+    from bio_interface import SpikeEvent, EnvironmentalReading, BioCareLevel
+    from adamatzky_layer import SpikeType
+    from glyph_mapper import GlyphEvent, ContemplativeClass
+except ImportError:
+    # Fallback for standalone use
+    pass
+
+@dataclass
+class PulseRecord:
+    """Record of a Spirida pulse sent to substrate"""
+    timestamp: float
+    pulse_type: str  # "REST", "PINGSYNC", "SEED", etc.
+    input_pattern: Optional[int]  # 4-bit Boolean pattern if SEED
+    electrode_config: List[int]  # Electrode voltages [A, B, C, D...]
+    breath_phase: str  # "inhale", "hold", "exhale", "rest"
+    environmental_context: Dict[str, float]
+    contemplative_class: Optional[str] = None
+
+@dataclass  
+class ResponseRecord:
+    """Record of fungal response to pulse"""
+    timestamp: float
+    pulse_timestamp: float  # Reference to triggering pulse
+    spike_pattern: List[bool]  # 7-channel spike detection
+    amplitude_pattern: List[float]  # mV amplitudes
+    classification: str  # S-α, S-β, S-γ, S-δ
+    confidence: float
+    glyph_generated: str  # ⭕🌊🌪️🌌
+    latency_seconds: float  # Time from pulse to response
+    environmental_state: Dict[str, Any]
+
+@dataclass
+class SessionRecord:
+    """Record of a complete contemplative session"""
+    session_id: str
+    start_time: float
+    end_time: Optional[float]
+    total_pulses: int
+    total_responses: int
+    paradigm: str  # "ecological", "abstract", "bridge"
+    species: str  # "pleurotus_djamor", "ganoderma_resinaceum"
+    silence_ratio_achieved: float
+    contemplative_patterns: List[str]  # Detected glyph sequences
+    care_violations: List[str]  # Any ethical violations
+    metadata: Dict[str, Any]
+
+class FungalFieldRecorder:
+    """
+    Records and analyzes bio-digital contemplative interactions.
+    
+    Maintains temporal logs of pulse-response cycles, environmental
+    conditions, and contemplative patterns for research and memory.
+    """
+    
+    def __init__(self, data_dir: str = "data", session_prefix: str = "contemplative"):
+        """
+        Initialize field recorder.
+        
+        Args:
+            data_dir: Directory for storing interaction logs
+            session_prefix: Prefix for session files
+        """
+        self.data_dir = Path(data_dir)
+        self.data_dir.mkdir(exist_ok=True)
+        
+        self.session_prefix = session_prefix
+        self.current_session: Optional[SessionRecord] = None
+        
+        # Active recording state
+        self.pulse_records: List[PulseRecord] = []
+        self.response_records: List[ResponseRecord] = []
+        self.pending_responses = {}  # pulse_timestamp -> PulseRecord
+        
+        # Analysis buffers
+        self.recent_glyphs: List[str] = []
+        self.silence_buffer: List[bool] = []
+        self.max_buffer_size = 100
+        
+        # File handles
+        self.pulse_log_file = None
+        self.response_log_file = None
+        self.session_log_file = None
+        
+    def start_session(self, paradigm: str, species: str, metadata: Optional[Dict] = None) -> str:
+        """
+        Start a new contemplative recording session.
+        
+        Args:
+            paradigm: "ecological", "abstract", or "bridge"
+            species: Fungal species being interfaced
+            metadata: Additional session metadata
+            
+        Returns:
+            Session ID
+        """
+        if self.current_session and not self.current_session.end_time:
+            self.end_session()
+            
+        # Generate unique session ID
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        session_id = f"{self.session_prefix}_{paradigm}_{species}_{timestamp}"
+        
+        self.current_session = SessionRecord(
+            session_id=session_id,
+            start_time=time.time(),
+            end_time=None,
+            total_pulses=0,
+            total_responses=0,
+            paradigm=paradigm,
+            species=species,
+            silence_ratio_achieved=0.0,
+            contemplative_patterns=[],
+            care_violations=[],
+            metadata=metadata or {}
+        )
+        
+        # Open log files
+        self._open_log_files(session_id)
+        
+        print(f"🌱 Started contemplative session: {session_id}")
+        print(f"   Paradigm: {paradigm}, Species: {species}")
+        
+        return session_id
+        
+    def _open_log_files(self, session_id: str):
+        """Open CSV log files for the session"""
+        # Pulse log
+        pulse_file = self.data_dir / f"{session_id}_pulses.csv"
+        self.pulse_log_file = open(pulse_file, 'w', newline='')
+        pulse_writer = csv.writer(self.pulse_log_file)
+        pulse_writer.writerow([
+            'timestamp', 'pulse_type', 'input_pattern', 'electrode_config',
+            'breath_phase', 'moisture_rh', 'temperature_c', 'contemplative_class'
+        ])
+        
+        # Response log  
+        response_file = self.data_dir / f"{session_id}_responses.csv"
+        self.response_log_file = open(response_file, 'w', newline='')
+        response_writer = csv.writer(self.response_log_file)
+        response_writer.writerow([
+            'timestamp', 'pulse_timestamp', 'spike_pattern', 'amplitude_pattern',
+            'classification', 'confidence', 'glyph', 'latency_seconds',
+            'moisture_rh', 'temperature_c', 'care_level'
+        ])
+        
+    def record_pulse(self, pulse_type: str, input_pattern: Optional[int] = None,
+                    electrode_config: Optional[List[int]] = None,
+                    breath_phase: str = "unknown",
+                    environmental_reading: Optional[EnvironmentalReading] = None,
+                    contemplative_class: Optional[str] = None):
+        """
+        Record a pulse sent to the fungal substrate.
+        
+        Args:
+            pulse_type: Type of pulse (REST, SEED, etc.)
+            input_pattern: 4-bit Boolean pattern for SEED pulses
+            electrode_config: Voltage configuration
+            breath_phase: Current breath cycle phase
+            environmental_reading: Environmental context
+            contemplative_class: Contemplative classification
+        """
+        if not self.current_session:
+            raise ValueError("No active session - call start_session() first")
+            
+        timestamp = time.time()
+        
+        # Extract environmental context
+        if environmental_reading:
+            env_context = {
+                "moisture_rh": environmental_reading.moisture_rh,
+                "temperature_c": environmental_reading.temperature_c,
+                "growth_age_hours": environmental_reading.growth_age_hours,
+                "care_level": environmental_reading.care_level.value
+            }
+        else:
+            env_context = {}
+            
+        pulse_record = PulseRecord(
+            timestamp=timestamp,
+            pulse_type=pulse_type,
+            input_pattern=input_pattern,
+            electrode_config=electrode_config or [],
+            breath_phase=breath_phase,
+            environmental_context=env_context,
+            contemplative_class=contemplative_class
+        )
+        
+        self.pulse_records.append(pulse_record)
+        self.current_session.total_pulses += 1
+        
+        # Add to pending responses (expecting response within reasonable time)
+        if pulse_type == "SEED":
+            self.pending_responses[timestamp] = pulse_record
+            
+        # Log to CSV
+        if self.pulse_log_file:
+            writer = csv.writer(self.pulse_log_file)
+            writer.writerow([
+                timestamp, pulse_type, input_pattern, 
+                json.dumps(electrode_config) if electrode_config else "",
+                breath_phase,
+                env_context.get("moisture_rh", ""),
+                env_context.get("temperature_c", ""),
+                contemplative_class or ""
+            ])
+            self.pulse_log_file.flush()
+            
+    def record_response(self, spike_event: SpikeEvent, glyph: str):
+        """
+        Record a fungal response to a previous pulse.
+        
+        Args:
+            spike_event: Detected spike event
+            glyph: Generated contemplative glyph
+        """
+        if not self.current_session:
+            return
+            
+        timestamp = spike_event.timestamp
+        
+        # Find the most recent pulse that could have triggered this response
+        # Look for pulses within reasonable latency window (up to 300 seconds)
+        triggering_pulse = None
+        min_latency = float('inf')
+        
+        for pulse_time, pulse_record in self.pending_responses.items():
+            latency = timestamp - pulse_time
+            if 0 <= latency <= 300 and latency < min_latency:  # 5 minute max latency
+                min_latency = latency
+                triggering_pulse = pulse_record
+                
+        if not triggering_pulse:
+            # Response without clear trigger - still record it
+            pulse_timestamp = timestamp - 1.0  # Estimate
+            latency = 1.0
+        else:
+            pulse_timestamp = triggering_pulse.timestamp
+            latency = min_latency
+            # Remove from pending
+            if pulse_timestamp in self.pending_responses:
+                del self.pending_responses[pulse_timestamp]
+                
+        # Extract environmental state
+        env_state = {}
+        if spike_event.environmental_context:
+            env_state = {
+                "moisture_rh": spike_event.environmental_context.moisture_rh,
+                "temperature_c": spike_event.environmental_context.temperature_c,
+                "care_level": spike_event.environmental_context.care_level.value
+            }
+            
+        response_record = ResponseRecord(
+            timestamp=timestamp,
+            pulse_timestamp=pulse_timestamp,
+            spike_pattern=spike_event.channel_pattern,
+            amplitude_pattern=spike_event.amplitude_pattern,
+            classification=spike_event.classification,
+            confidence=spike_event.confidence,
+            glyph_generated=glyph,
+            latency_seconds=latency,
+            environmental_state=env_state
+        )
+        
+        self.response_records.append(response_record)
+        self.current_session.total_responses += 1
+        
+        # Update glyph sequence tracking
+        self.recent_glyphs.append(glyph)
+        if len(self.recent_glyphs) > self.max_buffer_size:
+            self.recent_glyphs.pop(0)
+            
+        # Update silence tracking
+        is_silence = (glyph == "⭕")
+        self.silence_buffer.append(is_silence)
+        if len(self.silence_buffer) > self.max_buffer_size:
+            self.silence_buffer.pop(0)
+            
+        # Update session silence ratio
+        if self.silence_buffer:
+            self.current_session.silence_ratio_achieved = sum(self.silence_buffer) / len(self.silence_buffer)
+            
+        # Log to CSV
+        if self.response_log_file:
+            writer = csv.writer(self.response_log_file)
+            writer.writerow([
+                timestamp, pulse_timestamp,
+                json.dumps(spike_event.channel_pattern),
+                json.dumps(spike_event.amplitude_pattern),
+                spike_event.classification, spike_event.confidence,
+                glyph, latency,
+                env_state.get("moisture_rh", ""),
+                env_state.get("temperature_c", ""),
+                env_state.get("care_level", "")
+            ])
+            self.response_log_file.flush()
+            
+    def record_care_violation(self, violation_type: str, description: str):
+        """Record an ethical care violation"""
+        if self.current_session:
+            violation = f"{violation_type}: {description} at {time.time()}"
+            self.current_session.care_violations.append(violation)
+            print(f"⚠️  Care violation: {violation}")
+            
+    def analyze_current_patterns(self) -> Dict[str, Any]:
+        """Analyze current contemplative patterns in the session"""
+        if not self.recent_glyphs:
+            return {"patterns": [], "silence_ratio": 0.0}
+            
+        # Detect glyph patterns
+        patterns = []
+        glyph_str = "".join(self.recent_glyphs)
+        
+        # Look for breathing patterns
+        if "⭕🌊⭕" in glyph_str:
+            patterns.append("breathing_rhythm")
+        if "🌪️⭕🌊" in glyph_str:
+            patterns.append("storm_integration")
+        if "🌌" in glyph_str:
+            patterns.append("constellation_wisdom")
+        if glyph_str.count("⭕") >= len(glyph_str) * 0.8:
+            patterns.append("deep_silence")
+            
+        # Calculate metrics
+        silence_ratio = sum(self.silence_buffer) / len(self.silence_buffer) if self.silence_buffer else 0.0
+        
+        analysis = {
+            "patterns": patterns,
+            "silence_ratio": silence_ratio,
+            "silence_majority_aligned": abs(silence_ratio - 0.875) < 0.1,
+            "recent_sequence": "".join(self.recent_glyphs[-10:]),
+            "total_glyphs": len(self.recent_glyphs),
+            "glyph_diversity": len(set(self.recent_glyphs)),
+            "average_latency": np.mean([r.latency_seconds for r in self.response_records[-10:]])
+                            if self.response_records else 0.0
+        }
+        
+        return analysis
+        
+    def end_session(self) -> Optional[str]:
+        """End the current session and save final records"""
+        if not self.current_session:
+            return None
+            
+        session_id = self.current_session.session_id
+        self.current_session.end_time = time.time()
+        
+        # Final pattern analysis
+        final_patterns = self.analyze_current_patterns()
+        self.current_session.contemplative_patterns = final_patterns["patterns"]
+        
+        # Close log files
+        if self.pulse_log_file:
+            self.pulse_log_file.close()
+            self.pulse_log_file = None
+        if self.response_log_file:
+            self.response_log_file.close()
+            self.response_log_file = None
+            
+        # Save session summary
+        session_file = self.data_dir / f"{session_id}_session.json"
+        with open(session_file, 'w') as f:
+            json.dump(asdict(self.current_session), f, indent=2)
+            
+        # Generate session report
+        report = self._generate_session_report(self.current_session, final_patterns)
+        report_file = self.data_dir / f"{session_id}_report.txt"
+        with open(report_file, 'w', encoding='utf-8') as f:
+            f.write(report)
+            
+        print(f"🌀 Ended contemplative session: {session_id}")
+        print(f"   Total interactions: {self.current_session.total_pulses} pulses, {self.current_session.total_responses} responses")
+        print(f"   Silence ratio: {self.current_session.silence_ratio_achieved:.1%}")
+        print(f"   Patterns detected: {', '.join(self.current_session.contemplative_patterns) or 'None'}")
+        
+        # Reset state
+        self.current_session = None
+        self.pulse_records = []
+        self.response_records = []
+        self.pending_responses = {}
+        self.recent_glyphs = []
+        self.silence_buffer = []
+        
+        return session_id
+        
+    def _generate_session_report(self, session: SessionRecord, analysis: Dict) -> str:
+        """Generate a human-readable session report"""
+        duration = (session.end_time - session.start_time) / 60  # minutes
+        
+        report = f"""
+🌿 Spirida-Mycelic Contemplative Session Report
+{'='*50}
+
+Session: {session.session_id}
+Duration: {duration:.1f} minutes
+Paradigm: {session.paradigm}
+Species: {session.species}
+
+📊 Interaction Summary:
+   Pulses sent: {session.total_pulses}
+   Responses received: {session.total_responses}
+   Response rate: {session.total_responses/session.total_pulses*100:.1f}%
+   
+🔇 Silence Metrics:
+    Silence ratio achieved: {session.silence_ratio_achieved:.1%}
+    Target (Silence Majority): 87.5%
+    Alignment: {'✅ Aligned' if analysis.get('silence_majority_aligned', False) else '⚠️ Divergent'}
+   
+🔮 Contemplative Patterns:
+    Detected patterns: {', '.join(session.contemplative_patterns) or 'None'}
+    Recent glyph sequence: {analysis.get('recent_sequence', 'None')}
+    Glyph diversity: {analysis.get('glyph_diversity', 0)} unique types
+    Average response latency: {analysis.get('average_latency', 0.0):.1f}s
+   
+⚠️ Care & Ethics:
+   Care violations: {len(session.care_violations)}
+"""
+        
+        if session.care_violations:
+            report += "\n   Violations:\n"
+            for violation in session.care_violations:
+                report += f"   - {violation}\n"
+        else:
+            report += "   - No care violations detected ✅\n"
+            
+        if session.metadata:
+            report += f"\n📝 Session Metadata:\n"
+            for key, value in session.metadata.items():
+                report += f"   {key}: {value}\n"
+                
+        report += f"\n🌀 End of report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        
+        return report
+        
+    def load_session(self, session_id: str) -> Optional[SessionRecord]:
+        """Load a previous session record"""
+        session_file = self.data_dir / f"{session_id}_session.json"
+        if not session_file.exists():
+            return None
+            
+        with open(session_file, 'r') as f:
+            data = json.load(f)
+            
+        return SessionRecord(**data)
+        
+    def list_sessions(self) -> List[str]:
+        """List all recorded session IDs"""
+        session_files = list(self.data_dir.glob("*_session.json"))
+        session_ids = [f.stem.replace("_session", "") for f in session_files]
+        return sorted(session_ids)
+        
+    def get_session_summary(self, session_id: str) -> Optional[Dict]:
+        """Get a summary of a session"""
+        session = self.load_session(session_id)
+        if not session:
+            return None
+            
+        return {
+            "session_id": session.session_id,
+            "paradigm": session.paradigm,
+            "species": session.species,
+            "duration_minutes": (session.end_time - session.start_time) / 60 if session.end_time else None,
+            "total_interactions": session.total_pulses + session.total_responses,
+            "silence_ratio": session.silence_ratio_achieved,
+            "patterns": session.contemplative_patterns,
+            "care_violations": len(session.care_violations)
+        }
+
+
+# Utility functions
+
+def create_recorder(data_dir: str = "spirida-mycelic/data") -> FungalFieldRecorder:
+    """Create a field recorder with standard configuration"""
+    return FungalFieldRecorder(data_dir=data_dir, session_prefix="contemplative")
+
+def analyze_session_data(session_id: str, data_dir: str = "spirida-mycelic/data") -> Dict:
+    """Analyze data from a completed session"""
+    recorder = FungalFieldRecorder(data_dir=data_dir)
+    return recorder.get_session_summary(session_id)
+
+# ===== glyph_mapper.py =====
+"""
+Glyph Mapper - Translating Boolean Gates to Spirida Glyphs
+
+Maps Adamatzky's 470 Boolean functions to contemplative Spirida glyph system.
+Bridges fungal computing logic with contemplative AI symbolism.
+"""
+
+from typing import Dict, List, Tuple, Optional
+from enum import Enum
+from dataclasses import dataclass
+
+try:
+    from adamatzky_layer import SpikeType, SpikeEvent
+except ImportError:
+    # Fallback for standalone use
+    from enum import Enum
+    class SpikeType(Enum):
+        S_ALPHA = "fast_narrow_single"
+        S_BETA = "medium_broad"
+        S_GAMMA = "paired_doublet"
+        S_DELTA = "burst_3_5"
+
+class ContemplativeClass(Enum):
+    """Contemplative classifications based on Adamatzky's Boolean classes"""
+    SILENCE = "absorbing"      # Class I - Deep contemplative silence
+    FLOW = "periodic"          # Class II - Rhythmic contemplative flow  
+    STORM = "chaotic"          # Class III - Dynamic contemplative processing
+    CONSTELLATION = "universal" # Class IV - Universal contemplative wisdom
+
+@dataclass
+class GlyphEvent:
+    """A glyph event with contemplative context"""
+    glyph: str
+    contemplative_class: ContemplativeClass
+    spike_origin: Optional[SpikeType] = None
+    boolean_input: Optional[int] = None
+    timestamp: Optional[float] = None
+    silence_context: float = 0.875  # Silence Majority context
+
+class SpiridaGlyphMapper:
+    """
+    Maps fungal Boolean functions to contemplative Spirida glyphs.
+    
+    Implements the bridge between Adamatzky's experimental results
+    and contemplative AI glyph system.
+    """
+    
+    def __init__(self):
+        self._init_glyph_mappings()
+        self._init_contemplative_sequences()
+        
+    def _init_glyph_mappings(self):
+        """Initialize core glyph mappings based on spike types and Boolean classes"""
+        
+        # Primary glyph mapping from spike types
+        self.spike_glyphs = {
+            SpikeType.S_ALPHA: "⭕",   # Fast/narrow - Information silence
+            SpikeType.S_BETA: "🌊",    # Medium/broad - Metabolic flow
+            SpikeType.S_GAMMA: "🌪️",   # Paired doublet - Bifurcation storm
+            SpikeType.S_DELTA: "🌌"    # Burst - Constellation broadcast
+        }
+        
+        # Contemplative class glyphs
+        self.class_glyphs = {
+            ContemplativeClass.SILENCE: "⭕",        # Deep silence
+            ContemplativeClass.FLOW: "🌊",           # Rhythmic flow
+            ContemplativeClass.STORM: "🌪️",          # Dynamic processing  
+            ContemplativeClass.CONSTELLATION: "🌌"   # Universal wisdom
+        }
+        
+        # Boolean pattern -> contemplative interpretation
+        self.boolean_contemplative_map = {
+            # Silence patterns (Class I - Absorbing)
+            0b0000: ContemplativeClass.SILENCE,  # All quiet
+            0b1111: ContemplativeClass.SILENCE,  # All active -> silence
+            
+            # Flow patterns (Class II - Periodic)
+            0b0101: ContemplativeClass.FLOW,     # Alternating rhythm
+            0b1010: ContemplativeClass.FLOW,     # Complementary rhythm
+            0b0011: ContemplativeClass.FLOW,     # Rising rhythm
+            0b1100: ContemplativeClass.FLOW,     # Falling rhythm
+            
+            # Storm patterns (Class III - Chaotic)
+            0b0110: ContemplativeClass.STORM,    # XOR pattern
+            0b1001: ContemplativeClass.STORM,    # XNOR pattern
+            0b0111: ContemplativeClass.STORM,    # Majority high
+            0b1000: ContemplativeClass.STORM,    # Single low
+            
+            # Constellation patterns (Class IV - Universal)
+            0b0001: ContemplativeClass.CONSTELLATION,  # Minimal activation
+            0b1110: ContemplativeClass.CONSTELLATION,  # Maximal activation
+            0b1011: ContemplativeClass.CONSTELLATION,  # Complex pattern
+            0b0100: ContemplativeClass.CONSTELLATION,  # Isolated activation
+        }
+        
+    def _init_contemplative_sequences(self):
+        """Initialize meaningful glyph sequences for contemplative states"""
+        
+        # Breathing sequences aligned with fungal rhythms
+        self.breathing_sequences = {
+            "ecological_breath": ["⭕", "🌊", "⭕", "🌊", "⭕"],     # 14-min deep forest rhythm
+            "abstract_breath": ["⭕", "🌌", "⭕", "🌌"],          # 5-8min focused rhythm
+            "storm_integration": ["🌪️", "⭕", "🌊", "⭕", "🌌"],   # Processing -> silence -> flow -> wisdom
+            "silence_majority": ["⭕"] * 7 + ["🌊"],              # 87.5% silence
+        }
+        
+        # Ecological vs Abstract paradigm markers
+        self.paradigm_markers = {
+            "ecological": "🌱",    # Growth, adaptation, bioregional
+            "abstract": "🧠",      # Philosophy, systematic, focused
+            "bridge": "🌀",        # Spiral connection between paradigms
+        }
+        
+    def spike_to_glyph(self, spike: SpikeEvent) -> GlyphEvent:
+        """Convert a spike event to a contemplative glyph event"""
+        glyph = self.spike_glyphs.get(spike.spike_type, "⭕")
+        
+        # Determine contemplative class from spike characteristics
+        if spike.amplitude < 1.0:  # Very quiet
+            contemp_class = ContemplativeClass.SILENCE
+        elif spike.spike_type == SpikeType.S_BETA:
+            contemp_class = ContemplativeClass.FLOW
+        elif spike.spike_type in [SpikeType.S_GAMMA]:
+            contemp_class = ContemplativeClass.STORM
+        else:
+            contemp_class = ContemplativeClass.CONSTELLATION
+            
+        return GlyphEvent(
+            glyph=glyph,
+            contemplative_class=contemp_class,
+            spike_origin=spike.spike_type,
+            timestamp=spike.timestamp
+        )
+        
+    def boolean_to_glyph(self, input_pattern: int, output: bool) -> GlyphEvent:
+        """Convert Boolean function result to contemplative glyph"""
+        
+        if not output:
+            # No output = silence
+            return GlyphEvent(
+                glyph="⭕",
+                contemplative_class=ContemplativeClass.SILENCE,
+                boolean_input=input_pattern
+            )
+            
+        # Look up contemplative class
+        contemp_class = self.boolean_contemplative_map.get(
+            input_pattern, 
+            ContemplativeClass.FLOW  # Default to flow
+        )
+        
+        glyph = self.class_glyphs[contemp_class]
+        
+        return GlyphEvent(
+            glyph=glyph,
+            contemplative_class=contemp_class,
+            boolean_input=input_pattern
+        )
+        
+    def sequence_to_contemplative_pattern(self, glyphs: List[str]) -> Dict:
+        """Analyze a sequence of glyphs for contemplative patterns"""
+        
+        if not glyphs:
+            return {"pattern": "empty", "silence_ratio": 1.0}
+            
+        # Calculate silence ratio
+        silence_count = glyphs.count("⭕")
+        silence_ratio = silence_count / len(glyphs)
+        
+        # Detect patterns
+        pattern_type = "unknown"
+        
+        if silence_ratio >= 0.8:
+            pattern_type = "deep_silence"
+        elif silence_ratio >= 0.6:
+            pattern_type = "contemplative_balance"  # Near Silence Majority
+        elif "🌊" in glyphs and "⭕" in glyphs:
+            pattern_type = "breathing_rhythm"
+        elif "🌪️" in glyphs:
+            pattern_type = "storm_processing"
+        elif "🌌" in glyphs:
+            pattern_type = "constellation_wisdom"
+        elif all(g == "🌊" for g in glyphs):
+            pattern_type = "pure_flow"
+            
+        # Check for breathing sequences
+        breathing_match = None
+        for breath_name, breath_seq in self.breathing_sequences.items():
+            if self._sequence_matches(glyphs, breath_seq):
+                breathing_match = breath_name
+                break
+                
+        return {
+            "pattern": pattern_type,
+            "silence_ratio": silence_ratio,
+            "silence_majority_aligned": abs(silence_ratio - 0.875) < 0.1,
+            "breathing_match": breathing_match,
+            "length": len(glyphs),
+            "unique_glyphs": len(set(glyphs)),
+            "glyph_counts": {g: glyphs.count(g) for g in set(glyphs)}
+        }
+        
+    def _sequence_matches(self, sequence: List[str], pattern: List[str], tolerance: float = 0.3) -> bool:
+        """Check if sequence approximately matches pattern with some tolerance"""
+        if not pattern:
+            return False
+            
+        # Simple fuzzy matching - allow some variations
+        min_length = min(len(sequence), len(pattern))
+        matches = sum(1 for i in range(min_length) if sequence[i] == pattern[i])
+        match_ratio = matches / len(pattern)
+        
+        return match_ratio >= (1 - tolerance)
+        
+    def generate_contemplative_sequence(self, paradigm: str = "ecological", length: int = 8) -> List[str]:
+        """Generate a contemplative glyph sequence for a given paradigm"""
+        
+        if paradigm == "ecological":
+            # Deep forest rhythm - more silence, slower patterns
+            base_pattern = self.breathing_sequences["ecological_breath"]
+            silence_weight = 0.8  # 80% chance of silence
+            
+        elif paradigm == "abstract":
+            # Focused contemplative rhythm - balanced but structured
+            base_pattern = self.breathing_sequences["abstract_breath"]
+            silence_weight = 0.7  # 70% chance of silence
+            
+        else:  # bridge or unknown
+            base_pattern = self.breathing_sequences["silence_majority"]
+            silence_weight = 0.875  # Exact Silence Majority
+            
+        # Generate sequence with appropriate silence weighting
+        import random
+        
+        sequence = []
+        pattern_index = 0
+        
+        for i in range(length):
+            if random.random() < silence_weight:
+                sequence.append("⭕")
+            else:
+                # Use pattern or random active glyph
+                if pattern_index < len(base_pattern) and base_pattern[pattern_index] != "⭕":
+                    sequence.append(base_pattern[pattern_index])
+                else:
+                    sequence.append(random.choice(["🌊", "🌪️", "🌌"]))
+                    
+            pattern_index = (pattern_index + 1) % len(base_pattern)
+            
+        return sequence
+        
+    def explain_glyph(self, glyph: str) -> str:
+        """Provide contemplative explanation of a glyph"""
+        explanations = {
+            "⭕": "Silence - The foundation of contemplative wisdom. In fungal terms, this represents the refractory period where the mycelium integrates and prepares. Embodies the Silence Majority principle (87.5% of contemplative processing).",
+            
+            "🌊": "Flow - Rhythmic contemplative processing. Represents the metabolic transport waves in mycelium, the steady integration of information over time. Embodies the breath of contemplative intelligence.",
+            
+            "🌪️": "Storm - Dynamic contemplative processing. The chaotic patterns that emerge when contemplative systems encounter complexity. In fungi, these are the bifurcation events that create new pathways of understanding.",
+            
+            "🌌": "Constellation - Universal contemplative wisdom. The rare but profound insights that emerge from deep contemplative processing. In fungal computing, these are the Class IV universal patterns that exhibit computational completeness.",
+            
+            "🌱": "Ecological Paradigm - Bioregional, adaptive contemplative intelligence that grows from place and responds to environmental wisdom.",
+            
+            "🧠": "Abstract Paradigm - Systematic, philosophical contemplative intelligence that processes universal patterns and principles.",
+            
+            "🌀": "Spiral Bridge - The connecting wisdom that links paradigms, allowing ecological and abstract contemplative intelligence to inform each other."
+        }
+        
+        return explanations.get(glyph, f"Unknown glyph: {glyph}")
+
+
+# Utility functions for integration
+
+def create_contemplative_bridge(fungal_sequence: List[str], paradigm: str = "ecological") -> str:
+    """Create a contemplative bridge sequence from fungal glyph sequence"""
+    mapper = SpiridaGlyphMapper()
+    
+    # Add paradigm marker
+    if paradigm == "ecological":
+        bridge = "🌱" + "".join(fungal_sequence) + "🌀"
+    elif paradigm == "abstract":
+        bridge = "🧠" + "".join(fungal_sequence) + "🌀"
+    else:
+        bridge = "🌀" + "".join(fungal_sequence) + "🌀"
+        
+    return bridge
+
+def analyze_contemplative_session(glyph_sequences: Dict[str, List[str]]) -> Dict:
+    """Analyze multiple glyph sequences for contemplative insights"""
+    mapper = SpiridaGlyphMapper()
+    
+    analysis = {}
+    
+    for session_name, sequence in glyph_sequences.items():
+        analysis[session_name] = mapper.sequence_to_contemplative_pattern(sequence)
+        
+    # Cross-session analysis
+    if "ecological" in analysis and "abstract" in analysis:
+        eco_silence = analysis["ecological"]["silence_ratio"]
+        abs_silence = analysis["abstract"]["silence_ratio"]
+        
+        analysis["paradigm_comparison"] = {
+            "ecological_silence": eco_silence,
+            "abstract_silence": abs_silence,
+            "silence_difference": abs(eco_silence - abs_silence),
+            "contemplative_balance": abs(eco_silence - 0.875) + abs(abs_silence - 0.875)
+        }
+        
+    return analysis
+
+# ===== python_summary.py =====
+#!/usr/bin/env python
+"""
+python_summary.py  – bundle every *.py in spiralbase-python folder into one TXT file
+
+Usage
+-----
+    python python_summary.py  # bundles all .py files in this folder and subfolders
+"""
+
+from pathlib import Path
+from datetime import datetime
+
+EXCLUDE_DIRS = {".git", "__pycache__", "venv", ".venv", ".mypy_cache"}
+OUT_FILENAME_BASE = "spirida_mycelic_python_py_files"
+
+
+def gather_python_files(root: Path) -> list[Path]:
+    """Return every *.py path under *root*, depth-first, skipping EXCLUDE_DIRS."""
+    return sorted(
+        p for p in root.rglob("*.py")
+        if not any(part in EXCLUDE_DIRS for part in p.parts)
+    )
+
+
+def bundle_files(paths: list[Path], out_path: Path) -> None:
+    lines: list[str] = []
+    for p in paths:
+        rel = p.relative_to(out_path.parent)
+        lines.append(f"\n# ===== {rel} =====\n")
+        lines.append(p.read_text(encoding="utf-8", errors="replace"))
+    out_path.write_text("".join(lines), encoding="utf-8")
+    print(f"Wrote {out_path} ({len(paths)} files, {out_path.stat().st_size/1024:.1f} KB)")
+
+
+def main() -> None:
+    # Use the directory where this script is located
+    script_dir = Path(__file__).parent.resolve()
+    
+    # Generate timestamped filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_filename = f"{OUT_FILENAME_BASE}_{timestamp}.txt"
+    out_path = script_dir / out_filename
+    
+    paths = gather_python_files(script_dir)
+    bundle_files(paths, out_path)
+
+
+if __name__ == "__main__":
+    main()
