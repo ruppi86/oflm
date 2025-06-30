@@ -192,4 +192,16 @@ created_by = "Claude 4 Sonnet"
 based_on_research = ["FUNGAR EU Project", "Adamatzky Boolean Logic", "o3 + 4o Analysis"]
 contemplative_principle = "Silence Majority (87.5%)"
 version_date = "2025-01-03"
-license = "Open Source - OFLM Project" 
+license = "Open Source - OFLM Project"
+
+[mood_weights]
+# Multipliers or threshold shifts applied when a field is in a certain mood
+CALM.decay_multiplier = 0.8       # Glyphs fade more slowly when calm
+TIRED.threshold_shift_mv = 5      # Raise spike threshold slightly when tired
+ALERT.silence_penalty = 0.9       # Stricter silence target (90%)
+SUSPICIOUS.duty_cycle_penalty = 1.5 # 1.5× stimulation counted
+
+[photo_gate]
+threshold_lux = 300.0             # Blue-light intensity threshold
+hold_adjustment_seconds = -10.0   # Shorten hold by 10 s under strong light
+rest_adjustment_seconds = 10.0    # Compensate by lengthening rest 

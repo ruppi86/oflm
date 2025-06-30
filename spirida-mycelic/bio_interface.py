@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from scipy.signal import butter, filtfilt
 import logging
+from .bio_mood import BioMood
 
 # Import contemplative modules (relative imports for package structure)
 try:
@@ -137,6 +138,10 @@ class SevenChannelBioInterface:
         self.rest_cycles_completed = 0
         self.required_rest_cycles = 5
         
+        # Bio-mood state (Letter IX – Mooded Shell)
+        self.mood: BioMood = BioMood.CALM
+        self._last_mood_update = time.time()
+        
         # Buffer for real-time processing
         self.buffer_size = int(self.fs * 60)  # 1 minute buffer
         self.voltage_buffers = [np.zeros(self.buffer_size) for _ in range(self.num_channels)]
@@ -243,6 +248,9 @@ class SevenChannelBioInterface:
         Returns:
             List of channel readings with spike detection
         """
+        # Mood maintenance
+        self._update_mood()
+        
         timestamp = time.time()
         readings = []
         
@@ -715,6 +723,30 @@ class SevenChannelBioInterface:
             "impedance_limit": self.semantic_guardian.impedance_limit,
             "budget_utilization": (self.semantic_guardian.impedance_budget / self.semantic_guardian.impedance_limit) * 100
         }
+
+    def _update_mood(self):
+        """Very simple heuristic to shift mood based on recent context.
+
+        This placeholder demonstrates the plumbing; it is *not* a final
+        affective model.  Mood changes will influence threshold and silence
+        budgeting once the full engine is implemented.
+        """
+        now = time.time()
+        if now - self._last_mood_update < 10:  # update every 10 s max
+            return
+        self._last_mood_update = now
+
+        # Heuristic signals
+        care = self.get_care_status()
+        guardian = self.get_frequency_guardian_status()
+
+        if guardian.get("intrusion_detected", False):
+            self.mood = BioMood.SUSPICIOUS
+        elif care.get("care_level") == BioCareLevel.ETHICAL_PAUSE.value:
+            self.mood = BioMood.TIRED
+        else:
+            # Drift toward CALM when nothing alarming is present
+            self.mood = BioMood.CALM
 
 
 # Utility functions for integration
