@@ -21,8 +21,44 @@ import glob
 
 # Import from existing modules
 from glyph_codec import SpiramycelGlyphCodec
+from gpu_breathing import contemplative_pause
 from spore_map import Season
 from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, load_spiramycel_parameters
+
+def determine_model_scale_and_folders(model, paradigm: str):
+    """
+    Determine model scale and return appropriate scale-specific folder paths
+    
+    Args:
+        model: Trained SpiramycelNeuralModel
+        paradigm: "ecological" or "abstract"
+        
+    Returns:
+        Tuple of (scale_name, model_dir, scale_suffix)
+    """
+    param_count = model.count_parameters()
+    
+    # Determine scale based on parameter count
+    if param_count < 50_000:  # < 50K parameters
+        scale_name = "25k"
+        scale_suffix = "25k"
+    elif param_count < 300_000:  # 50K - 300K parameters  
+        scale_name = "200k"
+        scale_suffix = "200k"
+    elif param_count < 2_000_000:  # 300K - 2M parameters
+        scale_name = "600k" 
+        scale_suffix = "600k"
+    else:  # 2M+ parameters
+        scale_name = "6m"
+        scale_suffix = "6m"
+    
+    # Construct scale-specific model directory
+    model_dir = f"{paradigm}_models_{scale_suffix}"
+    
+    print(f"🏷️  Auto-detected {scale_name} scale model ({param_count:,} parameters)")
+    print(f"📁 Using scale-specific directory: {model_dir}/")
+    
+    return scale_name, model_dir, scale_suffix
 
 def discover_training_data(paradigm: str = "abstract", data_dir: str = "training_scenarios") -> List[Path]:
     """
@@ -216,8 +252,9 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
         return None
     
     # Use SpiramycelNeuralModel with configuration
-    device = torch.device("cpu")  # Force CPU for democratic access
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Use GPU if available
     model = SpiramycelNeuralModel(config=config, paradigm="abstract").to(device)
+    print(f"🚀 Using device: {device} ({'GPU-accelerated!' if device.type == 'cuda' else 'CPU fallback'})")
     
     # Print actual model type that was selected
     print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
@@ -251,7 +288,7 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             optimizer.zero_grad()
             
             # Forward pass
-            glyph_logits, eff_logits, silence_logits, _, _ = model(input_tokens, condition_tensor)
+            glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, condition_tensor)
             
             # Calculate losses
             glyph_loss = glyph_criterion(
@@ -285,8 +322,9 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             epoch_silence_loss += silence_loss.item()
             num_batches += 1
             
-            # Match ecological training's contemplative breathing pause
-            time.sleep(0.05)
+            # Adaptive contemplative breathing based on GPU stress (skip for models < 1M)
+            if model.count_parameters() >= 1000000:  # Only for large models (1M+)
+                contemplative_pause("abstract_training")
         
         # Calculate average losses
         avg_glyph_loss = epoch_glyph_loss / num_batches if num_batches > 0 else 0.0
@@ -300,9 +338,9 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
     training_time = time.time() - start_time
     print(f"⏱ Training completed in {training_time:.1f} seconds")
     
-    # Save model using configuration paths
-    save_paths = config.get('save_paths', {})
-    models_dir = Path(save_paths.get('model_dir', 'abstract_models'))
+    # Auto-detect model scale and use appropriate scale-specific folder
+    scale_name, scale_model_dir, scale_suffix = determine_model_scale_and_folders(model, "abstract")
+    models_dir = Path(scale_model_dir)
     models_dir.mkdir(exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -311,8 +349,8 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
     torch.save(model.state_dict(), model_path)
     print(f"💾 Model saved to {model_path}")
     
-    # Latest model link using configuration
-    latest_model_name = save_paths.get('latest_model', 'abstract_spiramycel_latest.pt')
+    # Latest model link using scale-specific naming
+    latest_model_name = f"abstract_spiramycel_latest.pt"
     latest_path = models_dir / latest_model_name
     try:
         if latest_path.exists():
@@ -322,6 +360,24 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
         print(f"📎 Latest model link: {latest_path}")
     except Exception as e:
         print(f"⚠ Could not create latest link: {e}")
+    
+    # Also save with standard naming for controlled comparison compatibility
+    standard_names = {
+        "abstract_calm_model.pt": "calm",
+        "abstract_chaotic_model.pt": "chaotic"
+    }
+    
+    # Determine model type based on config or training characteristics
+    model_type = config.get('model_type', 'calm')  # Default to calm if not specified
+    for standard_name, model_variant in standard_names.items():
+        if model_variant in str(model_path).lower() or model_type == model_variant:
+            standard_path = models_dir / standard_name
+            try:
+                shutil.copy2(model_path, standard_path)
+                print(f"📋 Standard model link: {standard_path}")
+                break
+            except Exception as e:
+                print(f"⚠ Could not create standard link: {e}")
     
     # Test abstract inference
     print("\n🔬 Testing abstract inference:")
@@ -336,16 +392,16 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             bandwidth=0.2     # Low bandwidth from congestion
         )
         
-        test_tensor = torch.tensor([test_conditions.to_condition_vector()], dtype=torch.float32)
-        start_token = torch.tensor([[0x00]], dtype=torch.long)  # START token
+        test_tensor = torch.tensor([test_conditions.to_condition_vector()], dtype=torch.float32).to(device)
+        start_token = torch.tensor([[0x00]], dtype=torch.long).to(device)  # START token
         
         # Generate abstract repair sequence
         generated_tokens = [0x00]  # Start with START token
         hidden1, hidden2 = None, None
         
         for step in range(10):  # Generate up to 10 tokens
-            input_tensor = torch.tensor([generated_tokens[-1:]], dtype=torch.long)
-            glyph_logits, _, silence_logits, hidden1, hidden2 = model(input_tensor, test_tensor, hidden1, hidden2)
+            input_tensor = torch.tensor([generated_tokens[-1:]], dtype=torch.long).to(device)
+            glyph_logits, _, silence_logits, hidden1, hidden2, hidden3 = model(input_tensor, test_tensor, hidden1, hidden2)
             
             # Check if we should use silence
             silence_prob = torch.sigmoid(silence_logits[0, -1]).item()

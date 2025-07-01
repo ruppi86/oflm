@@ -23,7 +23,7 @@ Philosophy:
 Neural Architecture:
 -------------------
 • Femto-model: ~25k parameters (CPU optimized)
-• Piko-model: ~600k parameters (GPU optimized)  
+• nano-model: ~600k parameters (GPU optimized)  
 • Based on proven HaikuMeadowLib GRU architecture
 • Multi-head training: glyph sequences + effectiveness + silence
 • Learns Silence Majority (87.5% contemplative silence)
@@ -116,11 +116,11 @@ def get_system_info():
             "glyph_codec": "64-symbol mycelial vocabulary with contemplative silence",
             "spore_map": "Living memory with seasonal evaporation cycles", 
             "runtime_patch": "Safe glyph-to-action conversion with consensus building",
-            "neural_trainer": "Femto/piko neural models (adapted from HaikuMeadowLib)" if NEURAL_TRAINING_AVAILABLE else "Not available (requires PyTorch)"
+            "neural_trainer": "Femto/nano neural models (adapted from HaikuMeadowLib)" if NEURAL_TRAINING_AVAILABLE else "Not available (requires PyTorch)"
         },
         "architecture": {
             "femto_model": "~25k parameters (CPU optimized)",
-            "piko_model": "~600k parameters (GPU optimized)",
+            "nano_model": "~600k parameters (GPU optimized)",
             "training_heads": ["glyph_sequences", "effectiveness_prediction", "silence_detection"],
             "base_architecture": "GRU with condition embedding (from HaikuMeadowLib)"
         },

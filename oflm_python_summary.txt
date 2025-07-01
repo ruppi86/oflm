@@ -2222,7 +2222,7 @@ class HaikuBridge:
                 if model_path:
                     model_path_obj = os.path.join(haiku_path, model_path)
                 else:
-                    model_path_obj = os.path.join(haiku_path, "model/piko/piko_haiku_model.pt")
+                    model_path_obj = os.path.join(haiku_path, "model/nano/nano_haiku_model.pt")
                 
                 if os.path.exists(model_path_obj):
                     from pathlib import Path
@@ -14977,9 +14977,9 @@ if __name__ == "__main__":
 # ===== haikumeadowlib-python\generator.py =====
 #!/usr/bin/env python3
 """
-generator.py - Piko-Haiku Generator
+generator.py - nano-Haiku Generator
 
-A minimal contemplative language model (piko-LLM) that generates haikus
+A minimal contemplative language model (nano-LLM) that generates haikus
 following o3's architectural vision:
 - ~600k parameters (fits on a wildflower's petal)
 - Breath-synchronized generation
@@ -15046,8 +15046,8 @@ def load_model_parameters(model_name: str = None, param_file: str = "lm_paramete
     
     # Default parameters (fallback if YAML not available)
     default_params = {
-        "piko": {
-            "description": "Default piko-scale model",
+        "nano": {
+            "description": "Default nano-scale model",
             "target_device": "cpu",
             "parameter_count": 35,
             "embed_dim": 32,
@@ -15112,7 +15112,7 @@ def load_model_parameters(model_name: str = None, param_file: str = "lm_paramete
                     if DEVICE and DEVICE.type == "cuda":
                         model_name = config.get("default_model", "nano")
                     else:
-                        model_name = "piko"  # Safe default for CPU
+                        model_name = "nano"  # Safe default for CPU
                 else:
                     model_name = model_name.lower()
                 
@@ -15149,15 +15149,15 @@ def load_model_parameters(model_name: str = None, param_file: str = "lm_paramete
         if DEVICE and DEVICE.type == "cuda":
             model_name = "nano" 
         else:
-            model_name = "piko"
+            model_name = "nano"
     
     model_name = model_name.lower()
     if model_name in default_params:
         print(f"📋 Using default {model_name} parameters")
         return default_params[model_name]
     else:
-        print(f"⚠️  Unknown model '{model_name}', using piko defaults")
-        return default_params["piko"]
+        print(f"⚠️  Unknown model '{model_name}', using nano defaults")
+        return default_params["nano"]
 
 class Season(Enum):
     SPRING = "spring"
@@ -15370,7 +15370,7 @@ class SimpleTokenizer:
         return " ".join(tokens)
 
 class HaikuDataset(Dataset if TORCH_AVAILABLE else object):
-    """Dataset for training the piko-LLM"""
+    """Dataset for training the nano-LLM"""
     
     def __init__(self, training_data_path: Path, tokenizer: SimpleTokenizer, max_length: int = 32):
         
@@ -15438,12 +15438,12 @@ class HaikuDataset(Dataset if TORCH_AVAILABLE else object):
         
         return input_tokens, target_tokens, condition_tensor
 
-class PikoHaikuModel(nn.Module if TORCH_AVAILABLE else object):
+class nanoHaikuModel(nn.Module if TORCH_AVAILABLE else object):
     """
     Configurable neural haiku generator with adaptive sizing
     
     Now uses parameters from lm_parameters.yml:
-    - Piko mode: ~35k parameters (CPU-optimized)
+    - nano mode: ~35k parameters (CPU-optimized)
     - Nano mode: ~600k parameters (GPU-optimized)
     """
     

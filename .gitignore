@@ -251,3 +251,8 @@ markdown_summary.py
 spirida-mycelic/docs/
 !spirida-mycelic/docs/*.pdf
 !oflm/spirida-mycelic/docs/spiral_letter_spirida_biocomputing.md
+
+# test sets:
+*ood_test_set_same_100x4_*.jsonl
+*ecological*.pt
+*abstract*.pt
