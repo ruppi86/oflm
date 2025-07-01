@@ -1,0 +1,207 @@
+# Spirida-Mycelic Configuration
+# Contemplative Bio-Digital Interface Parameters
+
+[system]
+name = "Spirida-Mycelic"
+version = "0.1.0"
+mode = "simulation"  # "simulation", "phantom_hardware", "live_substrate"
+log_level = "INFO"
+
+[bio_interface]
+# Seven-channel differential setup
+num_channels = 7
+sample_rate_hz = 1.0
+mock_mode = true
+
+# Signal processing (from o3 + 4o specifications)
+band_pass_low_hz = 0.003    # 3 mHz - lower bound (5 min period)
+band_pass_high_hz = 0.1     # 100 mHz - upper bound (10 s period)
+threshold_mv = 20.0         # 20 mV spike threshold
+hysteresis_mv = 5.0         # ±5 mV to avoid chatter
+buffer_size_seconds = 60    # 1 minute circular buffer
+
+[ethics_and_care]
+# Duty cycle limits (5 min stimulation per hour)
+duty_cycle_limit_seconds = 300
+duty_cycle_window_hours = 1.0
+
+# Environmental care thresholds
+moisture_floor_rh = 60.0    # Below 60% RH triggers dormant mode
+temperature_ceiling_c = 28.0 # Above 28°C triggers heat-sleep
+optimal_temperature_c = 22.0
+optimal_moisture_rh = 75.0
+
+# Slow-start handshake
+required_rest_cycles = 5
+ping_timeout_seconds = 30
+
+# D3.3 Frequency Care - Biological Low-Pass Filter Wisdom
+[frequency_care]
+cutoff_khz = 0.5  # 500 Hz biological cutoff (mycelium composites ~500 kHz scaled to our domain)
+guardian_threshold_db = -60.0  # High-frequency intrusion threshold (dBFS)
+heat_penalty_scale = 2.0  # Double silence budget when guardian fires
+slowness_fingerprint_window_s = 2.0  # Analysis window for frequency fingerprinting
+min_slow_power_pct = 90.0  # Minimum percentage of power below cutoff for biological validation
+handshake_test_freq_khz = 0.05  # 50 Hz test frequency for slow-start handshake
+drift_threshold = 0.1  # 10% fingerprint drift triggers contemplative care
+
+[contemplative_rhythms]
+# Species-specific timing patterns (from FUNGAR research)
+
+[contemplative_rhythms.pleurotus_djamor]
+# Bimodal rhythm: 2.6 min / 14 min (Ecological paradigm)
+fast_period_seconds = 156   # 2.6 * 60
+slow_period_seconds = 840   # 14 * 60
+spike_width_min_seconds = 23
+spike_width_max_seconds = 100
+refractory_min_seconds = 26
+refractory_max_seconds = 280
+silence_target_ratio = 0.74 # 74% silence in slow mode
+paradigm = "ecological"
+
+[contemplative_rhythms.ganoderma_resinaceum]
+# Steady contemplative rhythm: 5-8 min (Abstract paradigm)
+fast_period_seconds = 300   # 5 * 60
+slow_period_seconds = 480   # 8 * 60
+spike_width_min_seconds = 60
+spike_width_max_seconds = 90
+refractory_min_seconds = 180
+refractory_max_seconds = 240
+silence_target_ratio = 0.67 # 67% silence
+paradigm = "abstract"
+
+[breathing_cycles]
+# Bio-digital synchronized breathing (150s cycles)
+total_cycle_seconds = 150
+inhale_ratio = 0.27         # 40s / 150s = 0.27
+hold_ratio = 0.47           # 70s / 150s = 0.47  
+exhale_ratio = 0.27         # 40s / 150s = 0.27
+rest_ratio = 0.0            # No additional rest in basic cycle
+
+# Adaptive breathing adjustment
+silence_target = 0.875      # 87.5% Silence Majority
+adjustment_factor = 0.5     # How aggressively to adjust
+max_adjustment = 0.2        # ±20% period adjustment limit
+
+[glyph_system]
+# Contemplative glyph mappings
+silence_glyph = "⭕"         # S-α type: Information silence
+flow_glyph = "🌊"           # S-β type: Metabolic flow
+storm_glyph = "🌪️"          # S-γ type: Bifurcation storm
+constellation_glyph = "🌌"   # S-δ type: Universal wisdom
+
+# Paradigm markers
+ecological_marker = "🌱"
+abstract_marker = "🧠"
+bridge_marker = "🌀"
+
+[electrode_configuration]
+# Physical electrode setup (for future hardware)
+electrode_material = "stainless_steel"  # "platinum", "stainless_steel", "carbon_mesh"
+electrode_diameter_mm = 0.38           # 18 mm sub-dermal EEG needles
+insertion_depth_mm = 50
+spacing_mm = 20                        # 20 mm apart for 4-bit logic
+differential_pairs = 7
+
+# Voltage levels
+input_voltage_low = -5.0    # -5V = logical 0
+input_voltage_high = 5.0    # +5V = logical 1
+output_threshold_v = 0.020  # 20 mV threshold in volts
+
+[environmental_simulation]
+# Default environmental conditions
+default_moisture_rh = 75.0
+default_temperature_c = 22.0
+default_growth_age_hours = 48
+
+# Environmental variation for simulation
+moisture_noise_std = 2.0    # ±2% RH random variation
+temperature_noise_std = 0.5 # ±0.5°C random variation
+aging_rate_hours_per_day = 24
+
+[data_logging]
+# Session recording configuration
+data_directory = "data"
+session_prefix = "contemplative"
+auto_backup = true
+max_session_duration_hours = 24
+compress_old_sessions = true
+
+# CSV logging
+log_pulses = true
+log_responses = true  
+log_environmental = true
+flush_interval_seconds = 10
+
+[adamatzky_simulation]
+# Boolean function simulation parameters
+num_implemented_functions = 8     # Currently implemented subset
+target_full_functions = 470       # Adamatzky's 470 unique functions
+extended_functions = 3136         # Full 3136 truth table set
+
+# Probabilistic response parameters
+base_spike_probability = 0.02     # 2% chance per sample
+environmental_influence_factor = 0.5
+noise_amplitude_mv = 0.5          # 0.5 mV base noise
+
+# Species-specific spike amplitudes (mV)
+[adamatzky_simulation.spike_amplitudes]
+s_alpha_min = 2.0    # Fast, narrow
+s_alpha_max = 6.0
+s_beta_min = 1.0     # Medium, broad
+s_beta_max = 4.0
+s_gamma_min = 3.0    # Paired doublet
+s_gamma_max = 5.0
+s_delta_min = 4.0    # Burst
+s_delta_max = 8.0
+
+[integration]
+# Integration with existing OFLM components
+enable_spirida_bus = false        # Publish glyphs to SpiridaBus
+enable_contemplative_ai = false   # Integrate with Spiramycel
+enable_security_modules = false   # Use breath_signature
+
+# Future hardware integration
+enable_hardware_interface = false
+hardware_device = "arduino_mega"  # "arduino_mega", "raspberry_pi", "mushroom_1"
+serial_port = "/dev/ttyUSB0"
+baud_rate = 115200
+
+[testing]
+# Test and validation parameters
+run_startup_tests = true
+validate_filter_response = true
+check_ethical_limits = true
+demo_mode_speed_multiplier = 10   # 10x faster for demos
+
+[experimental]
+# Experimental features (use with caution)
+enable_myco_bridge = false        # Full MycoBridge architecture
+enable_hpl_syntax = false         # Hypha Programming Language
+enable_germinate_conditions = false # Advanced pattern recognition
+quantum_interface = false         # Speculative quantum-bio links
+
+# Advanced pattern recognition
+pattern_memory_length = 100
+pattern_recognition_threshold = 0.7
+enable_adaptive_learning = false
+
+[metadata]
+# Configuration metadata
+created_by = "Claude 4 Sonnet"
+based_on_research = ["FUNGAR EU Project", "Adamatzky Boolean Logic", "o3 + 4o Analysis"]
+contemplative_principle = "Silence Majority (87.5%)"
+version_date = "2025-01-03"
+license = "Open Source - OFLM Project"
+
+[mood_weights]
+# Multipliers or threshold shifts applied when a field is in a certain mood
+CALM.decay_multiplier = 0.8       # Glyphs fade more slowly when calm
+TIRED.threshold_shift_mv = 5      # Raise spike threshold slightly when tired
+ALERT.silence_penalty = 0.9       # Stricter silence target (90%)
+SUSPICIOUS.duty_cycle_penalty = 1.5 # 1.5× stimulation counted
+
+[photo_gate]
+threshold_lux = 300.0             # Blue-light intensity threshold
+hold_adjustment_seconds = -10.0   # Shorten hold by 10 s under strong light
+rest_adjustment_seconds = 10.0    # Compensate by lengthening rest 

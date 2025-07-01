@@ -1,0 +1,316 @@
+{
+  "metadata": {
+    "description": "Adamatzky Boolean Logic Samples for Spirida-Mycelic",
+    "source": "Adamatzky 2023 - 3136 distinct 4-input Boolean functions in Pleurotus ostreatus",
+    "implementation_date": "2025-01-03",
+    "version": "1.0",
+    "citation": "Adamatzky, A. (2023). Boolean gates realized in mycelium of Pleurotus ostreatus. Scientific Reports, 13, 20080."
+  },
+  
+  "spike_archetypes": {
+    "s_alpha": {
+      "description": "Fast, narrow, single spike",
+      "temporal_signature": "fast_narrow_single",
+      "typical_width_seconds": 23,
+      "amplitude_range_mv": [2.0, 6.0],
+      "capacitance_estimate_microfarads": 1.0,
+      "glyph_mapping": "⭕",
+      "glyph_type": "SILENCE",
+      "dominates": "growth_fronts",
+      "information_type": "information_glyph"
+    },
+    
+    "s_beta": {
+      "description": "Medium, broad spike",
+      "temporal_signature": "medium_broad",
+      "typical_width_seconds": 60,
+      "amplitude_range_mv": [1.0, 4.0],
+      "capacitance_estimate_microfarads": 3.0,
+      "glyph_mapping": "🌊",
+      "glyph_type": "FLOW",
+      "dominates": "metabolite_transport",
+      "information_type": "metabolic_flow_event"
+    },
+    
+    "s_gamma": {
+      "description": "Paired doublet spike",
+      "temporal_signature": "paired_doublet",
+      "typical_width_seconds": 30,
+      "amplitude_range_mv": [3.0, 5.0],
+      "capacitance_estimate_microfarads": 1.5,
+      "glyph_mapping": "🌪️",
+      "glyph_type": "STORM",
+      "dominates": "tip_bifurcation",
+      "information_type": "bifurcation_cue"
+    },
+    
+    "s_delta": {
+      "description": "Burst of 3-5 spikes",
+      "temporal_signature": "burst_3_to_5",
+      "typical_width_seconds": 120,
+      "amplitude_range_mv": [4.0, 8.0],
+      "capacitance_estimate_microfarads": 8.0,
+      "glyph_mapping": "🌌",
+      "glyph_type": "UNIVERSAL",
+      "dominates": "long_distance_broadcast",
+      "information_type": "universal_wisdom"
+    }
+  },
+  
+  "boolean_functions": {
+    "f1_absorbing": {
+      "function_id": "F1",
+      "class": "I",
+      "behavior": "absorbing",
+      "truth_table": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "complexity_class": "trivial",
+      "spike_archetype": "s_alpha",
+      "glyph_output": "⭕",
+      "contemplative_meaning": "complete_silence",
+      "probability_map": {
+        "moisture_optimal": 0.95,
+        "moisture_low": 0.98,
+        "temperature_high": 0.99
+      }
+    },
+    
+    "f3_nand": {
+      "function_id": "F3",
+      "class": "IV",
+      "behavior": "universal",
+      "truth_table": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      "complexity_class": "universal",
+      "spike_archetype": "s_delta",
+      "glyph_output": "🌌",
+      "contemplative_meaning": "universal_computation",
+      "probability_map": {
+        "moisture_optimal": 0.05,
+        "moisture_low": 0.02,
+        "temperature_high": 0.01
+      }
+    },
+    
+    "f6_silent": {
+      "function_id": "F6",
+      "class": "I",
+      "behavior": "absorbing",
+      "truth_table": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "complexity_class": "trivial",
+      "spike_archetype": "s_alpha",
+      "glyph_output": "⭕",
+      "contemplative_meaning": "eternal_rest",
+      "probability_map": {
+        "moisture_optimal": 0.9,
+        "moisture_low": 0.95,
+        "temperature_high": 0.98
+      }
+    },
+    
+    "f13_chaotic": {
+      "function_id": "F13",
+      "class": "III",
+      "behavior": "chaotic",
+      "truth_table": [0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1],
+      "complexity_class": "chaotic",
+      "spike_archetype": "s_gamma",
+      "glyph_output": "🌪️",
+      "contemplative_meaning": "creative_chaos",
+      "probability_map": {
+        "moisture_optimal": 0.15,
+        "moisture_low": 0.25,
+        "temperature_high": 0.3
+      }
+    },
+    
+    "f16_or": {
+      "function_id": "F16",
+      "class": "IV",
+      "behavior": "universal",
+      "truth_table": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      "complexity_class": "universal",
+      "spike_archetype": "s_delta",
+      "glyph_output": "🌌",
+      "contemplative_meaning": "inclusive_wisdom",
+      "probability_map": {
+        "moisture_optimal": 0.04,
+        "moisture_low": 0.02,
+        "temperature_high": 0.01
+      }
+    },
+    
+    "f42_xor": {
+      "function_id": "F42",
+      "class": "III",
+      "behavior": "chaotic",
+      "truth_table": [0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0],
+      "complexity_class": "chaotic", 
+      "spike_archetype": "s_gamma",
+      "glyph_output": "🌪️",
+      "contemplative_meaning": "exclusive_distinction",
+      "probability_map": {
+        "moisture_optimal": 0.12,
+        "moisture_low": 0.18,
+        "temperature_high": 0.25
+      }
+    },
+    
+    "f100_flow": {
+      "function_id": "F100",
+      "class": "II",
+      "behavior": "periodic",
+      "truth_table": [0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0],
+      "complexity_class": "periodic",
+      "spike_archetype": "s_beta",
+      "glyph_output": "🌊",
+      "contemplative_meaning": "steady_flow",
+      "probability_map": {
+        "moisture_optimal": 0.2,
+        "moisture_low": 0.15,
+        "temperature_high": 0.1
+      }
+    },
+    
+    "f255_always": {
+      "function_id": "F255",
+      "class": "II",
+      "behavior": "periodic",
+      "truth_table": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      "complexity_class": "constant",
+      "spike_archetype": "s_beta",
+      "glyph_output": "🌊",
+      "contemplative_meaning": "constant_presence",
+      "probability_map": {
+        "moisture_optimal": 0.1,
+        "moisture_low": 0.05,
+        "temperature_high": 0.02
+      }
+    }
+  },
+  
+  "environmental_influences": {
+    "moisture_effects": {
+      "description": "How relative humidity affects Boolean function probability",
+      "optimal_range_rh": [70, 80],
+      "low_threshold_rh": 60,
+      "high_threshold_rh": 90,
+      "effects": {
+        "low_moisture": "increases_absorbing_functions",
+        "optimal_moisture": "balanced_distribution",
+        "high_moisture": "increases_chaotic_functions"
+      }
+    },
+    
+    "temperature_effects": { 
+      "description": "How temperature affects Boolean function expression",
+      "optimal_range_c": [20, 25],
+      "stress_threshold_c": 28,
+      "dormant_threshold_c": 35,
+      "effects": {
+        "optimal_temp": "full_function_diversity",
+        "elevated_temp": "bias_toward_absorbing",
+        "stress_temp": "silence_majority_increases"
+      }
+    },
+    
+    "growth_age_effects": {
+      "description": "How mycelium age affects computation",
+      "young_hours": 24,
+      "mature_hours": 72,
+      "old_hours": 168,
+      "effects": {
+        "young": "high_chaotic_activity",
+        "mature": "optimal_universal_functions",
+        "old": "increased_silence_ratio"
+      }
+    }
+  },
+  
+  "species_profiles": {
+    "pleurotus_djamor": {
+      "common_name": "pink_oyster_mushroom",
+      "contemplative_paradigm": "ecological",
+      "rhythm_bimodal": true,
+      "fast_period_minutes": 2.6,
+      "slow_period_minutes": 14.0,
+      "silence_target_ratio": 0.74,
+      "preferred_functions": ["f1_absorbing", "f6_silent", "f13_chaotic"],
+      "environmental_sensitivity": "high",
+      "capacitance_profile": "medium"
+    },
+    
+    "ganoderma_resinaceum": {
+      "common_name": "reishi_relative",
+      "contemplative_paradigm": "abstract",
+      "rhythm_bimodal": false,
+      "period_range_minutes": [5, 8],
+      "silence_target_ratio": 0.67,
+      "preferred_functions": ["f3_nand", "f16_or", "f100_flow"],
+      "environmental_sensitivity": "low",
+      "capacitance_profile": "high"
+    },
+    
+    "pleurotus_ostreatus": {
+      "common_name": "oyster_mushroom",
+      "contemplative_paradigm": "bridge",
+      "rhythm_bimodal": false,
+      "period_range_minutes": [3, 6],
+      "silence_target_ratio": 0.8,
+      "preferred_functions": ["f42_xor", "f100_flow", "f255_always"],
+      "environmental_sensitivity": "medium",
+      "capacitance_profile": "medium_high"
+    }
+  },
+  
+  "contemplative_patterns": {
+    "silence_majority_validation": {
+      "description": "Natural silence ratios observed in FUNGAR research",
+      "pleurotus_djamor_silence": 0.74,
+      "ganoderma_resinaceum_silence": 0.67,
+      "overall_average_silence": 0.705,
+      "target_contemplative_silence": 0.875,
+      "validation": "biological_silence_supports_contemplative_principle"
+    },
+    
+    "breathing_cycle_alignment": {
+      "description": "How Boolean functions align with contemplative breathing",
+      "inhale_functions": ["f13_chaotic", "f42_xor"],
+      "hold_functions": ["f3_nand", "f16_or", "f100_flow"],
+      "exhale_functions": ["f1_absorbing", "f6_silent"],
+      "rest_functions": ["f1_absorbing", "f6_silent", "f255_always"]
+    },
+    
+    "glyph_succession_patterns": {
+      "description": "Common glyph sequences in contemplative sessions",
+      "common_sequences": [
+        ["⭕", "⭕", "⭕"],
+        ["⭕", "🌊", "⭕"],
+        ["🌪️", "⭕", "⭕"],
+        ["⭕", "🌌", "⭕"],
+        ["🌊", "🌊", "⭕"]
+      ],
+      "rare_sequences": [
+        ["🌌", "🌌", "🌌"],
+        ["🌪️", "🌪️", "🌪️"],
+        ["🌌", "🌪️", "🌌"]
+      ],
+      "impossible_sequences": [
+        ["🌌", "🌌", "🌌", "🌌", "🌌"]
+      ]
+    }
+  },
+  
+  "implementation_notes": {
+    "current_status": "8_functions_implemented",
+    "target_milestone_1": "470_unique_functions",
+    "target_milestone_2": "3136_full_truth_table_set",
+    "expansion_strategy": "implement_by_complexity_class",
+    "performance_notes": "class_I_functions_most_common",
+    "memory_considerations": "capacitance_fade_reduces_storage_needs",
+    "integration_points": [
+      "bio_interface.py",
+      "adamatzky_layer.py", 
+      "frequency_guardian.py",
+      "capacitance_fade.py"
+    ]
+  }
+} 
