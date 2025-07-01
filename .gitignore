@@ -249,3 +249,5 @@ markdown_summary.py
 
 # docs
 spirida-mycelic/docs/
+!spirida-mycelic/docs/*.pdf
+!oflm/spirida-mycelic/docs/spiral_letter_spirida_biocomputing.md
