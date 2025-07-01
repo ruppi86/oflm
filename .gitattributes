@@ -1,0 +1,2 @@
+# Ensure consistent Unix line endings for text files
+*.txt text eol=lf 

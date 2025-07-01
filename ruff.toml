@@ -1,0 +1,4 @@
+# Ruff standalone configuration (optional override)
+line-length = 100
+select = ["E", "W", "F", "I"]
+exclude = ["*.pt"] 

@@ -256,3 +256,17 @@ spirida-mycelic/docs/
 *ood_test_set_same_100x4_*.jsonl
 *ecological*.pt
 *abstract*.pt
+
+# neural mycelic emulator
+
+!neuro_mycelic_emulator/dataset/samples.txt
+neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+neural_mycelic_emulator/dataset/Enoki_fungi_Flammulina_velutipes.txt/Enoki_fungi_Flammulina_velutipes.txt
+neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
+neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt
+
+# models (could be big)
+oflm-python/spiramycel/abstract_models/abstract_calm_model.pt
+oflm-python/spiramycel/ecological_models/ecological_chaotic_model.pt
+oflm-python/spiramycel/ecological_models/ecological_calm_model.pt
+oflm-python/spiramycel/abstract_models/abstract_chaotic_model.pt

@@ -66,50 +66,15 @@ except ImportError:
         print("Please run this script from the spiramycel directory")
         sys.exit(1)
 
-# Global logging setup
-def setup_experiment_logging():
-    """Set up comprehensive logging for the experiment"""
-    
-    # Create logs directory
-    logs_dir = Path("logs")
-    logs_dir.mkdir(exist_ok=True)
-    
-    # Setup main experiment logger
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    main_log_file = logs_dir / f"controlled_comparison_{timestamp}.log"
-    
-    # Configure root logger
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s | %(levelname)s | %(message)s',
-        handlers=[
-            logging.FileHandler(main_log_file, encoding='utf-8'),
-            logging.StreamHandler()
-        ]
-    )
-    
-    return str(main_log_file), timestamp
+try:
+    from .training_utils import get_file_size_kb
+except ImportError:
+    from training_utils import get_file_size_kb
 
-def create_condition_logger(condition_name: str, timestamp: str):
-    """Create a dedicated logger for each experimental condition"""
-    
-    logs_dir = Path("logs")
-    log_file = logs_dir / f"{condition_name}_{timestamp}.log"
-    
-    # Create condition-specific logger
-    logger = logging.getLogger(condition_name)
-    logger.setLevel(logging.INFO)
-    
-    # Remove existing handlers to avoid duplication
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-    
-    # Add file handler for this condition
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setFormatter(logging.Formatter('%(asctime)s | %(message)s'))
-    logger.addHandler(file_handler)
-    
-    return logger, str(log_file)
+try:
+    from .logging_utils import setup_experiment_logging, create_condition_logger
+except ImportError:
+    from logging_utils import setup_experiment_logging, create_condition_logger
 
 def log_training_start(logger, condition: str, chaos_mode: bool, seed: int):
     """Log the start of training for a condition"""
@@ -271,15 +236,6 @@ def log_training_completion(logger, condition: str, training_time: float, model_
     
     logger.info("🌸 Training phase complete - model ready for contemplative inference")
     logger.info("=" * 60)
-
-def get_file_size_kb(file_path: str) -> str:
-    """Get actual file size in KB (o3's issue #6)"""
-    try:
-        size_bytes = Path(file_path).stat().st_size
-        size_kb = size_bytes / 1024
-        return f"{size_kb:.0f}KB"
-    except Exception:
-        return "Unknown"
 
 def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt: bool = False, 
                           condition_logger=None, timestamp: str = "", args=None):

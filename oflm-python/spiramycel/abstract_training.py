@@ -18,118 +18,29 @@ from datetime import datetime
 import shutil
 import re
 import glob
+import os
 
 # Import from existing modules
 from glyph_codec import SpiramycelGlyphCodec
 from gpu_breathing import contemplative_pause
 from spore_map import Season
-from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, load_spiramycel_parameters
+from neural_trainer import (
+    SpiramycelDataset,
+    NetworkConditions,
+    SpiramycelNeuralModel,
+    load_spiramycel_parameters,
+    PAD_TOKEN,  # re-exported from token_constants via neural_trainer
+    START_TOKEN,
+    END_TOKEN,
+)
 
-def determine_model_scale_and_folders(model, paradigm: str):
-    """
-    Determine model scale and return appropriate scale-specific folder paths
-    
-    Args:
-        model: Trained SpiramycelNeuralModel
-        paradigm: "ecological" or "abstract"
-        
-    Returns:
-        Tuple of (scale_name, model_dir, scale_suffix)
-    """
-    param_count = model.count_parameters()
-    
-    # Determine scale based on parameter count
-    if param_count < 50_000:  # < 50K parameters
-        scale_name = "25k"
-        scale_suffix = "25k"
-    elif param_count < 300_000:  # 50K - 300K parameters  
-        scale_name = "200k"
-        scale_suffix = "200k"
-    elif param_count < 2_000_000:  # 300K - 2M parameters
-        scale_name = "600k" 
-        scale_suffix = "600k"
-    else:  # 2M+ parameters
-        scale_name = "6m"
-        scale_suffix = "6m"
-    
-    # Construct scale-specific model directory
-    model_dir = f"{paradigm}_models_{scale_suffix}"
-    
-    print(f"🏷️  Auto-detected {scale_name} scale model ({param_count:,} parameters)")
-    print(f"📁 Using scale-specific directory: {model_dir}/")
-    
-    return scale_name, model_dir, scale_suffix
+try:
+    from .training_utils import determine_model_scale_and_folders, discover_training_data, set_deterministic
+except ImportError:
+    from training_utils import determine_model_scale_and_folders, discover_training_data, set_deterministic
 
-def discover_training_data(paradigm: str = "abstract", data_dir: str = "training_scenarios") -> List[Path]:
-    """
-    Dynamically discover training data files with smart date-based sorting
-    
-    Args:
-        paradigm: "ecological" or "abstract" 
-        data_dir: Directory to search for *.jsonl files
-        
-    Returns:
-        List of Path objects sorted by date (most recent first)
-    """
-    data_path = Path(data_dir)
-    if not data_path.exists():
-        return []
-    
-    # Find all jsonl files matching the paradigm
-    pattern = f"{paradigm}_*.jsonl"
-    files = list(data_path.glob(pattern))
-    
-    if not files:
-        return []
-    
-    # Extract dates from filenames using regex
-    dated_files = []
-    undated_files = []
-    
-    # Regex patterns for different date formats
-    date_patterns = [
-        r'(\d{8}_\d{6})',           # YYYYMMDD_HHMMSS
-        r'(\d{8})',                 # YYYYMMDD  
-        r'(\d{4}_\d{2}_\d{2})',     # YYYY_MM_DD
-        r'(\d{4}-\d{2}-\d{2})',     # YYYY-MM-DD
-    ]
-    
-    for file_path in files:
-        filename = file_path.name
-        date_found = False
-        
-        for pattern in date_patterns:
-            match = re.search(pattern, filename)
-            if match:
-                date_str = match.group(1).replace('_', '').replace('-', '')
-                # Convert to sortable format (YYYYMMDDHHMMSS)
-                if len(date_str) == 8:  # YYYYMMDD
-                    date_str += "000000"  # Add HHMMSS
-                elif len(date_str) == 15:  # YYYYMMDDHHMMSS
-                    pass  # Already in correct format
-                
-                try:
-                    # Validate date format
-                    datetime.strptime(date_str[:8], '%Y%m%d')
-                    dated_files.append((date_str, file_path))
-                    date_found = True
-                    break
-                except ValueError:
-                    continue
-        
-        if not date_found:
-            undated_files.append(file_path)
-    
-    # Sort dated files by date (most recent first)
-    dated_files.sort(key=lambda x: x[0], reverse=True)
-    
-    # Sort undated files by size (largest first) as fallback
-    undated_files.sort(key=lambda x: x.stat().st_size, reverse=True)
-    
-    # Combine: dated files first (newest first), then undated files (largest first)
-    result = [file_path for _, file_path in dated_files] + undated_files
-    
-    return result
+# Ensure reproducibility
+set_deterministic(42)
 
 class AbstractDataset(Dataset):
     """Dataset for abstract spore echoes (mirrors EcologicalDataset)"""
@@ -191,16 +102,13 @@ class AbstractDataset(Dataset):
         # Get glyph sequence 
         glyph_sequence = sample['repair_action']['glyph_sequence']
         
-        # Add START and END tokens like SpiramycelDataset
-        start_token = 0x00
-        end_token = 0x41
-        glyph_tokens = [start_token] + glyph_sequence + [end_token]
+        # Add START and END tokens
+        glyph_tokens = [START_TOKEN] + glyph_sequence + [END_TOKEN]
         
         # Pad to max_length of 16
         max_length = 16
         if len(glyph_tokens) < max_length:
-            pad_token = 0x00
-            glyph_tokens.extend([pad_token] * (max_length - len(glyph_tokens)))
+            glyph_tokens.extend([PAD_TOKEN] * (max_length - len(glyph_tokens)))
         else:
             glyph_tokens = glyph_tokens[:max_length]
         
@@ -260,11 +168,11 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
     print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
     
     # Training setup using configuration
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=min(2, os.cpu_count() or 0))
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
-    # Loss functions matching neural_trainer.py
-    glyph_criterion = nn.CrossEntropyLoss(ignore_index=0)  # Ignore padding
+    # Loss functions matching neural_trainer.py (PAD_TOKEN is ignore index)
+    glyph_criterion = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN)
     effectiveness_criterion = nn.MSELoss()
     silence_criterion = nn.BCEWithLogitsLoss()
     
@@ -301,9 +209,10 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
                 effectiveness
             )
             
-            # Silence loss - encourage silence when effectiveness is low
-            silence_targets = (effectiveness < 0.3).float().unsqueeze(1).expand(-1, silence_logits.shape[1])
-            silence_loss = silence_criterion(silence_logits.squeeze(-1), silence_targets)
+            # Silence loss – align with ecological training (first timestep only)
+            silence_targets = (effectiveness < 0.3).float()
+            first_silence_logits = silence_logits[:, 0].squeeze(-1)
+            silence_loss = silence_criterion(first_silence_logits, silence_targets)
             
             # Combined loss
             total_loss = glyph_loss + 0.5 * effectiveness_loss + 0.3 * silence_loss
@@ -346,7 +255,10 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_path = models_dir / f"abstract_spiramycel_{timestamp}.pt"
     
-    torch.save(model.state_dict(), model_path)
+    # Embed scale metadata into state_dict for future loaders
+    state = model.state_dict()
+    state["_meta"] = {"scale": scale_name}
+    torch.save(state, model_path)
     print(f"💾 Model saved to {model_path}")
     
     # Latest model link using scale-specific naming
@@ -393,10 +305,9 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
         )
         
         test_tensor = torch.tensor([test_conditions.to_condition_vector()], dtype=torch.float32).to(device)
-        start_token = torch.tensor([[0x00]], dtype=torch.long).to(device)  # START token
         
         # Generate abstract repair sequence
-        generated_tokens = [0x00]  # Start with START token
+        generated_tokens = [START_TOKEN]
         hidden1, hidden2 = None, None
         
         for step in range(10):  # Generate up to 10 tokens
@@ -414,7 +325,7 @@ def train_abstract_model(data_file: str = "training_scenarios/abstract_large.jso
             probs = torch.softmax(glyph_logits[0, -1], dim=0)
             next_token = torch.multinomial(probs, 1).item()
             
-            if next_token == 0x41:  # END token
+            if next_token == END_TOKEN:
                 break
                 
             generated_tokens.append(next_token)

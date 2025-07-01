@@ -726,9 +726,10 @@ class EcologicalDataGenerator:
                         f.write(json.dumps(spore_echo, ensure_ascii=False) + '\n')
                         generated_count += 1
                         
-                        if (i + 1) % 100 == 0:
+                        progress_step = max(1, int(num_echoes * 0.10))
+                        if (i + 1) % progress_step == 0:
                             progress_pct = ((i + 1) / num_echoes) * 100
-                            print(f"  Generated {i + 1}/{num_echoes} spore echoes ({progress_pct:.1f}%)...")
+                            print(f"  Generated {i + 1}/{num_echoes} spore echoes ({progress_pct:.0f}%)…")
                             
                     except Exception as e:
                         print(f"⚠ Warning: Failed to generate echo {i}: {e}")

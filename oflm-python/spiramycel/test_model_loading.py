@@ -8,6 +8,13 @@ from neural_trainer import SpiramycelNeuralModel
 import os
 from pathlib import Path
 
+# PyTorch <2.2 compatibility
+def safe_load(path, map_location):
+    try:
+        return torch.load(path, map_location=map_location, weights_only=True)  # type: ignore[arg-type]
+    except TypeError:
+        return torch.load(path, map_location=map_location)
+
 def test_model_loading():
     print('🧪 Testing model loading with fixed vocabulary size...')
     
@@ -30,7 +37,7 @@ def test_model_loading():
         for model_path in model_paths:
             if Path(model_path).exists():
                 try:
-                    state_dict = torch.load(model_path, map_location='cpu', weights_only=True)
+                    state_dict = safe_load(model_path, map_location='cpu')
                     model.load_state_dict(state_dict)
                     print(f'✅ Successfully loaded: {model_path}')
                     print(f'   Parameters: {model.count_parameters():,}')

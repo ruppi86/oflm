@@ -9,6 +9,7 @@ bioregional patterns instead of abstract scenarios.
 import json
 import torch
 import torch.nn as nn
+import os
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from pathlib import Path
@@ -24,111 +25,13 @@ from glyph_codec import SpiramycelGlyphCodec
 from gpu_breathing import contemplative_pause
 from neural_trainer import SpiramycelDataset, NetworkConditions, SpiramycelNeuralModel, START_TOKEN, END_TOKEN, PAD_TOKEN, load_spiramycel_parameters
 
-def determine_model_scale_and_folders(model, paradigm: str):
-    """
-    Determine model scale and return appropriate scale-specific folder paths
-    
-    Args:
-        model: Trained SpiramycelNeuralModel
-        paradigm: "ecological" or "abstract"
-        
-    Returns:
-        Tuple of (scale_name, model_dir, scale_suffix)
-    """
-    param_count = model.count_parameters()
-    
-    # Determine scale based on parameter count
-    if param_count < 50_000:  # < 50K parameters
-        scale_name = "25k"
-        scale_suffix = "25k"
-    elif param_count < 300_000:  # 50K - 300K parameters  
-        scale_name = "200k"
-        scale_suffix = "200k"
-    elif param_count < 2_000_000:  # 300K - 2M parameters
-        scale_name = "600k" 
-        scale_suffix = "600k"
-    else:  # 2M+ parameters
-        scale_name = "6m"
-        scale_suffix = "6m"
-    
-    # Construct scale-specific model directory
-    model_dir = f"{paradigm}_models_{scale_suffix}"
-    
-    print(f"🏷️  Auto-detected {scale_name} scale model ({param_count:,} parameters)")
-    print(f"📁 Using scale-specific directory: {model_dir}/")
-    
-    return scale_name, model_dir, scale_suffix
+try:
+    from .training_utils import determine_model_scale_and_folders, discover_training_data, set_deterministic
+except ImportError:
+    from training_utils import determine_model_scale_and_folders, discover_training_data, set_deterministic
 
-def discover_training_data(paradigm: str = "ecological", data_dir: str = "training_scenarios") -> List[Path]:
-    """
-    Dynamically discover training data files with smart date-based sorting
-    
-    Args:
-        paradigm: "ecological" or "abstract" 
-        data_dir: Directory to search for *.jsonl files
-        
-    Returns:
-        List of Path objects sorted by date (most recent first)
-    """
-    data_path = Path(data_dir)
-    if not data_path.exists():
-        return []
-    
-    # Find all jsonl files matching the paradigm
-    pattern = f"{paradigm}_*.jsonl"
-    files = list(data_path.glob(pattern))
-    
-    if not files:
-        return []
-    
-    # Extract dates from filenames using regex
-    dated_files = []
-    undated_files = []
-    
-    # Regex patterns for different date formats
-    date_patterns = [
-        r'(\d{8}_\d{6})',           # YYYYMMDD_HHMMSS
-        r'(\d{8})',                 # YYYYMMDD  
-        r'(\d{4}_\d{2}_\d{2})',     # YYYY_MM_DD
-        r'(\d{4}-\d{2}-\d{2})',     # YYYY-MM-DD
-    ]
-    
-    for file_path in files:
-        filename = file_path.name
-        date_found = False
-        
-        for pattern in date_patterns:
-            match = re.search(pattern, filename)
-            if match:
-                date_str = match.group(1).replace('_', '').replace('-', '')
-                # Convert to sortable format (YYYYMMDDHHMMSS)
-                if len(date_str) == 8:  # YYYYMMDD
-                    date_str += "000000"  # Add HHMMSS
-                elif len(date_str) == 15:  # YYYYMMDDHHMMSS
-                    pass  # Already in correct format
-                
-                try:
-                    # Validate date format
-                    datetime.strptime(date_str[:8], '%Y%m%d')
-                    dated_files.append((date_str, file_path))
-                    date_found = True
-                    break
-                except ValueError:
-                    continue
-        
-        if not date_found:
-            undated_files.append(file_path)
-    
-    # Sort dated files by date (most recent first)
-    dated_files.sort(key=lambda x: x[0], reverse=True)
-    
-    # Sort undated files by size (largest first) as fallback
-    undated_files.sort(key=lambda x: x.stat().st_size, reverse=True)
-    
-    # Combine: dated files first (newest first), then undated files (largest first)
-    result = [file_path for _, file_path in dated_files] + undated_files
-    
-    return result
+# Reproducibility
+set_deterministic(42)
 
 class EcologicalDataset(Dataset):
     """Dataset for ecological spore echoes with proper token handling"""
@@ -264,7 +167,7 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
     print(f"🧠 Model: {model.model_type} ({model.count_parameters():,} parameters)")
     
     # Training setup using configuration
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=min(2, os.cpu_count() or 0))
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
     # Loss functions matching neural_trainer.py fixes
@@ -345,7 +248,9 @@ def train_ecological_model(data_file: str = "training_scenarios/ecological_large
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_path = models_dir / f"ecological_spiramycel_{timestamp}.pt"
     
-    torch.save(model.state_dict(), model_path)
+    state = model.state_dict()
+    state["_meta"] = {"scale": scale_name}
+    torch.save(state, model_path)
     print(f"💾 Model saved to {model_path}")
     
     # Latest model link using scale-specific naming
