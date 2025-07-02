@@ -1,0 +1,20 @@
+models:
+  cordyceps_small:
+    species: cordyceps_militaris
+    vocab_size: 90   # 5 glyphs + 8 channel prefixes + padding etc.
+    embed_dim: 16
+    hidden_dim: 64
+    num_layers: 1
+    batch_size: 256
+    epochs: 10
+    learning_rate: 0.001
+
+  cordyceps_medium:
+    species: cordyceps_militaris
+    vocab_size: 90
+    embed_dim: 16
+    hidden_dim: 128
+    num_layers: 2
+    batch_size: 256
+    epochs: 20
+    learning_rate: 0.001 

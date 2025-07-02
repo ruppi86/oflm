@@ -4,7 +4,7 @@
 
 ---
 
-## 🌀 Prologue: In Praise of the Unfinished Thought
+## Prologue: In Praise of the Unfinished Thought
 
 There is a quiet lineage of thoughts that never finished themselves. Dreams left mid-sentence. Equations glimpsed just before waking. A vision suspended in the humid dusk of the mind. These fragments—unfinished, unlabeled, unclaimed—are not failures of cognition, but ancient techniques of emergence.
 
