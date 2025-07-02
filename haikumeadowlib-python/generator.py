@@ -897,6 +897,9 @@ class HaikuMeadow:
             self.rate_limit = 5.0
             self.temperature_base = 0.7
         
+        # Initialize use_neural flag first
+        self.use_neural = False
+        
         # Memory safety: use template mode by default on CPU to prevent crashes
         if force_template_mode:
             print("🌿 Using template mode (CPU safe, no model loading)")
@@ -916,6 +919,7 @@ class HaikuMeadow:
                 if DEVICE and DEVICE.type == "cuda":
                     self.model.load_state_dict(torch.load(model_path, map_location=DEVICE))
                     self.model = self.model.to(DEVICE)
+                    self.use_neural = True  # Enable neural mode on successful GPU load
                     print(f"🌸 Loaded neural model from {model_path} (GPU)")
                 else:
                     # CPU loading with memory checks
@@ -939,6 +943,9 @@ class HaikuMeadow:
                         
                 if self.model:
                     self.model.eval()
+                    # Final check - ensure neural mode is enabled if model loaded successfully
+                    if not hasattr(self, 'use_neural') or not self.use_neural:
+                        self.use_neural = True
                     
             except Exception as e:
                 print(f"🌫️ Model loading error: {e}")

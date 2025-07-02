@@ -1,0 +1,5 @@
+{"type": "session_start", "timestamp": "2025-06-27T09:22:02.453066", "device": "cuda", "pytorch_available": true}
+{"type": "test_mode_start", "timestamp": "2025-06-27T09:22:02.454082", "mode": "template", "model_type": "template"}
+{"type": "generation", "timestamp": "2025-06-27T09:22:07.774885", "seed_fragment": "test", "generation_type": "template", "haiku": "{abundance} {flows}\nthrough {warm_space}\n{summer_rest}", "atmospheric_conditions": {"season": "summer", "time_of_day": "dawn", "temperature": 0.5, "humidity": 0.5, "breath_phase": "exhale", "community_pressure": 0.3}}
+{"type": "generation", "timestamp": "2025-06-27T09:22:12.182612", "seed_fragment": "warm", "generation_type": "silence", "haiku": null, "atmospheric_conditions": {"season": "summer", "time_of_day": "dawn", "temperature": 0.8, "humidity": 0.5, "breath_phase": "exhale", "community_pressure": 0.3}}
+{"type": "test_mode_end", "timestamp": "2025-06-27T09:22:16.606734", "generations": 2}
