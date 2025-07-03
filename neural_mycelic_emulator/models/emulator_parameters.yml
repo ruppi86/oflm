@@ -27,6 +27,18 @@ models:
     epochs: 40
     batch_size: 64
     dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+
+  cordyceps_xlarge:
+    species: cordyceps_militaris
+    embed_dim: 32        # bättre för fler kanaler
+    hidden_dim: 384      # istället för 512 (färre parametrar men djupare kontext)
+    num_layers: 4
+    window: 128          # längre kontext ger bättre ISI-matchning
+    dropout: 0.3         # lite högre pga fler parametrar
+    batch_size: 36       # utnyttja GPU-minne bättre
+    epochs: 30           # fler epoker när fönstret är längre
+    learning_rate: 0.0007
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
     
   enoki_small:
     species: flammulina_velutipes

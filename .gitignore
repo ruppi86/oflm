@@ -261,12 +261,14 @@ spirida-mycelic/docs/
 
 !neuro_mycelic_emulator/dataset/samples.txt
 neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
-neural_mycelic_emulator/dataset/Enoki_fungi_Flammulina_velutipes.txt/Enoki_fungi_Flammulina_velutipes.txt
 neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
 neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt
+neural_mycelic_emulator/dataset/Enoki_fungi_Flammulina_velutipes/Enoki_fungi_Flammulina_velutipes.txt
 
 # models (could be big)
 oflm-python/spiramycel/abstract_models/abstract_calm_model.pt
 oflm-python/spiramycel/ecological_models/ecological_chaotic_model.pt
 oflm-python/spiramycel/ecological_models/ecological_calm_model.pt
 oflm-python/spiramycel/abstract_models/abstract_chaotic_model.pt
+results/reports/ood_cross_validation_report_20250703_085027.txt
+results/reports/ood_statistical_analysis_20250703_085027.txt

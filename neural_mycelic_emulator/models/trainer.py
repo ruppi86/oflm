@@ -91,6 +91,19 @@ def train(tag: str, tsv_path: Path | None = None, cfg_path: Path = Path(__file__
     ds = GlyphDataset(seq, window=window)
     dl = DataLoader(ds, batch_size=cfg["batch_size"], shuffle=True, drop_last=True)
 
+    # ------------------------------------------------------------------
+    # Validation split prepared once for early-stopping (10 % tail)
+    # ------------------------------------------------------------------
+    split = int(len(seq) * 0.10)
+    val_seq = seq[-split:]
+    val_ds = GlyphDataset(val_seq, window=window)
+
+    # Import perplexity helper locally to avoid circulars
+    from .evaluate_perplexity import perplexity as _perplexity
+
+    best_ppl = float("inf")  # track best validation perplexity
+    patience = 0
+
     model = LSTMEmulator(
         vocab_size=cfg["vocab_size"],
         embed_dim=cfg["embed_dim"],
@@ -130,7 +143,20 @@ def train(tag: str, tsv_path: Path | None = None, cfg_path: Path = Path(__file__
             total_loss += loss.item()
         avg = total_loss / len(dl)
         scheduler.step(avg)
-        logging.info("Epoch %d/%d  loss=%.4f", epoch + 1, cfg["epochs"], avg)
+        # Validation perplexity for early-stopping
+        val_ppl = _perplexity(model, val_ds, batch=cfg["batch_size"])
+        logging.info("Epoch %d/%d  loss=%.4f  val_ppl=%.3f", epoch + 1, cfg["epochs"], avg, val_ppl)
+
+        # Early-stopping logic
+        if val_ppl < best_ppl - 1e-4:
+            best_ppl = val_ppl
+            patience = 0
+        else:
+            patience += 1
+            if patience >= 3:
+                logging.info("Early stopping triggered (patience=%d)", patience)
+                break
+
         if avg < best - 1e-4:
             best = avg
             out = ckpt_dir / f"{tag}_best.pt"
@@ -138,17 +164,9 @@ def train(tag: str, tsv_path: Path | None = None, cfg_path: Path = Path(__file__
             best_path = out
             logging.info("saved checkpoint: %s", out)
 
-    # ------------------------------------------------------------------
-    # Validation perplexity (10%% split)
-    # ------------------------------------------------------------------
-    from .evaluate_perplexity import perplexity as _perplexity
-
-    seq = tsv_to_glyph_sequences(tsv_path)
-    split = int(len(seq) * 0.10)
-    val_seq = seq[-split:]
-    val_ds = GlyphDataset(val_seq, window=window)
-    ppl = _perplexity(model, val_ds, batch=cfg["batch_size"])
-    logging.info("Validation perplexity: %.3f", ppl)
+    # Final validation perplexity (may be from early stop epoch)
+    final_ppl = _perplexity(model, val_ds, batch=cfg["batch_size"])
+    logging.info("Final validation perplexity: %.3f", final_ppl)
     logging.info("Training finished – log stored at %s", log_file)
 
 if __name__ == "__main__":
