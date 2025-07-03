@@ -57,24 +57,39 @@ except ImportError:
     NEURAL_AVAILABLE = False
     print("⚠ Neural trainer not available - simplified evaluation")
 
+# Reuse shared logging helpers
+try:
+    from .logging_utils import setup_experiment_logging as _setup_log
+except ImportError:
+    from logging_utils import setup_experiment_logging as _setup_log
+
+# Safe torch import
+try:
+    import torch
+except ImportError:
+    torch = None  # type: ignore
+
+# Always evaluate on CPU; guard if torch missing
+DEVICE = torch.device("cpu") if torch else "cpu"
+
+# Robust statistical helpers (alias to avoid shadowing in local scopes)
+try:
+    from .analysis_stats import safe_welch, effect_size as calc_effect_size, EPS  # type: ignore
+except ImportError:
+    from analysis_stats import safe_welch, effect_size as calc_effect_size, EPS
+
 def setup_ood_logging():
-    """Setup logging for the OOD evaluation"""
-    logs_dir = Path("logs")
-    logs_dir.mkdir(exist_ok=True)
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = logs_dir / f"ood_evaluation_{timestamp}.log"
-    
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s | %(levelname)s | %(message)s',
-        handlers=[
-            logging.FileHandler(log_file, encoding='utf-8'),
-            logging.StreamHandler()
-        ]
-    )
-    
-    return str(log_file), timestamp
+    """Leverage shared logging utils for consistent formatting"""
+    main_log, ts = _setup_log()
+    # Rename log file for clarity
+    new_name = Path(main_log).with_name(f"ood_evaluation_{ts}.log")
+    try:
+        Path(main_log).rename(new_name)
+        return str(new_name), ts
+    except PermissionError:
+        # On Windows, file handler holds lock – keep original name
+        logging.warning("⚠ Could not rename log file due to open handle; using default name")
+        return str(main_log), ts
 
 def load_trained_models(preferred_scale=None):
     """Load all 4 trained contemplative AI models
@@ -200,14 +215,12 @@ def load_trained_models(preferred_scale=None):
                             config = None
                     
                     # Create model with configuration (or None for default)
-                    if config:
-                        model = SpiramycelNeuralModel(config=config, paradigm=paradigm, force_cpu_mode=True)
-                    else:
-                        model = SpiramycelNeuralModel(force_cpu_mode=True)
-                        logging.warning(f"⚠ Using default 25K architecture for {condition} - may cause mismatch!")
-                    
-                    model.load_state_dict(torch.load(path, map_location='cpu'))
-                    model.eval()
+                    if config is None:
+                        logging.error("❌ No configuration available for model – skipping due to potential mismatch")
+                        models[condition] = None
+                        continue
+
+                    model = SpiramycelNeuralModel(config=config, paradigm=paradigm, force_cpu_mode=True)
                     models[condition] = model
                     logging.info(f"✅ Loaded {condition} model: {path} ({file_size_mb:.1f}MB)")
                 else:
@@ -390,7 +403,7 @@ def generate_glyphs_for_conditions(model, conditions, model_name, scenario_name)
             from neural_trainer import START_TOKEN, END_TOKEN, PAD_TOKEN
             
             # Create condition vector
-            condition_vector = torch.tensor(conditions.to_condition_vector(), dtype=torch.float32).unsqueeze(0)
+            condition_vector = torch.tensor(conditions.to_condition_vector(), dtype=torch.float32, device=DEVICE).unsqueeze(0)
             
             # Start with START token
             sequence = [START_TOKEN]
@@ -400,7 +413,7 @@ def generate_glyphs_for_conditions(model, conditions, model_name, scenario_name)
             with torch.no_grad():
                 for _ in range(max_length):
                     # Convert sequence to tensor
-                    input_tokens = torch.tensor([sequence], dtype=torch.long)
+                    input_tokens = torch.tensor([sequence], dtype=torch.long, device=DEVICE)
                     
                     # Forward pass
                     glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, condition_vector)
@@ -459,17 +472,17 @@ def predict_effectiveness(model, conditions):
             from neural_trainer import START_TOKEN
             
             # Create condition vector
-            condition_vector = torch.tensor(conditions.to_condition_vector(), dtype=torch.float32).unsqueeze(0)
+            condition_vector = torch.tensor(conditions.to_condition_vector(), dtype=torch.float32, device=DEVICE).unsqueeze(0)
             
             # Use START token as input for effectiveness prediction
-            input_tokens = torch.tensor([[START_TOKEN]], dtype=torch.long)
+            input_tokens = torch.tensor([[START_TOKEN]], dtype=torch.long, device=DEVICE)
             
             with torch.no_grad():
                 # Forward pass
                 glyph_logits, eff_logits, silence_logits, _, _, _ = model(input_tokens, condition_vector)
                 
                 # Get effectiveness prediction from the effectiveness head
-                effectiveness = torch.sigmoid(eff_logits[0, -1]).item()  # Sigmoid to [0,1] range
+                effectiveness = float(eff_logits[0, -1].item())
                 
                 return effectiveness
                 
@@ -735,44 +748,45 @@ def perform_statistical_analysis(all_results):
     
     # 1. Paradigm Comparison - Silence Ratios
     if SCIPY_AVAILABLE and len(ecological_silence) > 1 and len(abstract_silence) > 1:
-        # T-test for silence ratios between paradigms
-        t_stat, p_value = ttest_ind(ecological_silence, abstract_silence)
-        effect_size = calculate_effect_size(ecological_silence, abstract_silence)
-        
+        res = safe_welch(ecological_silence, abstract_silence)
+        if res:
+            t_stat, df_val, p_value = res
+            eff_sz = calc_effect_size(ecological_silence, abstract_silence)
+        else:
+            t_stat = df_val = p_value = eff_sz = None
         statistical_results["paradigm_comparisons"]["silence_ttest"] = {
-            "t_statistic": float(t_stat),
-            "p_value": float(p_value),
-            "effect_size_cohens_d": float(effect_size),
+            "t_statistic": float(t_stat) if t_stat is not None else None,
+            "p_value": float(p_value) if p_value is not None else None,
+            "effect_size_cohens_d": float(eff_sz) if eff_sz is not None else None,
             "ecological_mean": float(np.mean(ecological_silence)),
             "abstract_mean": float(np.mean(abstract_silence)),
-            "significance": "significant" if p_value < 0.05 else "not_significant"
+            "significance": ("insufficient_variance" if p_value is None else ("significant" if p_value < 0.05 else "not_significant"))
         }
-        
-        # Mann-Whitney U test (non-parametric alternative)
-        u_stat, u_p_value = mannwhitneyu(ecological_silence, abstract_silence, alternative='two-sided')
-        statistical_results["paradigm_comparisons"]["silence_mannwhitney"] = {
-            "u_statistic": float(u_stat),
-            "p_value": float(u_p_value),
-            "significance": "significant" if u_p_value < 0.05 else "not_significant"
-        }
-        
-        logging.info(f"   📊 Paradigm silence comparison: t={t_stat:.3f}, p={p_value:.4f}, d={effect_size:.3f}")
-        
+        if p_value is None:
+            logging.info("   📊 Paradigm silence comparison: insufficient variance for t-test")
+        else:
+            logging.info(f"   📊 Paradigm silence comparison: t={t_stat:.3f}, p={p_value:.4f}, d={eff_sz:.3f}")
+    
     # 2. Effectiveness Comparison
     if SCIPY_AVAILABLE and len(ecological_effectiveness) > 1 and len(abstract_effectiveness) > 1:
-        t_stat_eff, p_value_eff = ttest_ind(ecological_effectiveness, abstract_effectiveness)
-        effect_size_eff = calculate_effect_size(ecological_effectiveness, abstract_effectiveness)
-        
+        res = safe_welch(ecological_effectiveness, abstract_effectiveness)
+        if res:
+            t_stat_eff, df_val, p_value_eff = res
+            effect_size_eff = calc_effect_size(ecological_effectiveness, abstract_effectiveness)
+        else:
+            t_stat_eff = p_value_eff = effect_size_eff = None
         statistical_results["paradigm_comparisons"]["effectiveness_ttest"] = {
-            "t_statistic": float(t_stat_eff),
-            "p_value": float(p_value_eff),
-            "effect_size_cohens_d": float(effect_size_eff),
+            "t_statistic": float(t_stat_eff) if t_stat_eff is not None else None,
+            "p_value": float(p_value_eff) if p_value_eff is not None else None,
+            "effect_size_cohens_d": float(effect_size_eff) if effect_size_eff is not None else None,
             "ecological_mean": float(np.mean(ecological_effectiveness)),
             "abstract_mean": float(np.mean(abstract_effectiveness)),
-            "significance": "significant" if p_value_eff < 0.05 else "not_significant"
+            "significance": ("insufficient_variance" if p_value_eff is None else ("significant" if p_value_eff < 0.05 else "not_significant"))
         }
-        
-        logging.info(f"   📊 Paradigm effectiveness comparison: t={t_stat_eff:.3f}, p={p_value_eff:.4f}, d={effect_size_eff:.3f}")
+        if p_value_eff is None:
+            logging.info("   📊 Paradigm effectiveness comparison: insufficient variance for t-test")
+        else:
+            logging.info(f"   📊 Paradigm effectiveness comparison: t={t_stat_eff:.3f}, p={p_value_eff:.4f}, d={effect_size_eff:.3f}")
     
     # 3. ENHANCED Per-scenario analysis (granular paradigm detection)
     print("\n🔍 DETAILED SCENARIO-BY-SCENARIO ANALYSIS:")
@@ -799,70 +813,70 @@ def perform_statistical_analysis(all_results):
                     difference = abs(eco_mean - abs_mean)
                     t_stat = 0.0  # Cannot compute t-test with single values
                     p_val = 1.0 if difference < 0.1 else 0.5  # Heuristic significance
-                    effect_size = difference / 0.3 if difference > 0 else 0  # Normalized difference
+                    effect_size_est = difference / 0.3 if difference > 0 else 0  # Normalized difference
                     
                     print(f"   Difference: {difference:.1%} ({eco_mean:.1%} vs {abs_mean:.1%})")
                     print(f"   Single-value comparison: difference = {difference:.3f}")
-                    print(f"   Heuristic effect size: d = {effect_size:.3f}")
+                    print(f"   Heuristic effect size: d = {effect_size_est:.3f}")
                     
                     # LOG SINGLE-VALUE SCENARIO STATISTICS
                     logging.info(f"📊 Scenario: {scenario}")
                     logging.info(f"   Ecological: {eco_vals} → avg {eco_mean:.1%}")
                     logging.info(f"   Abstract: {abs_vals} → avg {abs_mean:.1%}")
                     logging.info(f"   Single-value comparison: difference = {difference:.3f}")
-                    logging.info(f"   Heuristic effect size: d = {effect_size:.3f}")
+                    logging.info(f"   Heuristic effect size: d = {effect_size_est:.3f}")
                     
                 elif len(eco_vals) > 1 or len(abs_vals) > 1:
                     # At least one group has multiple values - can do statistical test
-                    try:
-                        t_stat, p_val = ttest_ind(eco_vals, abs_vals)
-                        effect_size = calculate_effect_size(eco_vals, abs_vals)
+                    res = safe_welch(eco_vals, abs_vals)
+                    if res:
+                        t_stat, df_tmp, p_val = res
+                        effect_size_val = calc_effect_size(eco_vals, abs_vals)
+                    else:
+                        t_stat = p_val = effect_size_val = None
+                    
+                    if p_val is None:
+                        logging.warning(f"Statistical test failed for {scenario}: insufficient data")
                         eco_mean = np.mean(eco_vals)
                         abs_mean = np.mean(abs_vals)
                         difference = abs(eco_mean - abs_mean)
+                        t_stat, p_val, effect_size_val = 0.0, 1.0, 0.0
+                    
+                    significance = "***" if p_val < 0.001 else "**" if p_val < 0.01 else "*" if p_val < 0.05 else "ns"
+                    
+                    print(f"   Difference: {difference:.1%} ({eco_mean:.1%} vs {abs_mean:.1%})")
+                    print(f"   t-test: t={t_stat:.3f}, p={p_val:.4f} {significance}")
+                    print(f"   Effect size: d={effect_size_val:.3f}")
+                    
+                    # LOG DETAILED SCENARIO STATISTICS
+                    logging.info(f"📊 Scenario: {scenario}")
+                    logging.info(f"   Ecological: {eco_vals} → avg {eco_mean:.1%}")
+                    logging.info(f"   Abstract: {abs_vals} → avg {abs_mean:.1%}")
+                    logging.info(f"   Difference: {difference:.1%} ({eco_mean:.1%} vs {abs_mean:.1%})")
+                    logging.info(f"   t-test: t={t_stat:.3f}, p={p_val:.4f} {significance}")
+                    logging.info(f"   Effect size (Cohen's d): {effect_size_val:.3f}")
+                    
+                    if p_val < 0.05:
+                        significant_scenarios.append((scenario, p_val, difference, effect_size_val))
                         
-                        significance = "***" if p_val < 0.001 else "**" if p_val < 0.01 else "*" if p_val < 0.05 else "ns"
-                        
-                        print(f"   Difference: {difference:.1%} ({eco_mean:.1%} vs {abs_mean:.1%})")
-                        print(f"   t-test: t={t_stat:.3f}, p={p_val:.4f} {significance}")
-                        print(f"   Effect size: d={effect_size:.3f}")
-                        
-                        # LOG DETAILED SCENARIO STATISTICS
-                        logging.info(f"📊 Scenario: {scenario}")
-                        logging.info(f"   Ecological: {eco_vals} → avg {eco_mean:.1%}")
-                        logging.info(f"   Abstract: {abs_vals} → avg {abs_mean:.1%}")
-                        logging.info(f"   Difference: {difference:.1%} ({eco_mean:.1%} vs {abs_mean:.1%})")
-                        logging.info(f"   t-test: t={t_stat:.3f}, p={p_val:.4f} {significance}")
-                        logging.info(f"   Effect size (Cohen's d): {effect_size:.3f}")
-                        
-                        if p_val < 0.05:
-                            significant_scenarios.append((scenario, p_val, difference, effect_size))
-                            
-                    except Exception as e:
-                        logging.warning(f"Statistical test failed for {scenario}: {e}")
-                        eco_mean = np.mean(eco_vals)
-                        abs_mean = np.mean(abs_vals)
-                        difference = abs(eco_mean - abs_mean)
-                        t_stat, p_val, effect_size = 0.0, 1.0, 0.0
-                
-                # Store detailed results for each scenario
-                statistical_results["scenario_by_scenario"][scenario] = {
-                    "ecological_values": eco_vals,
-                    "abstract_values": abs_vals,
-                    "ecological_mean": float(np.mean(eco_vals)),
-                    "abstract_mean": float(np.mean(abs_vals)),
-                    "difference": float(abs(np.mean(eco_vals) - np.mean(abs_vals))),
-                    "t_statistic": float(t_stat) if not np.isnan(t_stat) else 0.0,
-                    "p_value": float(p_val) if not np.isnan(p_val) else 1.0,
-                    "effect_size_cohens_d": float(effect_size) if not np.isnan(effect_size) else 0.0,
-                    "significance": "significant" if p_val < 0.05 else "not_significant",
-                    "sample_sizes": f"n_eco={len(eco_vals)}, n_abs={len(abs_vals)}"
-                }
-                
-                # Also store in environment_effects for backward compatibility
-                statistical_results["environment_effects"][scenario] = statistical_results["scenario_by_scenario"][scenario]
-                
-                all_scenario_p_values.append(p_val)
+                    # Store detailed results for each scenario
+                    statistical_results["scenario_by_scenario"][scenario] = {
+                        "ecological_values": eco_vals,
+                        "abstract_values": abs_vals,
+                        "ecological_mean": float(np.mean(eco_vals)),
+                        "abstract_mean": float(np.mean(abs_vals)),
+                        "difference": float(abs(np.mean(eco_vals) - np.mean(abs_vals))),
+                        "t_statistic": float(t_stat) if not np.isnan(t_stat) else 0.0,
+                        "p_value": float(p_val) if not np.isnan(p_val) else 1.0,
+                        "effect_size_cohens_d": float(effect_size_val) if not np.isnan(effect_size_val) else 0.0,
+                        "significance": "significant" if p_val < 0.05 else "not_significant",
+                        "sample_sizes": f"n_eco={len(eco_vals)}, n_abs={len(abs_vals)}"
+                    }
+                    
+                    # Also store in environment_effects for backward compatibility
+                    statistical_results["environment_effects"][scenario] = statistical_results["scenario_by_scenario"][scenario]
+                    
+                    all_scenario_p_values.append(p_val)
             
             else:
                 print(f"   ⚠ Cannot perform statistical test: insufficient data or scipy unavailable")
@@ -870,8 +884,8 @@ def perform_statistical_analysis(all_results):
     # Summary of scenario-level effects
     print(f"\n🎉 SIGNIFICANT SCENARIOS FOUND:")
     if significant_scenarios:
-        for scenario, p_val, diff, effect_size in significant_scenarios:
-            print(f"   ✅ {scenario}: p={p_val:.4f}, diff={diff:.1%}, d={effect_size:.3f}")
+        for scenario, p_val, diff, eff_sz_loop in significant_scenarios:
+            print(f"   ✅ {scenario}: p={p_val:.4f}, diff={diff:.1%}, d={eff_sz_loop:.3f}")
         
         statistical_results["scenario_summary"] = {
             "total_scenarios": len(scenario_data),
@@ -901,8 +915,8 @@ def perform_statistical_analysis(all_results):
     
     if significant_scenarios:
         logging.info(f"   🎉 SIGNIFICANT SCENARIOS:")
-        for scenario, p_val, diff, effect_size in significant_scenarios:
-            logging.info(f"      ✅ {scenario}: p={p_val:.4f}, diff={diff:.1%}, d={effect_size:.3f}")
+        for scenario, p_val, diff, eff_sz_loop in significant_scenarios:
+            logging.info(f"      ✅ {scenario}: p={p_val:.4f}, diff={diff:.1%}, d={eff_sz_loop:.3f}")
     else:
         logging.info(f"   ❌ No significant scenario-level differences found")
     
@@ -919,6 +933,13 @@ def perform_statistical_analysis(all_results):
             "bonferroni_significant_count": bonferroni_significant,
             "uncorrected_significant_count": len(significant_scenarios)
         }
+    
+    # Benjamini-Hochberg FDR
+    if len(all_scenario_p_values) > 1:
+        sorted_p = sorted(all_scenario_p_values)
+        m = len(sorted_p)
+        bh_signif = sum(1 for i, p in enumerate(sorted_p, 1) if p <= (i/m)*0.05)
+        statistical_results["multiple_comparisons"]["bh_fdr_significant_count"] = bh_signif
     
     # 4. Correlation Analysis
     if len(ecological_silence) > 2 and len(ecological_effectiveness) > 2:
@@ -973,7 +994,7 @@ def perform_statistical_analysis(all_results):
             if SCIPY_AVAILABLE and (len(eco_calm_vals) > 1 or len(eco_chaotic_vals) > 1):
                 try:
                     t_stat, p_val = ttest_ind(eco_calm_vals, eco_chaotic_vals)
-                    cohens_d = calculate_effect_size(eco_calm_vals, eco_chaotic_vals)
+                    cohens_d = calc_effect_size(eco_calm_vals, eco_chaotic_vals)
                     significance = "***" if p_val < 0.001 else "**" if p_val < 0.01 else "*" if p_val < 0.05 else "ns"
                     
                     print(f'   t-test: t={t_stat:.3f}, p={p_val:.4f} {significance}')
@@ -1013,7 +1034,7 @@ def perform_statistical_analysis(all_results):
             if SCIPY_AVAILABLE and (len(abs_calm_vals) > 1 or len(abs_chaotic_vals) > 1):
                 try:
                     t_stat, p_val = ttest_ind(abs_calm_vals, abs_chaotic_vals)
-                    cohens_d = calculate_effect_size(abs_calm_vals, abs_chaotic_vals)
+                    cohens_d = calc_effect_size(abs_calm_vals, abs_chaotic_vals)
                     significance = "***" if p_val < 0.001 else "**" if p_val < 0.01 else "*" if p_val < 0.05 else "ns"
                     
                     print(f'   t-test: t={t_stat:.3f}, p={p_val:.4f} {significance}')
@@ -1408,8 +1429,8 @@ def generate_statistical_report(all_results, statistical_results, visualizations
                 
                 if summary['significant_details']:
                     f.write(f"   🎉 SIGNIFICANT SCENARIOS:\n")
-                    for scenario, p_val, diff, effect_size in summary['significant_details']:
-                        f.write(f"      ✅ {scenario}: p={p_val:.4f}, diff={diff:.1%}, d={effect_size:.3f}\n")
+                    for scenario, p_val, diff, eff_sz_loop in summary['significant_details']:
+                        f.write(f"      ✅ {scenario}: p={p_val:.4f}, diff={diff:.1%}, d={eff_sz_loop:.3f}\n")
                     f.write(f"\n")
             
             # Multiple comparisons correction
@@ -1574,6 +1595,7 @@ def main():
                        help="Test environment mode: 'same' for stress-level crossover testing (default), 'switch' for alien environments")
     parser.add_argument("--scale", choices=["25k", "200k", "600k", "6m", "auto"], default="auto",
                        help="Model scale to test: '25k' (femto), '200k' (piko), '600k' (nano), '6m' (mili), or 'auto' for best available (default)")
+    parser.add_argument("--no-plots", action="store_true", help="Disable creation of visualizations (overrides missing matplotlib)")
     args = parser.parse_args()
     
     env_description = "stress-level crossover testing" if args.environment == "same" else "alien environments"
@@ -1620,30 +1642,8 @@ def main():
                 # Apply different filtering based on environment mode
                 if args.environment == "same":
                     # Stress-level crossover testing for "same" environment
-                    if "ecological_calm" in model_name:
-                        # Ecological calm models → only ecological CHAOTIC scenarios
-                        paradigm_scenarios = {k: v for k, v in test_scenarios.items() 
-                                            if "ecological_" in k and ("crisis" in k or "collapse" in k)}
-                        print(f"   🌿→💥 Testing ecological_calm on ecological CHAOTIC scenarios only ({len(paradigm_scenarios)} scenarios)")
-                    elif "ecological_chaotic" in model_name:
-                        # Ecological chaotic models → only ecological CALM scenarios
-                        paradigm_scenarios = {k: v for k, v in test_scenarios.items() 
-                                            if "ecological_" in k and ("pristine" in k or "paradise" in k)}
-                        print(f"   🌿→🌸 Testing ecological_chaotic on ecological CALM scenarios only ({len(paradigm_scenarios)} scenarios)")
-                    elif "abstract_calm" in model_name:
-                        # Abstract calm models → only abstract CHAOTIC scenarios
-                        paradigm_scenarios = {k: v for k, v in test_scenarios.items() 
-                                            if "abstract_" in k and ("storm" in k or "corruption" in k)}
-                        print(f"   🖥️→💥 Testing abstract_calm on abstract CHAOTIC scenarios only ({len(paradigm_scenarios)} scenarios)")
-                    elif "abstract_chaotic" in model_name:
-                        # Abstract chaotic models → only abstract CALM scenarios
-                        paradigm_scenarios = {k: v for k, v in test_scenarios.items() 
-                                            if "abstract_" in k and ("optimal" in k or "coherence" in k)}
-                        print(f"   🖥️→✨ Testing abstract_chaotic on abstract CALM scenarios only ({len(paradigm_scenarios)} scenarios)")
-                    else:
-                        # Fallback: test on all scenarios
-                        paradigm_scenarios = test_scenarios
-                        print(f"   🔍 Testing on all scenarios ({len(paradigm_scenarios)} scenarios)")
+                    paradigm_scenarios = filter_scenarios_for_model(model_name, test_scenarios)
+                    print(f"   🔍 Filtered {len(paradigm_scenarios)} scenarios for stress crossover rule")
                 else:
                     # For "switch" mode (alien environments), test all models on all alien scenarios
                     paradigm_scenarios = test_scenarios
@@ -1659,8 +1659,11 @@ def main():
         statistical_results = perform_statistical_analysis(all_results)
         
         # Create visualizations
-        print("\n🎨 Creating scientific visualizations...")
-        visualizations = create_visualizations(all_results, statistical_results, timestamp)
+        if not args.no_plots:
+            print("\n🎨 Creating scientific visualizations...")
+            visualizations = create_visualizations(all_results, statistical_results, timestamp)
+        else:
+            visualizations = []
         
         # Generate enhanced reports
         print("\n📄 Generating statistical analysis report...")
@@ -1745,6 +1748,36 @@ def main():
         logging.error(f"Evaluation failed: {e}")
         import traceback
         traceback.print_exc()
+
+# ---------------------------------------------------------------------------
+# Stress-level filtering helper
+# ---------------------------------------------------------------------------
+
+def filter_scenarios_for_model(model_name: str, examples: dict):
+    """Return subset of examples based on desired stress crossover rules.
+
+    If JSONL entries contain 'stress_level' ("calm"|"chaotic"), we use it.
+    Otherwise fall back to original string-contains heuristic.
+    """
+    if "calm" in model_name:
+        desired_level = "chaotic"
+    else:
+        desired_level = "calm"
+
+    filtered = {}
+    for scen, exs in examples.items():
+        keep = []
+        for entry in exs:
+            level = entry.get("stress_level")
+            if level is None:
+                # heuristic fallback
+                name_lower = scen.lower()
+                level = "chaotic" if any(k in name_lower for k in ["crisis", "chaotic", "storm", "collapse", "undershoot"]) else "calm"
+            if level == desired_level:
+                keep.append(entry)
+        if keep:
+            filtered[scen] = keep
+    return filtered
 
 if __name__ == "__main__":
     main() 

@@ -1,0 +1,13 @@
+[tool.black]
+line-length = 100
+skip-string-normalization = true
+
+[tool.ruff]
+line-length = 100
+select = ["E", "W", "F", "I"]
+ignore = ["E501"]
+exclude = ["*.pt"]
+
+[build-system]
+requires = ["setuptools>=40.6.0", "wheel"]
+build-backend = "setuptools.build_meta" 

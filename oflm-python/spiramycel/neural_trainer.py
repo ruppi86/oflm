@@ -16,9 +16,10 @@ import time
 import json
 import random
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 from enum import Enum
+import os
 
 # Try to import YAML for parameter loading
 try:
@@ -155,10 +156,31 @@ except ImportError:
     from glyph_codec import SpiramycelGlyphCodec
     from spore_map import SporeMapLedger, SporeEcho, Season
 
-# Constants for improved pad/start token handling
-START_TOKEN = 0x00    # Reserved for sequence start
-END_TOKEN = 0x41      # After our 64-glyph vocabulary  
-PAD_TOKEN = 0x42      # Dedicated padding token (matches saved models)
+# Centralised token constants (see token_constants.py)
+try:
+    from .token_constants import START_TOKEN, END_TOKEN, PAD_TOKEN  # type: ignore
+except ImportError:
+    from token_constants import START_TOKEN, END_TOKEN, PAD_TOKEN  # Fallback when running as script
+
+# ---------------------------------------------------------------------------
+# Global deterministic seeding
+# ---------------------------------------------------------------------------
+SEED = 42
+random.seed(SEED)
+try:
+    import numpy as np
+    np.random.seed(SEED)
+except ImportError:
+    pass
+
+# Ensure deterministic behaviour if PyTorch is available
+if TORCH_AVAILABLE:
+    torch.manual_seed(SEED)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(SEED)
+    # Deterministic CuDNN for reproducibility
+    torch.backends.cudnn.deterministic = True  # type: ignore[attr-defined]
+    torch.backends.cudnn.benchmark = False  # type: ignore[attr-defined]
 
 @dataclass
 class NetworkConditions:
@@ -449,12 +471,16 @@ class SpiramycelTrainer:
             print("❌ No quality spore echoes found for training")
             return None
         
-        # DataLoader
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+        # DataLoader (use up to 2 workers for better throughput if system allows)
+        worker_count = min(2, os.cpu_count() or 0)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=worker_count)
         
         # Initialize model
         model = SpiramycelNeuralModel(force_cpu_mode=(DEVICE.type == "cpu")).to(DEVICE)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.5, patience=2, verbose=True
+        )
         
         # Loss functions (fixed PAD token ignore)
         glyph_criterion = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN)  # Ignore padding, preserve START token learning
@@ -467,6 +493,9 @@ class SpiramycelTrainer:
         # Training loop
         start_time = time.time()
         best_loss = float('inf')
+        best_val_loss = float('inf')
+        early_stop_patience = 4
+        no_improve_epochs = 0
         
         for epoch in range(epochs):
             # Scale-aware epoch output (less verbose for large models)
@@ -523,7 +552,56 @@ class SpiramycelTrainer:
                     mili_pause(f"large_model_batch_{batch_idx}")
                 # Small models (< 1M params) run without breathing for maximum speed
             
-            # Epoch summary
+            # ---------------------------
+            # Validation phase
+            # ---------------------------
+            if val_loader is not None:
+                model.eval()
+                with torch.no_grad():
+                    val_glyph = val_eff = val_silence = 0.0
+                    val_batches = 0
+                    for v_input, v_target, v_cond, v_eff in val_loader:
+                        v_input = v_input.to(DEVICE)
+                        v_target = v_target.to(DEVICE)
+                        v_cond = v_cond.to(DEVICE)
+                        v_eff = v_eff.to(DEVICE)
+
+                        g_logits, e_logits, s_logits, _, _, _ = model(v_input, v_cond)
+                        g_loss = glyph_criterion(g_logits.reshape(-1, model.vocab_size), v_target.reshape(-1))
+                        e_loss = effectiveness_criterion(e_logits[:, -1].squeeze(-1), v_eff)
+                        s_targets = (v_eff < 0.3).float()
+                        s_loss = silence_criterion(s_logits[:, 0].squeeze(-1), s_targets)
+
+                        val_glyph += g_loss.item()
+                        val_eff += e_loss.item()
+                        val_silence += s_loss.item()
+                        val_batches += 1
+                model.train()
+
+                val_glyph /= val_batches
+                val_eff /= val_batches
+                val_silence /= val_batches
+                val_total = val_glyph + 0.5 * val_eff + 0.3 * val_silence
+
+                print(f"   🔎 Val total loss: {val_total:.4f} (glyph {val_glyph:.4f}, eff {val_eff:.4f}, sil {val_silence:.4f})")
+
+                # Step scheduler
+                scheduler.step(val_total)
+
+                # Early stopping logic
+                if val_total < best_val_loss - 1e-4:
+                    best_val_loss = val_total
+                    no_improve_epochs = 0
+                else:
+                    no_improve_epochs += 1
+                    if no_improve_epochs >= early_stop_patience:
+                        print("⏹️  Early stopping: validation loss plateaued")
+                        break
+            else:
+                # No validation set – still step scheduler on training loss
+                scheduler.step(total_avg_loss)
+            
+            # Epoch summary (placed after val to include lr info)
             avg_glyph_loss = epoch_glyph_loss / batch_count if batch_count > 0 else 0.0
             avg_eff_loss = epoch_effectiveness_loss / batch_count if batch_count > 0 else 0.0
             avg_silence_loss = epoch_silence_loss / batch_count if batch_count > 0 else 0.0
@@ -544,7 +622,9 @@ class SpiramycelTrainer:
             if total_avg_loss < best_loss:
                 best_loss = total_avg_loss
                 checkpoint_path = self.output_dir / f"spiramycel_model_best.pt"
-                torch.save(model.state_dict(), checkpoint_path)
+                best_state = model.state_dict()
+                best_state["_meta"] = {"scale": scale_name}
+                torch.save(best_state, checkpoint_path)
                 print(f"   💾 New best model saved: {checkpoint_path}")
             
             # Save epoch checkpoints if requested
@@ -557,7 +637,9 @@ class SpiramycelTrainer:
         
         # Save final model
         final_path = self.output_dir / f"spiramycel_model_final.pt"
-        torch.save(model.state_dict(), final_path)
+        final_state = model.state_dict()
+        final_state["_meta"] = {"scale": scale_name}
+        torch.save(final_state, final_path)
         
         return final_path
     
@@ -721,12 +803,9 @@ class SpiramycelTrainer:
                 season=season
             )
             
-            # Scale-aware progress output (reduced for large datasets)
-            if num_examples > 50000:  # Large datasets (50K+ examples)
-                if i % 10000 == 0 and i > 0:  # Only every 10K for large datasets
-                    print(f"   Generated {i:,}/{num_examples:,} examples...")
-            elif i % 500 == 0 and i > 0:
-                print(f"   Generated {i}/{num_examples} enhanced spore echoes...")
+            progress_step = max(1, int(num_examples * 0.10))  # 10-% increments
+            if (i + 1) % progress_step == 0:
+                print(f"   Generated {i + 1:,}/{num_examples:,} examples ({((i + 1) / num_examples)*100:.0f}% )…")
         
         print(f"✅ Created {len(spore_ledger.spores):,} enhanced spore echoes")
         
@@ -753,7 +832,12 @@ class SpiramycelTrainer:
         
         # Load trained model
         model = SpiramycelNeuralModel(force_cpu_mode=(DEVICE.type == "cpu")).to(DEVICE)
-        model.load_state_dict(torch.load(model_path, map_location=DEVICE, weights_only=True))
+        # Guard for PyTorch < 2.2 (weights_only not supported)
+        try:
+            state_dict = torch.load(model_path, map_location=DEVICE, weights_only=True)  # type: ignore[arg-type]
+        except TypeError:
+            state_dict = torch.load(model_path, map_location=DEVICE)
+        model.load_state_dict(state_dict)
         model.eval()
         
         # Create test dataset

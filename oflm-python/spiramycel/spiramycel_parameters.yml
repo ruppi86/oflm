@@ -146,7 +146,7 @@ models:
       gradient_clip_norm: 1.0         # Prevent gradient explosion
       
       # Training data size (piko-scale appropriate)
-      num_training_examples: 40000    # 5:1 parameter-to-example ratio (optimal)
+      num_training_examples: 120000    # 5:1 parameter-to-example ratio (optimal)
       
       # Ecological-specific training parameters
       crisis_adaptation_weight: 1.5
@@ -182,7 +182,7 @@ models:
       gradient_clip_norm: 1.0         # Prevent gradient explosion
       
       # Training data size (piko-scale appropriate)
-      num_training_examples: 40000    # 5:1 parameter-to-example ratio (optimal)
+      num_training_examples: 120000    # 5:1 parameter-to-example ratio (optimal)
       
       # Abstract-specific training
       philosophical_consistency_weight: 1.2
@@ -212,16 +212,16 @@ models:
     
     # Training parameters (FIXED: Data density crisis resolved)
     training:
-      epochs: 4             # FIX #2: Doubled epochs to increase data density through repetition
-      batch_size: 2          # Smaller batch for GPU memory efficiency
-      learning_rate: 0.0012  # FIX #3: Boosted learning rate by 50% (0.0008 → 0.0012)
+      epochs: 8             # ↑ More passes (4 → 8) for sparse corpus
+      batch_size: 2          # Keep – GPU memory bound (set 4 if resources allow)
+      learning_rate: 0.00095 # ↓ Slightly lower LR for additional epochs
       weight_decay: 1e-5
       gradient_clip_norm: 1.0
       scheduler_patience: 4
       scheduler_factor: 0.8
       
       # Training data size (FIXED: Triple training data for proper density)
-      num_training_examples: 180000  # FIX #1: Tripled from 60K to 180K examples (~0.25 examples/param)
+      num_training_examples: 360000  # ↑ 0.30 examples/param density
       
       # Ecological-specific training
       crisis_adaptation_weight: 1.5
@@ -261,16 +261,16 @@ models:
     
     # Training parameters (FIXED: Data density crisis resolved)
     training:
-      epochs: 4             # FIX #2: Doubled epochs to increase data density through repetition
-      batch_size: 2          # Smaller batch for GPU memory efficiency
-      learning_rate: 0.0009  # FIX #3: Boosted learning rate by 50% (0.0006 → 0.0009)
+      epochs: 8             # ↑ More passes (4 → 8)
+      batch_size: 2          # Keep
+      learning_rate: 0.00072 # ↓ 20 % LR drop for longer training
       weight_decay: 2e-5     # More regularization for systematic patterns
       gradient_clip_norm: 0.8
       scheduler_patience: 5
       scheduler_factor: 0.9
       
       # Training data size (FIXED: Triple training data for proper density)
-      num_training_examples: 180000  # FIX #1: Tripled from 60K to 180K examples (~0.25 examples/param)
+      num_training_examples: 360000  # ↑ match 0.30 ex/param density
       
       # Abstract-specific training
       philosophical_consistency_weight: 1.2
@@ -392,16 +392,16 @@ models:
     
     # Training parameters (optimized for significance threshold)
     training:
-      epochs: 4             # Ultra-optimized: Convergence data shows 97% improvement by epoch 4
-      batch_size: 2          # Moderate batch for GPU efficiency
-      learning_rate: 0.001   # Standard learning rate for stable convergence
+      epochs: 6             # More passes (4 → 6) for deep model
+      batch_size: 2          # Keep (memory limited)
+      learning_rate: 0.001   # Keep LR for now
       weight_decay: 1e-5     # Optimal for learning
       gradient_clip_norm: 1.0
       scheduler_patience: 3   # Standard patience
       scheduler_factor: 0.8
       
       # Training data size (1.2M-scale appropriate)
-      num_training_examples: 240000  # ~200 examples per 1K parameters (optimal density sweet spot)
+      num_training_examples: 360000  # ↑ 0.30 examples/param density
       
       # Ecological-specific training
       crisis_adaptation_weight: 1.5
@@ -432,16 +432,16 @@ models:
     
     # Training parameters (optimized for significance threshold)
     training:
-      epochs: 4             # Ultra-optimized: Convergence data shows 97% improvement by epoch 4
-      batch_size: 2          # Moderate batch for GPU efficiency
-      learning_rate: 0.0008  # Slightly lower for abstract philosophical stability
+      epochs: 6             # More passes (4 → 6)
+      batch_size: 2          # Keep
+      learning_rate: 0.0008  # Keep
       weight_decay: 1.5e-5   # Moderate regularization for systematic patterns
       gradient_clip_norm: 0.8
       scheduler_patience: 3   # Standard patience
       scheduler_factor: 0.8   # Aligned with ecological
       
       # Training data size (1.2M-scale appropriate)
-      num_training_examples: 240000  # ~200 examples per 1K parameters (optimal density sweet spot)
+      num_training_examples: 360000  # ↑ match 0.30 ex/param density
       
       # Abstract-specific training
       philosophical_consistency_weight: 1.2
