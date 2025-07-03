@@ -1,4 +1,4 @@
-Cordyceps_militari.txt
+neural_mycelic_emulator\dataset\Cordyceps_militari\Cordyceps_militari.txt
 
 Differential 1 - 2 Ave. (mV)	Differential 3 - 4 Ave. (mV)	Differential 5 - 6 Ave. (mV)	Differential 7 - 8 Ave. (mV)	Differential 9 - 10 Ave. (mV)	Differential 11 - 12 Ave. (mV)	Differential 13 - 14 Ave. (mV)			
 -0.448	-1.7620001	1.349	3.886	0.241	-0.88100004	0.502	0.0	0	0.0
@@ -11,7 +11,7 @@ Differential 1 - 2 Ave. (mV)	Differential 3 - 4 Ave. (mV)	Differential 5 - 6 Ave
 -0.296	-1.752	1.281	3.888	0.322	-0.864	0.417	0.09685975	0	0.0
 
 
-Enoki_fungi_Flammulina_velutipes.txt
+neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes.txt
 
 Differential 1 - 2 Ave. (mV)	Differential 3 - 4 Ave. (mV)	Differential 5 - 6 Ave. (mV)	Differential 7 - 8 Ave. (mV)	Differential 9 - 10 Ave. (mV)	Differential 11 - 12 Ave. (mV)	Differential 13 - 14 Ave. (mV)
 1.262	0.26299998	2.2710001	7.618	0.14400001	0.368	-0.086
@@ -27,7 +27,7 @@ Differential 1 - 2 Ave. (mV)	Differential 3 - 4 Ave. (mV)	Differential 5 - 6 Ave
 
 
 
-Ghost_Fungi_Omphalotus_nidiformis.txt
+neural_mycelic_emulator\dataset\Ghost_Fungi_Omphalotus_nidiformis\Ghost_Fungi_Omphalotus_nidiformis.txt
 
 Differential 1 - 2 Ave. (mV)	Differential 3 - 4 Ave. (mV)	Differential 5 - 6 Ave. (mV)	Differential 7 - 8 Ave. (mV)	Differential 9 - 10 Ave. (mV)	Differential 11 - 12 Ave. (mV)	Differential 13 - 14 Ave. (mV)
 0.019	-0.117000006	-0.437	0.17	-0.16	-1.194	0.287
@@ -42,7 +42,7 @@ Differential 1 - 2 Ave. (mV)	Differential 3 - 4 Ave. (mV)	Differential 5 - 6 Ave
 0.018000001	-0.115	-0.439	0.172	-0.123	-1.173	0.28899997
 
 
-Schizophyllum_commune.txt
+neural_mycelic_emulator\dataset\Schizophyllum_commune\Schizophyllum_commune.txt
 
 Differential 1 - 2 Ave. (mV)	Differential 3 - 4 Ave. (mV)	Differential 5 - 6 Ave. (mV)	Differential 7 - 8 Ave. (mV)	Differential 9 - 10 Ave. (mV)	Differential 11 - 12 Ave. (mV)	Differential 13 - 14 Ave. (mV)
 0.885	1.806	1.68	3.8360002	-4.855	5.085	NaN

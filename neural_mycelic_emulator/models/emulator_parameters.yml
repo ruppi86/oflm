@@ -1,20 +1,99 @@
+shared_defaults:
+  vocab_size: 16      # 8 activity glyphs + 8 channel prefixes
+  embed_dim: 16
+  batch_size: 256
+  learning_rate: 0.001
+
 models:
   cordyceps_small:
     species: cordyceps_militaris
-    vocab_size: 90   # 5 glyphs + 8 channel prefixes + padding etc.
-    embed_dim: 16
     hidden_dim: 64
     num_layers: 1
-    batch_size: 256
-    epochs: 10
-    learning_rate: 0.001
+    epochs: 15
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
 
   cordyceps_medium:
     species: cordyceps_militaris
-    vocab_size: 90
-    embed_dim: 16
     hidden_dim: 128
     num_layers: 2
-    batch_size: 256
-    epochs: 20
-    learning_rate: 0.001 
+    epochs: 30
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+
+  cordyceps_large:
+    species: cordyceps_militaris
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.2
+    epochs: 40
+    batch_size: 64
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+    
+  enoki_small:
+    species: flammulina_velutipes
+    hidden_dim: 64
+    num_layers: 1
+    epochs: 15
+    dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt
+
+  enoki_medium:
+    species: flammulina_velutipes
+    hidden_dim: 128
+    num_layers: 2
+    epochs: 30
+    dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt   
+
+  enoki_large:
+    species: flammulina_velutipes
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.2
+    epochs: 40
+    batch_size: 64
+    dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt
+
+  ghost_small:
+    species: omphalotus_nidiformis
+    hidden_dim: 64
+    num_layers: 1
+    epochs: 15
+    dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
+
+  ghost_medium:
+    species: omphalotus_nidiformis
+    hidden_dim: 128
+    num_layers: 2
+    epochs: 30
+    dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
+
+  ghost_large:
+    species: omphalotus_nidiformis
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.2
+    epochs: 24  # Very large training set
+    batch_size: 64
+    dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
+
+  schizo_small:
+    species: schizophyllum_commune
+    hidden_dim: 64
+    num_layers: 1
+    epochs: 12
+    
+    dataset: neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt 
+
+  schizo_medium:
+    species: schizophyllum_commune
+    hidden_dim: 128
+    num_layers: 2
+    epochs: 25
+    dataset: neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt     
+
+  schizo_large:
+    species: schizophyllum_commune
+    hidden_dim: 256
+    num_layers: 3
+    dropout: 0.2
+    epochs: 35
+    batch_size: 64
+    dataset: neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt     
