@@ -25,6 +25,12 @@ python -m neural_mycelic_emulator.models.trainer       cordyceps_large
 
 python -m neural_mycelic_emulator.models.compare_stats cordyceps_large neural_mycelic_emulator/models/cordyceps_large/cordyceps_large_best.pt neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
 
+ ## XLarge
+
+python -m neural_mycelic_emulator.models.trainer       cordyceps_xlarge       
+
+python -m neural_mycelic_emulator.models.compare_stats cordyceps_xlarge neural_mycelic_emulator/models/cordyceps_xlarge/cordyceps_xlarge_best.pt neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+
 
 # Enoki
 
