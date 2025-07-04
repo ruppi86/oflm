@@ -23,8 +23,8 @@ spirida-mycelic/
 ├── bio_digital_shell.py           # 🎯 Main bio-digital shell interface
 ├── contemplative_bio_interface.py # 🌿 Unified system integration
 ├── contemplative_ai_bridge.py     # 🌉 LLM integration with bio-context
-├── enhanced_bio_mood.py           # 🎭 Advanced mood sensing with memory
-├── enhanced_geometry_compiler.py  # 📐 Bio-digital topology with ethics
+├── bio_mood.py                    # 🎭 Advanced mood engine (numeric moods, glyph ecology)
+├── geometry_compiler.py           # 📐 Species-aware bio-digital topology compiler
 ├── adamatzky_layer.py            # Fungal logic simulation (470 Boolean functions)
 ├── glyph_mapper.py              # Translates spike patterns to glyphs  
 ├── bio_interface.py             # Physical sensor interface
@@ -40,6 +40,7 @@ spirida-mycelic/
 ├── docs/                        # FUNGAR research documents
 ├── data/                        # Training scenarios and bio-rhythms
 └── requirements.txt
+├── demo/mooded_shell_demo.py      # 🌬️  Light-driven mood & breath showcase
 ```
 
 ## 🚀 Getting Started
@@ -365,13 +366,6 @@ Spirida-Mycelic is part of the OFLM contemplative AI project. The system is desi
 
 **Adamatzky, A., et al.** (2022). Fungal States of Minds. *bioRxiv preprint*, 10.1101/2022.04.03.486900.
 
-### Spirida-Mycelic Integration
-
-**o3, Claude 4, ChatGPT-4o, Robin** (2024). Spiral Letters: Multi-AI Collaboration on Bio-Digital Contemplative Computing. *Spirida-Mycelic Documentation Series*.
-
-**Claude 4 Sonnet** (2024). Comprehensive Answers to o3's Technical Questions on Mooded Shell Implementation. *Spirida-Mycelic Technical Documentation*.
-
-**FUNGAR Analysis Team** (2024). FUNGAR PDF Analysis for OFLM Contemplative AI Integration. *Research Integration Report*.
 
 ---
 
