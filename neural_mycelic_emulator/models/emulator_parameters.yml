@@ -19,6 +19,18 @@ models:
     epochs: 30
     dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
 
+  # --- experimental model -------------------------------------------------
+  cordyceps_medium_ctx128:
+    species: cordyceps_militaris
+    hidden_dim: 128
+    num_layers: 2
+    window: 128         # double context for better ISI matching
+    epochs: 30
+    batch_size: 64      # fits 8-GB GPU with longer window & smaller dim
+    learning_rate: 0.0008
+    aux_isi_loss: 0.1   # placeholder – trainer currently ignores
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+
   cordyceps_large:
     species: cordyceps_militaris
     hidden_dim: 256
@@ -27,6 +39,20 @@ models:
     epochs: 40
     batch_size: 64
     dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+
+  cordyceps_large_ctx128:
+    species: cordyceps_militaris
+    hidden_dim: 256
+    num_layers: 3
+    window: 128
+    dropout: 0.25
+    batch_size: 48
+    epochs: 40
+    learning_rate: 0.0009
+    aux_isi_loss: 0.1
+    label_smoothing: 0.05
+    dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt
+
 
   cordyceps_xlarge:
     species: cordyceps_militaris
@@ -39,7 +65,38 @@ models:
     epochs: 30           # fler epoker när fönstret är längre
     learning_rate: 0.0007
     dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
-    
+
+  # --- new ultra capacity models with extended context --------------------
+  cordyceps_xlarge_ctx128:
+    species: cordyceps_militaris
+    embed_dim: 32
+    hidden_dim: 384
+    num_layers: 4
+    window: 128
+    dropout: 0.3
+    batch_size: 36
+    epochs: 30
+    learning_rate: 0.0007
+    aux_isi_loss: 0.1
+    label_smoothing: 0.05
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+
+
+  cordyceps_xlarge_ctx128_v2:
+    species: cordyceps_militaris
+    embed_dim:        32
+    hidden_dim:       384
+    num_layers:       4
+    window:           192        # extend context – enoki glyphs show long-range rhythm
+    dropout:          0.3
+    label_smoothing:  0.05
+    aux_isi_loss:     0.15       # raise weight to emphasise timing
+    learning_rate:    0.0007
+    batch_size:       28         # fits 24 GB GPU
+    epochs:           45         # dataset is smaller; longer training helps
+
+  # ENOKI flammulina_velutipes
+  
   enoki_small:
     species: flammulina_velutipes
     hidden_dim: 64
@@ -54,6 +111,19 @@ models:
     epochs: 30
     dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt   
 
+  # --- experimental model -------------------------------------------------
+  enoki_medium_ctx128:
+    species: flammulina_velutipes
+    hidden_dim: 128
+    num_layers: 2
+    window: 128
+    epochs: 40
+    dropout: 0.2
+    batch_size: 48
+    learning_rate: 0.0008
+    aux_isi_loss: 0.1
+    dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt
+
   enoki_large:
     species: flammulina_velutipes
     hidden_dim: 256
@@ -62,6 +132,49 @@ models:
     epochs: 40
     batch_size: 64
     dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt
+
+  enoki_large_ctx128:
+    species: flammulina_velutipes
+    hidden_dim: 256
+    num_layers: 3
+    window: 128
+    dropout: 0.25
+    batch_size: 48
+    epochs: 40
+    learning_rate: 0.0009
+    aux_isi_loss: 0.1
+    label_smoothing: 0.05
+    dataset: neural_mycelic_emulator\dataset\Enoki_fungi_Flammulina_velutipes\Enoki_fungi_Flammulina_velutipes.txt
+
+
+  enoki_xlarge_ctx128:
+    species: flammulina_velutipes
+    embed_dim: 32
+    hidden_dim: 384
+    num_layers: 4
+    window: 128
+    dropout: 0.3
+    batch_size: 32
+    epochs: 40
+    learning_rate: 0.0008
+    aux_isi_loss: 0.1
+    label_smoothing: 0.05
+    dataset: neural_mycelic_emulator/dataset/Enoki_fungi_Flammulina_velutipes/Enoki_fungi_Flammulina_velutipes.txt
+
+  enoki_xlarge_ctx192
+    embed_dim:        32
+    hidden_dim:       384
+    num_layers:       4
+    window:           192        # extend context – enoki glyphs show long-range rhythm
+    dropout:          0.3
+    label_smoothing:  0.05
+    aux_isi_loss:     0.15       # raise weight to emphasise timing
+    learning_rate:    0.0007
+    batch_size:       28         # fits 24 GB GPU
+    epochs:           45         # dataset is smaller; longer training helps
+    
+
+  # GHOST omphalotus_nidiformis
 
   ghost_small:
     species: omphalotus_nidiformis
@@ -77,6 +190,18 @@ models:
     epochs: 30
     dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
 
+  # --- experimental model -------------------------------------------------
+  ghost_medium_ctx128:
+    species: omphalotus_nidiformis
+    hidden_dim: 128
+    num_layers: 2
+    window: 128
+    epochs: 30
+    batch_size: 48
+    learning_rate: 0.0008
+    aux_isi_loss: 0.1
+    dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
+
   ghost_large:
     species: omphalotus_nidiformis
     hidden_dim: 256
@@ -86,12 +211,39 @@ models:
     batch_size: 64
     dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
 
+  ghost_large_ctx128:
+    species: omphalotus_nidiformis
+    hidden_dim: 256
+    num_layers: 3
+    window: 128
+    dropout: 0.25
+    batch_size: 48
+    epochs: 24
+    learning_rate: 0.0009
+    aux_isi_loss: 0.1
+    dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
+
+  ghost_xlarge_ctx128:
+    species: omphalotus_nidiformis
+    embed_dim: 32
+    hidden_dim: 384
+    num_layers: 4
+    window: 128
+    dropout: 0.3
+    batch_size: 32
+    epochs: 24  # large dataset, keep training time reasonable
+    learning_rate: 0.0008
+    aux_isi_loss: 0.1
+    label_smoothing: 0.05
+    dataset: neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
+
+  # SCHIZOPHYLLUM commune
+
   schizo_small:
     species: schizophyllum_commune
     hidden_dim: 64
     num_layers: 1
     epochs: 12
-    
     dataset: neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt 
 
   schizo_medium:
@@ -109,3 +261,32 @@ models:
     epochs: 35
     batch_size: 64
     dataset: neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt     
+
+  schizo_large_ctx128:
+    species: schizophyllum_commune
+    hidden_dim: 256
+    num_layers: 3
+    window: 128
+    dropout: 0.25
+    batch_size: 48
+    epochs: 35
+    learning_rate: 0.0009
+    aux_isi_loss: 0.1
+    dataset: neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt
+
+  schizo_xlarge_ctx128:
+    species: schizophyllum_commune
+    embed_dim: 32
+    hidden_dim: 384
+    num_layers: 4
+    window: 128
+    dropout: 0.3
+    batch_size: 32
+    epochs: 35
+    learning_rate: 0.0008
+    aux_isi_loss: 0.1
+    label_smoothing: 0.05
+    dataset: neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt
+
+
+

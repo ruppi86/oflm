@@ -11,6 +11,7 @@ from torch import nn, optim
 from torch.utils.data import Dataset, DataLoader
 
 from neural_mycelic_emulator.preprocessor.pipeline import tsv_to_glyph_sequences
+from neural_mycelic_emulator.preprocessor.glyph_encoder import GLYPHS
 from .lstm_emulator import LSTMEmulator
 from neural_mycelic_emulator.log_helper import init_file_logger
 from neural_mycelic_emulator.gpu_breathing import nano_pause, piko_pause
@@ -115,6 +116,9 @@ def train(tag: str, tsv_path: Path | None = None, cfg_path: Path = Path(__file__
     opt = optim.AdamW(model.parameters(), lr=cfg["learning_rate"])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(opt, mode="min", patience=2, factor=0.5)
     criterion = nn.CrossEntropyLoss()
+    bce = nn.BCEWithLogitsLoss()
+    sil_id = GLYPHS["SIL"]  # silence glyph index
+    aux_w = cfg.get("aux_isi_loss", 0.0)
 
     ckpt_dir = Path(__file__).parent / tag
     ckpt_dir.mkdir(exist_ok=True)
@@ -135,6 +139,11 @@ def train(tag: str, tsv_path: Path | None = None, cfg_path: Path = Path(__file__
             x, y = x.to(DEVICE), y.to(DEVICE)
             logits, _ = model(x)
             loss = criterion(logits.reshape(-1, model.vocab_size), y.reshape(-1))
+            if aux_w > 0.0:
+                sil_logits = logits[..., sil_id]
+                tgt_sil = (y == sil_id).float()
+                aux = bce(sil_logits, tgt_sil)
+                loss = loss + aux_w * aux
             opt.zero_grad()
             loss.backward()
             opt.step()

@@ -201,6 +201,7 @@ cython_debug/
 *.pt
 
 # Generated analysis and results
+!oflm-python/spiramycel/results/Results_2025_07_03.md
 oflm-python/spiramycel/results/
 !oflm-python/spiramycel/legacy_results/  # Keep legacy results for repository
 oflm-python/spiramycel/logs/
@@ -272,3 +273,4 @@ oflm-python/spiramycel/ecological_models/ecological_calm_model.pt
 oflm-python/spiramycel/abstract_models/abstract_chaotic_model.pt
 results/reports/ood_cross_validation_report_20250703_085027.txt
 results/reports/ood_statistical_analysis_20250703_085027.txt
+

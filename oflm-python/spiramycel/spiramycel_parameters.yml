@@ -311,16 +311,19 @@ models:
     
     # Training parameters (optimized for balanced density)
     training:
-      epochs: 30             # Moderate training depth
+      epochs: 20             # shorter training with adjusted data density
       batch_size: 2          # Small batch for GPU memory efficiency
       learning_rate: 0.001   # Standard learning rate for good convergence
       weight_decay: 1e-5
       gradient_clip_norm: 1.0
-      scheduler_patience: 4
+      scheduler_patience: 3
       scheduler_factor: 0.8
+      early_stop_patience: 3          # new
+      silence_aux_loss_weight: 0.1    # BCE on silence head
+      label_smoothing: 0.05
       
       # Training data size (optimal density: ~0.45 examples/param)
-      num_training_examples: 180000  # Same as fixed 600K but better parameter efficiency
+      num_training_examples: 120000  # 0.30 examples/param density
       
       # Ecological-specific training
       crisis_adaptation_weight: 1.5
@@ -351,16 +354,19 @@ models:
     
     # Training parameters (optimized for balanced density)
     training:
-      epochs: 30             # Moderate training depth
+      epochs: 20             # shorter training
       batch_size: 2          # Small batch for GPU memory efficiency
       learning_rate: 0.0008  # Slightly lower for philosophical stability
       weight_decay: 1.5e-5   # Moderate regularization
       gradient_clip_norm: 0.9
-      scheduler_patience: 4
+      scheduler_patience: 3
       scheduler_factor: 0.8
+      early_stop_patience: 3
+      silence_aux_loss_weight: 0.1
+      label_smoothing: 0.05
       
       # Training data size (optimal density: ~0.45 examples/param)
-      num_training_examples: 180000  # Same as fixed 600K but better parameter efficiency
+      num_training_examples: 120000  # 0.30 ex/param density
       
       # Abstract-specific training
       philosophical_consistency_weight: 1.2
