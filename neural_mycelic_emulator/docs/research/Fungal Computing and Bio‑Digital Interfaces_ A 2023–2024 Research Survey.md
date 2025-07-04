@@ -1,0 +1,2812 @@
+Fungal Computing and Bio‑Digital Interfaces: A
+
+2023–2024 Research Survey
+
+1. Advances in Fungal Computing (2023–2024)
+
+Many-Input   Fungal   Logic   Gates:  Recent   experiments   have   solidified   the   ability   of   living   fungal
+
+mycelium   to   compute   Boolean   logic.   In   a   landmark   2022   study,   oyster   mushroom   mycelium
+
+implemented  4-input   Boolean   logic   functions,   yielding   3136   truth   tables   with   470   unique   logical
+
+functions identified
+
+1
+
+. Inputs were encoded as electrical stimuli (e.g. –5 V for 0, +5 V for 1) and outputs
+
+decoded from the mycelium’s electrical response
+
+2
+
+3
+
+. This demonstrated purposeful computing with
+
+fungi,   showing   mycelial   materials   can   serve   as  “in   materio”   computers  performing   logic   without
+
+traditional silicon
+
+4
+
+5
+
+. The repertoire included simple gates (e.g. NAND, AND) and more complex
+
+mappings, covering all classes of cellular automata behavior up to computationally universal rules
+
+6
+
+.
+
+These many-input fungal logic gates were an important step toward intelligent living materials, but they
+
+remain single-layer implementations (a single mycelial substrate acts as a one-layer reservoir). Scaling
+
+up to more complex circuits (e.g. cascading fungal gates or multi-layer networks) is an open challenge.
+
+Researchers envision networking multiple mycelial processors to achieve deeper logic – effectively a
+
+mycelial   logic   network  –   but   this   has   so   far   been   explored   only   conceptually   (drawing   parallels   to
+
+reservoir computing architectures)
+
+7
+
+. In practice, experiments are still limited to one fungal “layer,” as
+
+reliably   interfacing   outputs   of   one   mycelium   into   another   is   non-trivial   given   biological   variability.
+
+Nonetheless, the field is moving from simple logic gates toward integrated fungal logic circuits, with
+
+2023 bringing improved understanding of how to combine and repeat fungal computing elements.
+
+EU   FUNGAR   Project   –   Toward   Intelligent   Bio-Buildings:  The   EU-funded  FUNGAR   (Fungal
+
+Architectures) project (2019–2023) greatly accelerated fungal computing research with an eye toward
+
+living,   sensing   buildings.   The   project   achieved  groundbreaking   results  in   fungal   electronics   and
+
+unconventional   computing.   Notably,   the   consortium   developed  prototypes   of   fungal   electronic
+
+components – including fungal sensors, tactile and chemical responsive wearables, and simple analog
+
+circuits like fungal oscillators, capacitors, memristors, and low-pass filters
+
+8
+
+. These are living devices
+
+where   mycelium   serves   as   the   functional   element   (for   example,   using   a   mycelial   network   as   an
+
+oscillator   or   memory   resistor).   Several   conceptual   designs   for   complete   “fungal   computers”   were
+
+proposed,   laying   the   groundwork   for   future   fungal   CPUs
+
+8
+
+.   In   tandem,   FUNGAR   addressed   the
+
+material side: to create load-bearing, structural mycelium that computes, the team experimented with
+
+different   fungi   and   substrates.   They   identified  Ganoderma   resinaceum  (Reishi)   and  Pleurotus
+
+ostreatus  (oyster mushroom) as optimal species that balance growth in composites with tolerance to
+
+embedded conductive materials
+
+9
+
+. This means these fungi can remain alive and functional even when
+
+the substrate is infused with nanoparticles or polymer conductors – a crucial trait for  living circuits  in
+
+buildings. The project also demonstrated novel fabrication techniques like triaxial Kagome weaving of
+
+natural  fibers  as  scaffolds  for  mycelium  growth
+
+10
+
+.  This  allowed  construction  of  a  large  (300  m^2)
+
+lattice inoculated with fungus, a step toward “growing” whole architectural components with built-in
+
+sensing. While true intelligent bio-buildings are still aspirational, FUNGAR’s results indicate that a “fully
+
+integrated   structural   and   computational   living   substrate”  is   feasible
+
+11
+
+12
+
+.   In   short,   fungi   are
+
+being transformed from passive building materials into adaptive, information-processing elements.
+
+These advances mark a new era of  fungal computing  where living mycelium networks can not only
+
+form bricks and insulation, but also compute and respond to  their  environment – a  foundation  for
+
+future self-aware bio-architectures.
+
+1
+
+Beyond 4-Input Logic – Toward Networked Mycelial Circuits: Building on the above, 2023–2024 saw
+
+efforts to push fungal computing beyond single 4-input gates. Researchers are exploring  multi-stage
+
+logic  in fungi by connecting multiple mycelial patches or creating spatially distributed inputs/outputs
+
+across  one  network.  Although  no  peer-reviewed  report  of  a  true  multi-layer  fungal  logic  circuit  has
+
+emerged yet, the theoretical framework is being laid. Adamatzky and colleagues describe architectures
+
+for a “fungal computer” comprising distributed mycelial processors that communicate and collectively
+
+solve problems
+
+13
+
+. The inherent qualities of fungal networks support this: mycelium is  fault-tolerant
+
+and   self-regenerating  (damaged   parts   reroute   signals),  reconfigurable  (growth   can   be   guided   by
+
+attractants   or   repellents),   and  evolvable  over   time
+
+14
+
+.   These   traits   imply   a   network   of   fungal
+
+components could rewire itself and continue computing even if parts fail – a desirable property for
+
+complex   computing   systems.   There   is   also   progress   in   merging  fungal   logic   with   conventional
+
+electronics to form hybrids (e.g. using transistor circuits to amplify and route signals between distant
+
+mycelial gates). Early demonstrations include interfacing multiple fungal colonies via microcontrollers
+
+to implement simple cascaded logic. For example, one can imagine the output of a Pleurotus-based
+
+gate (as a voltage spike pattern) triggering an input stimulus to a second Ganoderma-based gate, thus
+
+realizing   a   two-step   computation.   While   such   setups   are   still   experimental,   they   suggest   that
+
+networked mycelial logic  – essentially fungal  logic boards  – may soon be within reach. The ongoing
+
+research focus is to increase the complexity of computations (beyond the ~470 functions reported in
+
+2022
+
+1
+
+) by either expanding the number of inputs per fungal processor or by linking processors. In
+
+summary, the field is transitioning from proving that fungi can compute, to engineering how they can be
+
+assembled into larger bio-computing systems. The next few years will likely bring multi-fungal networks
+
+performing higher-level tasks, moving closer to practical fungal biocomputers.
+
+2. Bio-Digital Interface Technologies for Mycelial Computing
+
+Electrode Design for Live Mycelium: Establishing a robust electrical interface with living mycelium is a
+
+core challenge. Early fungal computers relied on simple metal electrodes: for example, the 2022 4-bit
+
+logic experiments inserted four 1 mm platinum rod electrodes about 5 cm deep into a mycelium block
+
+to serve as inputs
+
+15
+
+. On the output side, an array of differential probe pairs measured the mycelium’s
+
+voltage spikes at various locations
+
+15
+
+. Platinum is favored for its stability and conductivity; however, it
+
+is  expensive  and  may  not  be  ideal  for  long-term  living  setups.  Recent  work  has  trialed  alternative
+
+electrode materials that are less invasive and more biocompatible. One successful approach is using
+
+medical-grade stainless steel needle electrodes, which have been used to record fungal electrical
+
+activity without poisoning the tissue
+
+16
+
+. These fine needles (often 18 mm sub-dermal EEG needles) can
+
+be   inserted   at   different   depths   in   the   mycelial   substrate,   even   partially   insulated   to   target   specific
+
+regions
+
+17
+
+18
+
+. Stainless steel is cheaper and reasonably inert; researchers found it can remain in situ
+
+for weeks, whereas plain copper wires, for instance, corrode or provoke unwanted reactions. Another
+
+strategy   is   to   avoid   metal   electrodes   altogether   by  integrating   conductive   networks   into   the
+
+substrate. The FUNGAR project explored doping mycelium composites with conductive polymers and
+
+nanoparticles to create an internal web of electrodes that the fungus grows around
+
+19
+
+. This way, the
+
+fungus literally grows its own circuitry, maintaining contact over time. The choice of fungal species is
+
+crucial here – as noted, Ganoderma and Pleurotus were found to tolerate embedded conductors without
+
+dying off
+
+9
+
+. In practice, flexible  carbon-based electrodes  (like graphite or graphene coatings) are
+
+being tested as well, since carbon materials are bio-friendly and resist corrosion. The overall trend is
+
+toward  non-destructive,   long-term   electrodes  that   can   move   or   grow   with   the   mycelium.   Some
+
+experimental devices use mesh or lattice electrodes printed on biopolymer films, onto which mycelium
+
+can   attach.   These   “soft”   electrodes   move   as   the   fungus   expands,   maintaining   signal   fidelity.   In
+
+summary,   researchers   are   moving   beyond   simple   platinum   pins   toward  fungus-friendly   electrode
+
+designs  – from steel needles to conductive composites – to achieve stable electrical contact over the
+
+organism’s lifetime.
+
+2
+
+Signal   Encoding   and   Protocols:  Because   fungi   operate   on   very   different   timescales   and   signal
+
+amplitudes   than   silicon   circuits,   special   protocols   are   needed   to   communicate   with   them.   Typically,
+
+input   signals  to   a   mycelial   computer   are   delivered   as   low-voltage   pulses   or   waves   applied   via   the
+
+electrodes.   Amplitude,   frequency,   or   duration   of   these   stimuli   carry   the   “logical”   value   or   data.   For
+
+instance, one experiment represented binary 0 and 1 by applying either –5 V or +5 V DC steps to the
+
+fungus
+
+4
+
+20
+
+. Another approach is to use frequency-coded inputs – e.g. a 1 Hz pulse train for logical
+
+1  versus  0.1  Hz  for  0
+
+2
+
+.  The  fungus  responds   to   these   stimuli   with   endogenous  electrical   activity
+
+(oscillations and spikes in potential), which serve as the  output signals. Decoding the output often
+
+involves  interpreting  the  presence  or  absence  of   characteristic   spikes   as   binary   states
+
+21
+
+.   Figure  1
+
+shows a typical setup where a mycelium block is instrumented with multiple electrodes to inject inputs
+
+and   record   outputs.   In   this   example,   a   train   of   electrical   pulses   is   applied   at   certain   electrodes
+
+(stimulating the mycelium), while differential pairs of recording electrodes pick up the resultant spike
+
+patterns.  The  interface  hardware  is  usually  a  custom  low-noise  amplifier  and  ADC  (analog-to-digital
+
+converter) system. In the 4-bit gate experiments, an Arduino-based controller and AD9833 waveform
+
+generators produced the input voltage steps, and a 24-bit ADC board logged the fungal voltages at 1 Hz
+
+sampling
+
+15
+
+3
+
+. Notably, one ADC channel was dedicated to a  synchronization pulse  that was sent
+
+whenever the input pattern changed, marking the boundary of computation cycles
+
+22
+
+. This sync signal
+
+is critical for aligning the biological response with the input state during data analysis. Recent research
+
+is also investigating  optical and chemical stimulation  as alternative input methods – for example,
+
+shining  light  of  specific  wavelengths  on  photosensitive  fungi  to  trigger  spikes,  or  adding  a  drop  of
+
+nutrient or stimulant to a site. These could offer more gentle, diffuse ways to “program” the fungus
+
+compared to direct electrodes. Overall, a robust bio-digital protocol is emerging: use  low-frequency,
+
+low-amplitude stimuli  that the fungus can perceive, allow a generous response window (minutes to
+
+hours),   and   translate   the   analog   spiking   output   into   logical   outputs   via   thresholding   or   pattern
+
+recognition
+
+23
+
+. 
+
+Figure   1:   Experimental   setup   for   fungal   bio-digital   interfacing.   A   block   of   mycelium-bound   substrate   is
+
+instrumented with multiple electrodes – here, stainless steel needle electrodes (small white pins) are inserted
+
+into the fungal composite to record electrical activity, while a larger probe (black) measures moisture content.
+
+Electrical spikes generated by the fungus in response to stimuli are captured by the electrode pairs for analysis
+
+24
+
+25
+
+.
+
+Signal   Filtering   and   Noise   Reduction:  Distinguishing   meaningful   “computational”   signals   from
+
+biological   noise   is   non-trivial,   as   living   electrical   signals   are   often   noisy,   slow,   and   low-amplitude.
+
+Researchers employ several strategies to  condition and filter  fungal signals. First, using  differential
+
+electrode pairs  (measuring voltage difference between two nearby points) helps cancel out ambient
+
+noise or drift common to both electrodes
+
+26
+
+. This is analogous to using a reference electrode – the
+
+fungus’s internal signals are local, so a differential reading amplifies local changes. Secondly, signals are
+
+typically   digitized   with   high   resolution   (24-bit   ADCs   are   common)   and   then   band-pass   filtered   in
+
+software to isolate the frequency range of interest. Many fungal spikes occur in the range of seconds to
+
+hours
+
+23
+
+, so very low-frequency drift (DC offsets due to slow processes like growth or temperature
+
+change) can be filtered out, as can high-frequency interference (50/60 Hz mains hum, etc.). A simple but
+
+effective method used in the 4-input gate analysis was  threshold filtering: the team defined a “dead
+
+band” of ±20 mV around the baseline and only counted a spike event if the signal crossed beyond this
+
+band
+
+27
+
+. In essence, any voltage fluctuation smaller than 20 mV was treated as noise (logical 0), and
+
+anything above that as a potential logical 1 spike
+
+28
+
+. By tuning this threshold (up to 175 mV in steps)
+
+they could systematically separate noise from real responses. They also ignored the polarity of spikes
+
+(since some fungal spikes can go positive or negative) and just looked at occurrence
+
+23
+
+. This approach
+
+of binary spike detection is akin to how neuronal spikes are processed in neuromorphic engineering.
+
+More   advanced   techniques   are   now   being   tried:   one   is   using   machine   learning   to   classify   fungal
+
+electrical patterns, distinguishing random background spikes from those provoked by a known input.
+
+3
+
+Another is  adaptive filtering, where the system monitors overall fungal activity level (which can vary
+
+with conditions) and adjusts the detection threshold or gain accordingly. There’s also the challenge of
+
+separating   multiple   simultaneous   signals   –   e.g.   if   multiple   input   electrodes   provoke   overlapping
+
+responses. Some studies use an array of many electrodes (like a high-density multi-electrode array) and
+
+then   apply   source   localization   algorithms   to   identify   which   region   of   mycelium   fired   a   spike.   In
+
+summary,   while   fungal   signals   are   faint   and   slow,   careful   instrumentation   and   signal   processing
+
+(differential recording, band-pass/threshold filtering, sync signals) have enabled researchers to cleanly
+
+extract computational output from the noisy biological milieu
+
+27
+
+. As a result, one can be reasonably
+
+confident   that   a   detected   spike   corresponds   to   a   fungal   logic   response   and   not   an   environmental
+
+artifact.
+
+Temporal Synchronization of Bio and Digital Rhythms: A fundamental hurdle in bio-digital interfaces
+
+is the mismatch of time scales – electronic systems operate in microseconds to milliseconds, whereas
+
+fungal networks process information over seconds to hours. Bridging this gap requires synchronizing
+
+the computer’s operations with the fungus’s natural rhythms. In practice, this means slowing down the
+
+computational clock and designing protocols that respect the fungus’s pace. For example, in the 4-bit
+
+gate experiments the researchers presented each 4-bit input pattern to the fungus for a full  1 hour
+
+before switching to the next pattern
+
+3
+
+. This ~3600× slowdown (compared to conventional GHz logic
+
+clocks)   gave   the   mycelium   ample   time   to   react   to   each   input   and   settle   before   the   next   stimulus.
+
+Indeed, they observed that fungal voltage spikes often occurred during the transition between input
+
+states (when a new stimulus was applied) and then decayed within tens of seconds
+
+29
+
+. By waiting an
+
+hour per state, they ensured each input’s effect had time to manifest and dissipate
+
+23
+
+. This is one form
+
+of synchronization: a  step-wise hold protocol  where the digital system holds a constant input for a
+
+period   matching   the   fungus’s   response   latency.   Another   tactic   involves   using   the   fungus’s  own
+
+oscillatory activity as a timing reference. Some fungi exhibit regular oscillations in electrical potential
+
+(endogenous rhythmic spiking) with periods ranging from minutes to hours
+
+30
+
+. If these oscillations are
+
+stable, one could imagine timing the input triggers to a certain phase of the fungal rhythm – much like
+
+aligning to a clock signal, but the clock is biological. Early research hints at this: in 2023, Browner et al.
+
+showed that illumination could  entrain  a fungus’s spiking frequency, effectively tuning the mycelium’s
+
+internal rhythm with an external periodic stimulus (light/dark cycles)
+
+31
+
+. Such methods point to the
+
+possibility of  phase-locking  electronic and fungal oscillators. In hybrid circuits where a living oscillator
+
+(fungus)   is   part   of   an   electronic   loop,   one   must   also   consider  tempo   matching  –   e.g.   using
+
+programmable delay circuits or buffers so that the fast electronics wait for the slow bio signals. Some
+
+experiments use  event-driven synchronization: the digital controller simply listens and waits until it
+
+detects a fungal spike (or a steady state) before proceeding, rather than using a fixed time. In summary,
+
+temporal coordination is achieved by (1) running the electronic interface orders of magnitude slower
+
+than usual, (2) leveraging or controlling the fungus’s own timing (for instance, via periodic stimuli), and
+
+(3) designing asynchronous, event-driven logic that reacts to fungal outputs whenever they arrive. This
+
+ensures   the  biological   computation   and   electronic   computation   remain   in   step.   As   Andrew   Adamatzky
+
+quipped, fungi are “computers which live on rotten trees” and naturally operate on long timescales
+
+32
+
+ –
+
+but with careful synchronization, they  can  be harnessed to work in concert with our silicon systems,
+
+albeit in a patient, contemplative fashion.
+
+3. Mycelial Intelligence and Memory
+
+Evidence   of   Learning   and   Adaptation:  A   striking   aspect   of   fungal   networks   is   their   capacity   for
+
+adaptation, often likened to primitive learning. While fungi lack a brain or neurons, experiments show
+
+they   can   adjust   their   behavior   based   on   past   stimuli   –   essentially   forming  memory.   In   early   2023,
+
+researchers at UWE Bristol reported that repeatedly stimulating a mycelial network at two separated
+
+points led to an  increase in conductivity and communication speed  between those points
+
+33
+
+. In other
+
+words, the more the fungus “used” a certain pathway, the better that pathway conducted signals. This is
+
+4
+
+analogous   to   how   repeated   activation   of   a   neuronal   pathway   strengthens   synaptic   connections
+
+(Hebbian learning), or how our brain forms habits. The team observed that after training, the fungus
+
+could   transmit   spikes   more   reliably   and   quickly,   indicating   it   had   formed   a  persistent   conductive
+
+channel  –   a   rudimentary   long-term   memory
+
+33
+
+.   Adamatzky   described   this   as   the   fungal   network
+
+establishing   a   “habit”:   like   how   repeated   actions   in   a   brain   become   automatic,   the   fungal   colony’s
+
+response to a familiar stimulus became faster and stronger with repetition
+
+33
+
+. Beyond electrical habits,
+
+fungi   also   show  physiological  memory.   For   instance,   mycologists   in   Germany   demonstrated   that
+
+mycelium can “remember” a mild heat shock: fungi pre-exposed to a small temperature rise were able
+
+to recover from a subsequent larger heat shock much more swiftly than unprimed fungi, indicating a
+
+form of  stress memory  lasting ~24 hours
+
+34
+
+35
+
+. If too much time passed, they “forgot” and were
+
+vulnerable again, showing the memory was temporary
+
+35
+
+. Similarly, yeast cells have exhibited memory
+
+of salt exposure, adjusting their stress response if they had encountered salt before
+
+36
+
+. These findings
+
+support Nicholas Money’s provocative thesis that fungi possess a rudimentary cellular consciousness
+
+or cognition: fungal mycelia make decisions (e.g. growth direction changes), learn from experience, and
+
+have short-term memory of environmental changes
+
+37
+
+. While “consciousness” in fungi is debated, it’s
+
+clear they are  aware of and respond to their environment  in a purposeful way
+
+38
+
+. Mycelium networks
+
+integrate signals over time and space, then alter their growth or activity accordingly – a hallmark of
+
+intelligent behavior in biological systems.
+
+Long-Term Memory Mechanisms:  How do fungi store information? One mechanism is via  physical
+
+and   electrical   state   changes  in   the   network.   Mycelium   is   not   static;   it   can   thicken   certain   hyphal
+
+strands, branch in new directions, or reroute nutrients. These structural changes can encode memory of
+
+past  conditions  (for  example,  forming  a   high-conductivity   “highway”   of  thick   hyphae   toward   a   food
+
+source and retaining it for future resource movement). On the electrical side, recent work has shown
+
+fungi exhibit memristive behavior – that is, their electrical resistance depends on the history of voltage
+
+applied, much like an electronic memristor (memory-resistor). In 2021–2022, Adamatzky’s lab found
+
+that   placing   electrodes   across   a   fungal   fruit   body   and   applying   a   voltage   sweep   yielded   a   pinched
+
+hysteresis   loop   characteristic   of   memristors
+
+39
+
+40
+
+.   The   fungus’s   resistance   at   any   given   time   was
+
+influenced by the charge that had flowed previously, meaning the circuit “remembered” past currents.
+
+Such  fungal memristors  can serve as analog memory elements
+
+39
+
+. They open the possibility that
+
+mycelial networks inherently perform  integrative memory  – past stimuli alter ion flows or chemical
+
+gradients in the hyphae, which in turn affect how future signals propagate (in essence, storing a bit of
+
+information   about   the   past   state).   Indeed,   one   paper   bluntly   states:  “fungi   exhibit   properties   of
+
+memristors (resistors with memory), electronic oscillators, and sensors”, underlining that memory is deeply
+
+entwined   with   fungal   electrical   dynamics
+
+39
+
+.   Another   likely   storage   mechanism   is   in  biochemical
+
+changes: repeated stimulation can trigger gene expression changes or release of signaling compounds
+
+that   persist.   For   example,   a   mycelium   that   is   regularly   electrically   stimulated   might   produce   more
+
+calcium ion channels in its cell membranes (calcium signaling is thought to be involved in fungal spike
+
+generation
+
+41
+
+42
+
+). More channels could make it more excitable long-term – a form of potentiation.
+
+Conversely, habituation (learning to ignore a harmless repeated stimulus) could occur by the fungus
+
+dampening   its   response   over   time.   While   research   is   ongoing,   the   emerging   picture   is   that   fungal
+
+networks store information in a distributed, analog fashion: there is no single “memory register,” but
+
+the entire network’s physical and electrical state encodes its experience. This distributed memory aligns
+
+with the idea of mycelium as a diffuse brain. It doesn’t have discrete memory cells like a digital chip;
+
+instead, memory is manifested in the connectivity and conductivity of the hyphal web.
+
+Environmental Factors and Computational Capacity: The “thinking” ability of fungi is intimately tied
+
+to   their   environment.   Key   environmental   parameters   –   humidity,   nutrients,   temperature,   etc.   –   can
+
+enhance or impair the fungus’s computing capacity. A recent 2023 study by Phillips  et al.  focused on
+
+moisture and found a Goldilocks zone for fungal electrical activity
+
+43
+
+. In fresh mycelium-bound blocks
+
+with ~70–90% moisture content, the fungus produced spontaneous spike trains; as the blocks dried
+
+5
+
+towards ~65%, spiking diminished
+
+43
+
+. Interestingly, when partially dried (15% moisture), some spiking
+
+resumed, suggesting multiple regimes of activity (possibly different physiological states)
+
+43
+
+. The study
+
+also   showed   that  encasing   the   mycelium   in   an   impermeable   layer   (trapping   humidity)  led   to
+
+increased   electrical   activity
+
+44
+
+  –   essentially,   the   fungus   “fired”   more   when   it   sensed   a   build-up   of
+
+moisture or CO₂. These findings imply that hydration level directly affects signal processing: a drying
+
+fungus   might   enter   a   dormant   state   with   less   communication   (poorer   computing),   whereas   a
+
+comfortably moist fungus is active and responsive. Similarly, temperature can modulate activity: most
+
+fungal   spiking   has   been   observed   in   a   moderate   range   (~20–30   °C).   Too   cold   or   too   hot,   and   the
+
+metabolism slows or stress responses dominate, altering the electrical patterns
+
+34
+
+. Fungi also respond
+
+to chemicals – e.g. an influx of nutrients can cause a flurry of spikes (perhaps analogous to excitement),
+
+while toxins might silence activity. These environmental influences mean that a fungal computer’s “CPU
+
+speed” and reliability are not fixed, but vary with its living conditions. Researchers are actively studying
+
+how to  tune environmental parameters to optimize fungal computing. For instance, maintaining
+
+constant  humidity  (via  humidifiers  or  hydrogels)   and   temperature   in  fungal   computer   enclosures   is
+
+essential   to   get   consistent   results
+
+45
+
+46
+
+.   On   the   flip   side,   one   can  exploit  this   sensitivity   to
+
+environment as a feature: fungi can be sensors and incorporate those readings into their computation.
+
+In one demonstration, living mycelium composites were shown to discern applied weights by distinct
+
+patterns of electrical responses
+
+47
+
+. A weight placed on the mycelium caused specific spike trains (likely
+
+due to strain or pressure sensing by the network), and removing it caused a different pattern – the
+
+fungal   material   effectively   functioned   as   a   load   sensor
+
+47
+
+.   Likewise,   fungal   electronics   have   been
+
+created   that   react   to   light   intensity   (acting   as   photosensors)   and   to   certain   chemicals
+
+13
+
+.   The
+
+implication is that  mycelial computers are inherently multimodal: they compute and sense in the
+
+same substrate. Environmental inputs are not just noise but part of their computing context – a form of
+
+embodied computation  where the surroundings influence the outcome. A fascinating consequence is
+
+that   a   fungal   computer   might   perform   better   on   tasks   that   are   analogues   of   its   natural   survival
+
+processes.   For   example,   a   mycelium   might   inherently   be   good   at   computing   optimal   resource
+
+distribution under varying moisture (since that’s what it does in nature)
+
+48
+
+, whereas it might be less
+
+adept at arbitrary binary arithmetic. This has led to the notion of “contemplative” or slow, integrative
+
+computing: fungal intelligence is seen as deeply embodied and environmental, processing information
+
+in   a   way   that   blends   computation   with   sensing   and   growth.   It   suggests   a   paradigm   of   computing
+
+where,   rather   than   isolating   the   processor   from   its   environment   (as   we   do   with   silicon   chips),   the
+
+environment   is   part   of   the   computing   loop   –   a   very   different,   but   potentially   powerful   mode   of
+
+information processing.
+
+Persistent   Response   Patterns   (Habituation   and   Sensitization):  Do   fungi   get   “used   to”   repeated
+
+stimuli?  Researchers  have  observed  hints  of  habituation  –  i.e.  a  fungus  reducing  its  response  to  a
+
+benign stimulus given repeatedly. For example, if a mycelium is given identical electrical pulses every
+
+hour, over time the magnitude of its spike response may diminish as it apparently realizes nothing bad
+
+or new is happening. Conversely, fungi can also show sensitization, where a strong or noxious stimulus
+
+primes   them   to   respond   more   vigorously   in   the   future.   An   anecdotal   report   describes   that   after   a
+
+sudden large voltage shock, a fungal network entered a heightened activity state, firing more frequent
+
+spikes  for  hours  as  if  on  alert  (though  systematic  study  is  needed  here).  Nicholas  Money  points  to
+
+fungi’s idiosyncratic behaviors – each colony growing and responding in unique ways – as evidence that
+
+“each mycelium is like a snowflake,”  having its own set of learned responses and habits shaped by its
+
+history
+
+49
+
+. Under controlled experiments, the “memory” of a stimulus can last on the order of hours to
+
+days
+
+35
+
+, as seen with temperature priming. There is even a demonstration that mycelium can associate
+
+two   stimuli:   in   one   setup,   a   chemical   stimulus   paired   with   an   electric   pulse   caused   the   fungus   to
+
+eventually react to the chemical alone with an electrical response, hinting at a basic associative learning
+
+(though this result is very preliminary). In summary, fungal networks exhibit plasticity: their response
+
+patterns are not fixed reflexes but change with experience, showing rudimentary analogs of habituation
+
+(ignoring   repetitive   inputs)   and   potentiation   (enhanced   response   after   training).   This   adaptability
+
+6
+
+underscores that mycelial intelligence is a process – a continually updating state – rather than a static
+
+set of logic gate outputs. When we interact with a fungal computer, we are in fact engaging with a
+
+learning system  that carries its past into its future computations. This presents both challenges and
+
+opportunities: on one hand, it complicates reproducibility (the same input might yield different output
+
+on first vs tenth trial), but on the other, it offers a pathway to train fungal computers for specific tasks
+
+via reinforcement of desired patterns.
+
+4. Reservoir Computing with Biological Substrates (Beyond
+
+Fungi)
+
+Fungi   are   not   the   only   living   systems   being   harnessed   as  “wetware”   reservoirs  for   computing.   A
+
+broader trend in 2023–2024 is the exploration of unconventional biological substrates – from single-
+
+celled organisms to cultured neurons and plants – that can perform computation through their innate
+
+dynamics.   The   reservoir   computing   paradigm   is   particularly   suited   to   these   systems:   instead   of
+
+engineering explicit logic gates, one feeds inputs into the naturally rich, non-linear dynamics of the
+
+biological network and reads out a processed output. Below we survey a few examples and how they
+
+are benchmarked:
+
+• 
+
+Slime   Molds   (Physarum   polycephalum):  Slime   mold   is   a   famous   non-neural   computing
+
+substrate.   It   is   essentially   a   giant   single   cell   that   forms   a   network   of   tubes,   dynamically   re-
+
+routing   protoplasm   inside.   Physarum   has   solved   mazes,   optimized   network   paths,   and   even
+
+approximated algorithms like the traveling salesman in its search for food. In 2022, researchers
+
+took this a step further by integrating slime mold directly into a wearable device: a slime mold
+
+smartwatch interface was demonstrated, where the Physarum organism was incorporated into
+
+a  watch  and  used  as  a  biological  sensor/computer
+
+50
+
+.  The  slime  mold’s  electrical  resistance
+
+changes were measured to detect skin contact and user activity, effectively acting as a biosensor
+
+that   could   trigger   digital   functions.   This   example   of   a  hybrid   living   device  highlights   how   a
+
+biological substrate can serve as a reservoir that processes inputs (pressure, humidity, etc.) and
+
+produces a useful output (an electrical signal to the wearable). Slime molds can also implement
+
+logical operations; for instance, two food sources can represent inputs and the growth pattern
+
+can encode an OR gate solution (if either food is present, the mold connects). To  benchmark
+
+slime mold computing, researchers have used tasks like maze solving efficiency, network routing
+
+optimality compared to algorithms, and analog circuit implementations (e.g. Physarum-based
+
+wires and transistors in wetware circuits). Metrics include path length optimality (compared to
+
+shortest   path   algorithms)   and   response   time   to   stimuli.   Because   slime   molds   operate   on
+
+timescales   of   hours   (somewhat   similar   to   fungi),   they   are   considered  “slow   processors”  but
+
+extremely energy-efficient and adaptable. The UIST 2022 demo of a slime mold device indicates
+
+they   can   be   embedded   into   user   interfaces   as   a   sort   of   “living   circuit”
+
+51
+
+,   validating   their
+
+potential outside a petri dish.
+
+• 
+
+Cultured   Neuronal   Networks   (Brain   Cells   in   vitro):  Perhaps   the   most   striking   reservoir
+
+computers   are   made   of   actual   neurons.   In   late   2022,   a   team   led   by   Kagan   (Cortical   Labs,
+
+Australia) created a system nicknamed “DishBrain” – a layer of living neurons (mix of mouse and
+
+human cortical cells) grown on an electrode array – which learned to play a simplified version of
+
+the video game  Pong
+
+52
+
+. The neurons acted as a reservoir that received stimulus (feedback
+
+from the game environment) and were stimulated when the virtual paddle missed the ball, etc.,
+
+effectively   learning   to   control   the   paddle.   Over   time,   the   neural   network   improved   its
+
+performance,   demonstrating  goal-directed   learning.   This   was   a   proof-of-concept   that   live
+
+neuronal cultures can serve as adaptive computing units, with performance measured on a clear
+
+benchmark (game score and improvement over trials). “DishBrain” sparked the formulation of
+
+7
+
+Organoid Intelligence (OI) as a field: leveraging 3D brain organoids (tiny self-organizing brain-
+
+like cell clusters) as microscopic bio-computers
+
+53
+
+. In 2023, a multidisciplinary team published a
+
+roadmap for OI, outlining metrics like the number of neurons, synapse density, learning rate,
+
+and   energy   efficiency   compared   to   silicon
+
+54
+
+55
+
+.   Key   metrics   for   neural   reservoirs   include
+
+memory retention (how long they can store training), throughput (spike rate, which can be up to
+
+kHz   in   neurons,   much   faster   than   fungi),   and  learning   speed.   The   Pong-playing   culture,   for
+
+example, was evaluated on how quickly it improved relative to chance (it showed statistically
+
+significant learning within minutes of gameplay). Neural reservoirs arguably set the high bar for
+
+performance among living substrates, but they raise more ethical and practical complexity (they
+
+require continuous nutrient/media and arguably have a form of sentience).
+
+• 
+
+Plant and Root Networks: Plants lack nervous systems, but they exhibit complex signaling (via
+
+electrical signals, hormones, etc.) and have been proposed as computational reservoirs. In 2022,
+
+Pieters  et al.  demonstrated the first  plant-based reservoir computer  using living strawberry
+
+plants (Fragaria x ananassa)
+
+56
+
+. They attached sensors to eight leaves to measure changes in
+
+thickness (which relate to water flux and electrical signaling in the plant) and used these as the
+
+reservoir outputs. By feeding environmental input signals (like light fluctuations or temperature
+
+changes) to the plant – essentially perturbing it – they showed the plant could perform tasks
+
+such   as   predicting   its   own   transpiration   rate   and   classifying   environmental   conditions
+
+57
+
+.
+
+Classical   benchmark   tasks   were   attempted,   and   while   the   plant   was   not   a   general-purpose
+
+computer,   it   excelled   at  eco-physiological   computing:   solving   problems   related   to   its   life   (e.g.
+
+forecasting   photosynthesis   rates   from   prior   light   levels)
+
+58
+
+.   This   suggests   plants   process
+
+information   about   their   environment   in   a   way   that   can   be   harnessed   for   computation.   To
+
+benchmark computation in a plant, the researchers evaluated the  prediction error  on these
+
+tasks and compared it to standard machine learning models. They also examined metrics like the
+
+plant reservoir’s memory capacity – how many time steps into the past the plant’s state could
+
+reflect (plants, having slower dynamics, provided a fading memory over many minutes). Another
+
+metric was the separation property – the degree to which different inputs led to distinguishable
+
+states   in   the   plant   (using   variations   in   multiple   leaf   sensor   readings)
+
+59
+
+.   They   noted   that
+
+suitable substrates for physical reservoir computing should have high dimensionality, nonlinearity,
+
+fading   memory,   and   input   separability
+
+59
+
+,   and   plants   meet   many   of   these   criteria   albeit   with
+
+slower response.
+
+• 
+
+Synthetic Biofilms and Bacterial Computing: Beyond multicellular networks, even colonies of
+
+bacteria can compute. Researchers in 2023 achieved a  3-input, 3-output logic gate (a double
+
+Feynman gate) in engineered E. coli. By genetically programming bacteria with synthetic gene
+
+circuits, they made  “bactoneurons”  that responded to chemical inputs (present or absent) and
+
+produced fluorescent protein outputs. These bacterial cells were arranged in a pattern akin to a
+
+single-layer   neural   network   to   realize   the   logic   function.   The   significance   is   that  molecular
+
+circuitry inside cells can implement complex logic in a reversible, fan-out manner. Performance is
+
+measured by the correctness of output (fluorescence) for each combination of inputs and the
+
+stability of the computation (how reliably the cells maintain the function over time). Bacterial
+
+computing is slower (gene expression might take hours to turn on a fluorescent output) but
+
+massively parallel (billions of cells can operate simultaneously) and can be very energy efficient.
+
+Another   group   proposed   a  Bacterial   Molecular   Computing-on-Chip  platform   using
+
+microfluidics to network bacterial colonies and reading electrical signals from them.  Biofilms,
+
+communities of microbes embedded in an organic matrix, are being considered as well – one
+
+could engineer a conductive biofilm that responds electrically to stimuli, functioning similar to
+
+mycelium. Metrics for such systems include response time, logic fidelity, and longevity (a robust
+
+biofilm might compute for days or weeks without human intervention).
+
+8
+
+Benchmarking and “Contemplative” Metrics:  Comparing these diverse living computing substrates
+
+requires   appropriate   metrics.   Conventional   metrics   like   FLOPS   or   clock   speed   don’t   apply;   instead,
+
+researchers use task-specific benchmarks and system properties: 
+
+• 
+
+Information Capacity & Dimensionality: How rich is the repertoire of signals the substrate can
+
+produce? (For fungi, one measure was the number of unique logic gates found
+
+1
+
+; for plants,
+
+the dimensionality was the number of independent sensor signals one can draw from the plant
+
+57
+
+.) Generally, higher dimensionality means more complex computations can be embedded.
+
+• 
+
+Memory Depth: In reservoir computing, the memory capacity quantifies how long past inputs
+
+influence current state. Fungal and plant networks have a long memory (due to slow dynamics)
+
+but   also   a  fading  one   –   e.g.   a   fungus   might   retain   a   trace   of   an   input   for   hours,   but   with
+
+diminishing   effect.   This   can   be   beneficial   for   tasks   that   require   integration   over   time   (e.g.
+
+smoothing sensor data or detecting temporally extended patterns), which is why one might call
+
+it “contemplative computing” – the substrate naturally lingers on past inputs. A recent perspective
+
+highlights   that   many   physical   reservoirs   (optical,   mechanical,   biological)   trade   off   speed   for
+
+memory depth
+
+59
+
+. Slower systems like mycelium or plants can hold a longer temporal context
+
+(good for tasks like time-series prediction or anomaly detection in slowly varying data), whereas
+
+faster   ones   like   neural   cultures   have   short   intrinsic   memory   but   high   throughput   (good   for
+reactive tasks). 
+
+• 
+
+Energy   Efficiency:  A   compelling   metric   for   bio-computation   is   how   little   energy   it   uses
+
+compared to silicon. Many living systems operate on chemical energy at ambient temperature
+
+without external power. For example, a mycelium computer lives on oats or wood chips – a true
+
+low-power processor (just not a fast one). It has been noted that these systems  “do not rely on
+
+fast-heating silicon chips” and can self-repair, making them ultra-sustainable computing elements.
+
+Quantitatively, one can measure energy per logic operation (though this is hard to define for
+
+analog   systems).   Early   estimates   suggest   something   like   Physarum   or   fungi   use   orders   of
+
+magnitude less energy per “computation” than a CPU performing the equivalent operation (if
+
+one could define it), but rigorous comparisons await.
+
+• 
+
+Task  Performance:  Ultimately,  each  substrate  is  benchmarked  on  specific  tasks:  classification
+
+accuracy,  maze  solved  or  not,  game  score,  prediction  error,  etc.  For  instance,  the  strawberry
+
+plant RC was judged on how accurately it could predict photosynthesis rates (it did well on that
+
+niche task)
+
+58
+
+, while the neuron dish was judged on Pong win rate which improved to a level
+
+significantly   above   chance
+
+60
+
+.   Slime   mold   might   be   tested   on   finding   optimal   graphs   or
+
+mimicking road networks of cities (a famous experiment showed Physarum network matched
+
+the Tokyo rail network efficiency). These tasks highlight each organism’s “expertise”: slime molds
+
+excel   at   path   optimization,   fungi   at   integrating   environmental   signals,   plants   at   reflecting
+
+ecological dynamics, and neurons at rapid signal processing and learning.
+
+Hybrid   Bio-Digital   Systems:  A   fascinating   development   is  hybrid   computing   architectures  where
+
+living substrates are tightly coupled with traditional digital systems. Rather than a one-off interface,
+
+these hybrids maintain a sustained feedback loop between biology and electronics. One example is the
+
+fungal robot prototypes: researchers connected oyster mushroom mycelia to a small robot, using the
+
+fungus  as  a  sensory  and  decision-making  unit.   The   mycelium’s   electrical   signals  (filtered   to   remove
+
+vibrations and EM interference) were used to control the robot’s movements, while the robot provided
+
+stimuli back to the fungus (e.g. light or food in certain directions)
+
+61
+
+. Such a symbiotic loop effectively
+
+creates a biological controller for the robot. In another project, a “plant-robot hybrid” was made where
+
+a potted plant’s signals controlled a wheeled robot moving it toward light, essentially giving the plant
+
+mobility through a robotic body – an embodiment of embodied intelligence for the plant. Hybrid systems
+
+9
+
+are also emerging in art and architecture: interactive installations where fungi or slime molds are part
+
+of a sensor network that triggers digital media or lighting changes in real time. The Fungal Computer
+
+Interface (FCI) concept (described in Section 5) is essentially an enabling technology for such hybrids,
+
+providing   a   standardized   way   to   converse   with   mycelium   networks   in   real-time
+
+62
+
+63
+
+.   The
+
+performance of hybrid systems can be measured by closed-loop criteria: stability of the feedback loop,
+
+responsiveness (e.g. how quickly can a fungal robot react to an obstacle), and the enhancement gained
+
+by using the living component (does the bio-part enable functionality that pure silicon could not easily
+
+do?). Often the living part brings adaptivity and resilience. For example, a fungal sensor network in a
+
+building might not only detect conditions but continue to function even if some nodes are damaged
+
+(the   mycelium   re-grows   around   damage)
+
+14
+
+  –   something   a   conventional   sensor   network   would
+
+struggle with. These hybrids hint at a future where  living processors  are embedded in devices and
+
+environments, continuously co-computing with digital electronics.
+
+In   summary,   reservoir   computing   with   non-fungal   living   substrates   is   a   blossoming   field:  Physarum
+
+slime   molds,  Spirogyra  algae   filaments,   plant   roots,   bacterial   films,   and   cultured   neurons   have   all
+
+demonstrated   computing   capabilities   in   2023.   Each   has   unique   strengths   and   is   evaluated   with
+
+appropriate   tasks   –   from   solving   mazes   to   playing   Pong.   The   term  “contemplative   computing”  is
+
+sometimes used to describe the especially slow, integrative computation seen in organisms like fungi
+
+and  plants,  which  process  information  in  a  steady,  continuous  manner  rather  than  blistering-speed
+
+clock cycles. While they won’t replace silicon for high-speed arithmetic, these living computers offer
+
+novel attributes: massive parallelism, self-repair, ultra-low power operation, and an intrinsic ability to
+
+handle   complex   temporal   and   spatial   patterns.   They   also   force   us   to   broaden   the   definition   of
+
+computing – to include metabolism, growth, and adaptation as part of the computation. In doing so, they
+
+blur the line between computer and environment, or between algorithm and organism, giving rise to a
+
+truly embodied form of intelligence that researchers are only beginning to understand.
+
+5. Practical Implementation Challenges of Fungal Computers
+
+Building a practical fungal computer – one that reliably operates outside a lab – comes with significant
+
+challenges. Being a living system, a mycelium computer has “upkeep” requirements and failure modes
+
+quite unlike an electronic device. Here we outline key issues and recent efforts to address them:
+
+• 
+
+Fragility and Contamination: Live fungal circuits can fail if the organism’s health deteriorates.
+
+Contamination by other microbes is a constant threat – airborne mold spores or bacteria may
+
+colonize the nutrient-rich mycelium substrate and disrupt the intended fungus or its signals.
+
+Sterile technique is required to start fungal cultures for computing, but over long deployments
+
+(months/years)   it’s   hard   to   maintain   sterility.   One   failure   mode   is   that   an   invasive   mold
+
+outcompetes the computing fungus, leading to signal loss. Even if no contaminants enter, the
+
+fungal colony itself can age or  degrade: it might consume the available nutrients and then go
+
+dormant or die. Unlike a silicon chip, a fungal substrate can literally run out of fuel or decay.
+
+Drying   out   is   another   risk;   if   the   moisture   falls   below   a   viable   level   (often   >~60%   for   many
+
+species), the electrical activity ceases as the fungus enters a stasis
+
+43
+
+46
+
+. Conversely, too much
+
+moisture can cause anoxia (lack of oxygen) or rot. In practical terms, a fungal computer likely
+
+needs a  sealed, climate-controlled enclosure  to manage these factors. The FUNGAR project
+
+found that keeping parts of the mycelium alive in building materials requires securing a “minimal
+
+viable moisture content” and preventing uncontrolled sporulation or decay
+
+64
+
+65
+
+. One design is
+
+to encapsulate the fungal substrate in a semi-permeable membrane that blocks contaminants
+
+but allows gas exchange and can be periodically rehydrated. Some teams use a layer of sterile
+
+agar  or  hydrogel  over  the  mycelium  to  keep  it  moist  and  protected.  Nonetheless,  long-term
+
+stability   remains   an   issue:   whereas   a   digital   chip   might   run   unchanged   for   years,   a   fungal
+
+processor might need “recalibration” or even periodic replacement as the living network evolves. 
+
+10
+
+• 
+
+Environmental   Control:  As   mentioned,   a   fungal   computer   more   or   less  demands
+
+environmental   support  –   temperature   regulation,   humidity   control,   and   perhaps   nutrient
+
+feeding. This introduces a kind of “biological power supply”: providing food (e.g. adding sterile
+
+oats or sugars periodically) and removing waste (metabolic byproducts) if needed. In a building
+
+context, researchers envision mycelium-based sensors that are part of walls or panels; these
+
+would need the building to maintain comfort-range conditions for them to stay active
+
+66
+
+. On
+
+one   hand,   fungi   are   quite   hardy   (they   can   survive   in   many   conditions),   but   the  computing
+
+performance might only be optimal in a narrower range. For example, cold slows down spiking
+
+and   too   hot   can   make   the   signals   erratic   or   cause   the   fungus   to   produce   fruiting   bodies
+
+(mushrooms)   instead   of   hyphal   growth   –   the   latter   might   reallocate   resources   and   alter
+
+conductivity. If a fungal computer starts fruiting, it could even detach from electrodes or change
+
+shape. Thus, preventing fruiting (perhaps via light cycle or CO₂ level control) might be necessary
+
+to keep it in the vegetative, computing state. This is an unusual maintenance task: ensuring your
+
+CPU doesn’t “decide” to grow a mushroom! 
+
+• 
+
+Electrical and Power Needs: In terms of electrical power, fungal electronics operate at very low
+
+voltages and currents (millivolts and microamps). The fungus itself does not consume electrical
+
+power   in   the   way   a   silicon   circuit   does;   rather,   power   is   used   by   the   interface   electronics
+
+(amplifiers,   microcontroller,   etc.)   and   by   any   environmental   controls   (humidifier,   heater).   The
+
+fungus   lives   on  chemical   energy  from   its   substrate.   This   raises   an   interesting   point:   a   fungal
+
+computer’s energy budget is mostly in keeping the fungus alive (which might just be ambient
+
+conditions and a bit of growth medium) and running the read/write electronics, rather than in
+
+computation   per   se.   Mycelium   networks   are   extremely   energy-efficient   in   their   signaling   –   a
+
+spike is a localized ionic event requiring negligible energy. Adamatzky has highlighted that fungi
+
+are  “very   low   energy   consumption   –   computers   which   live   on   rotten   trees”,   underscoring   their
+
+sustainable   nature
+
+32
+
+.   However,   the   overall   system   might   require   pumps,   sensors,   and
+
+processors that draw power, so designing low-power support hardware is crucial. One approach
+
+is to leverage the fungus’s own electrical output wherever possible: for instance, using fungal
+
+spikes to directly trigger low-power transistors or piezoelectric elements, reducing the need for
+
+continuous powering of an ADC. There are even speculative ideas of  energy harvesting from
+
+the   fungus  –   e.g.   using   microbial   fuel   cell   concepts   or   the   slight   bioelectric   potential   of
+
+mycelium to power the interface circuits, making a self-powered device. We are not there yet, but
+
+it’s a possibility for remote environmental fungal sensors. In essence, while fungal computing is
+
+inherently low-energy, a practical implementation must minimize the overhead of maintaining
+
+the   fungal   habitat   and   reading   its   signals,   so   that   the  net  system   remains   eco-friendly   and
+
+efficient.
+
+• 
+
+Reproducibility and Calibration: No two fungi are exactly alike; biological variability means that
+
+the same “circuit” (e.g. two different oyster mushroom blocks) may behave somewhat differently.
+
+This   poses   a   challenge   for   programming   and   standardizing   fungal   computers.   Typically,   one
+
+must  calibrate   each   fungal   substrate  –   for   example,   determining   its   baseline   spiking   rate,
+
+adjusting thresholds for that particular network’s noise level, and perhaps “training” it with some
+
+test inputs to see how it responds. The variability can be mitigated by using cloned fungal strains
+
+and identical growth conditions, but some variation is inevitable (much like no two brains are
+
+identical). This is acceptable in reservoir computing approaches (they treat the substrate as a
+
+black-box and use machine learning on the outputs), but it complicates using fungal circuits for
+
+precise logic unless adaptive calibration is in place. Over time, as the fungus grows or ages, its
+
+electrical properties drift, so a dynamic recalibration may be needed. For instance, the 4-input
+
+experiments   had   to   spray   the   substrate   with   water   and   let   it   rest   between   runs   to   keep
+
+conditions   similar
+
+67
+
+.   They   effectively   “reset”   the   fungus   to   a   baseline   state   between
+
+experiments. In a continuous application, one might need a standby mode where the fungus is
+
+11
+
+given time to recover or is periodically stimulated with a known pattern to gauge if its responses
+
+have changed (like a diagnostic). 
+
+• 
+
+Hardware/Software   Platforms:  Unlike   conventional   computing,   there   is   no   off-the-shelf
+
+“biocomputer” kit – but that is starting to change. A few commercial or open-source platforms
+
+are emerging for fungal interfaces. One notable effort is by MycoSoft, which in 2024 announced
+
+an open-source  Fungal Computer Interface (FCI)  concept
+
+62
+
+68
+
+. They developed prototype
+
+hardware   called  “Mushroom   1”  –   an   environmental   monitoring   device   that   also   serves   as   a
+
+fungal   interface   node
+
+69
+
+70
+
+.   The   Mushroom   1   device   integrates   sensors   (for   CO₂,   VOCs,
+
+humidity, etc.) with fungal electrodes and a microcontroller, acting as a combined sensor array
+
+and fungal computer probe in one. It’s designed to be placed in ecosystems or soil with fungal
+
+mycelia and gather both environmental data and fungal electrical data
+
+71
+
+72
+
+. MycoSoft has
+
+also introduced a specialized probe technology: a UART/ECG/HDMEA-based probe with a solid-
+
+state agar medium that can be inserted to make stable contact with mycelium . This probe
+
+73
+
+can not only read the bioelectrical signals but also  stimulate the mycelium  in precise ways
+
+(using a high-density microelectrode array, HDMEA, to deliver localized pulses)
+
+73
+
+. Alongside
+
+the   hardware,   they   proposed   a  Hypha   Programming   Language   (HPL)  and   a   software
+
+ecosystem (NatureOS) to translate fungal signals into digital actions and vice versa
+
+68
+
+69
+
+. In
+
+essence, MycoSoft’s FCI is trying to do for fungal computing what Arduino did for electronics –
+
+providing a standard platform that enthusiasts and scientists can use to experiment without
+
+building   everything   from   scratch.   While   still   in   prototype   stage,   it’s   a   significant   step   toward
+
+commercializing fungal interfaces. Other platforms include generic biosignal amplifiers (originally
+
+made for EEG or plant electrophysiology) that are now being repurposed for fungi – e.g. the
+
+OpenBCI or Bitvoodoo’s Plant SpikerBox can record plant/fungal action potentials and are open-
+
+source.  The  University  of  West  England’s  lab  often  uses  Pico  Technology  ADCs  and  Arduino
+
+Megas (as in the 4-bit experiments)
+
+15
+
+, so even hobbyist microcontrollers are up to the task of
+
+basic fungal I/O. We are also seeing the first integration of wireless tech: experiments with LoRa
+
+(Long Range radio)  on FCI devices to transmit fungal data remotely from field sensors have
+
+been reported
+
+74
+
+. All of this suggests that a small but growing community is standardizing tools
+
+for   fungal   computing.   By   the   late   2020s,   we   may   have   a   mature   open-source   hardware   kit
+
+(sensors,   electrode   arrays,   software)   that   anyone   can   use   to   plug   a   living   fungus   into   their
+
+computer and start programming it in a high-level language. 
+
+Figure 2: Concept art of a future fungal interface device (Mushroom 1 by MycoSoft). The device resembles a
+
+mushroom-like antenna with embedded sensors and solar panels, designed to be placed in soil. It interfaces
+
+with the natural mycelium underground via a specialized probe (stem) that can read and stimulate fungal
+
+electrical signals. Such a device could serve as a “living computer node,” merging digital infrastructure with
+
+fungal networks for environmental monitoring and computation
+
+70
+
+73
+
+. (Image credit: MycoSoft)
+
+• 
+
+Failure Modes and Maintenance: Beyond contamination and environment, other failure modes
+
+include  electrode   delamination   or   corrosion  (addressed   partly   by   using   inert   materials   as
+
+discussed),  biofouling  (the   fungus   or   other   organisms   coating   the   electrodes   in   insulating
+
+biofilm), and mechanical disturbance. If the fungal substrate is part of a structure, mechanical
+
+stresses (vibration, shock) could disrupt its networks or the electrode contacts. One intriguing
+
+failure mode in prototypes is when the fungus “decides” to escape the intended area – mycelium
+
+might grow out of its container or send out strands in unexpected directions, breaking the circuit
+
+layout. In living architectures, containing the fungus to certain regions while letting it remain
+
+alive is an active area of research (one doesn’t want a fungal wall to start growing through the
+
+floor!). Solutions may include physical barriers that fungi don’t cross (like dry zones or certain
+
+chemical repellents) to keep them in the computing zone. Regular maintenance could involve
+
+trimming   or   reinoculating   parts   of   the   network.   From   a   computing   perspective,   a   fungal
+
+12
+
+computer might also  lose calibration  if the network grows significantly – e.g. new connections
+
+form that change the logic mapping. This suggests a need for retraining or re-discovery of logic
+
+functions periodically
+
+75
+
+. In the 2022 experiments, they actually exploited growth over time by
+
+running 14 repeats over weeks and capturing different logic functions as the mycelium structure
+
+evolved
+
+3
+
+.   But   in   a   stable   application   you   might   want   to   constrain   growth   to   maintain
+
+consistent   function,   or   conversely   allow   it   to   evolve   and   then   adjust   the   readout   algorithm
+
+accordingly (a kind of continuous learning system).
+
+• 
+
+Scalability: Practical deployment also faces the issue of scaling up the size or number of fungal
+
+processing units. A single fungal block might only produce a few useful signals. To do something
+
+substantial (say monitor an entire building or perform a complex computation), one might need
+
+many   fungal   nodes.   How   to   network   them?   Fungal   networks   can   be   physically   connected
+
+(hyphae can fuse between colonies of the same species), potentially creating a larger “global”
+
+network. But controlling or addressing specific parts of a fused network is difficult – it becomes
+
+one big analog computer. An alternate approach is a hybrid network: use conventional wires or
+
+wireless   links   between   separate   fungal   colonies,   treating   each   colony   as   a   node   that
+
+communicates   digitally.   This   introduces   back-conversion   (fungal   analog   ->   digital   ->   fungal
+
+analog at other node). Some early work in Ireland looked at electronic neuron interfaces to link
+
+slime   mold   and   plant   signals   over   distance,   conceptually   like   an   internet   of   bio-computers.
+
+Latency  is another concern – if a fungal computer spans meters or more, the internal signal
+
+conduction (via action potentials along hyphae) might be slow. Mycelium conduction velocities
+
+are on the order of a few millimeters per second in some species
+
+76
+
+ (significantly slower than
+
+animal nerves). So, large-area fungal circuits won’t be fast unless assisted by electronics. 
+
+In summary, making fungal computing practical requires a holistic approach:  bio-engineering  to breed
+
+resilient,   docile   computing   strains;  materials   science  to   package   and   support   the   living   circuits;   and
+
+electronic engineering to create interfaces that can handle the quirks of biology. Progress is being made
+
+on all these fronts. It’s telling that companies like MycoSoft are envisioning commercial  “mycelium
+
+network devices” that you can deploy in the wild for sensing/computing
+
+70
+
+72
+
+. Such devices aim to
+
+leverage   fungi’s   natural   advantages   (self-powered,   self-maintaining   to   a   degree,   sensitive   to
+
+environment)   while   mitigating   their   downsides   (unpredictability,   fragility)   via   smart   design.   The
+
+challenges   are   substantial,   but   not   insurmountable:   after   all,   nature   has   managed   to   use   fungi
+
+effectively for millions of years. The task now is to integrate these living systems into our technology in
+
+a reliable way. The coming years will likely see iterative improvements – more stable fungal circuits,
+
+standardized   interfaces,   and   perhaps   the   first  real-world   deployment  of   fungal   computers   (for
+
+example, a fungi-based sensor network monitoring forest soil health or an intelligent fungal panel in a
+
+building   adjusting   ventilation   based   on   detected   air   quality).   Each   success   will   illuminate   new
+
+challenges, but also push the boundary of what an engineered living system can do.
+
+6. Ethical and Philosophical Considerations
+
+The advent of computing with living organisms – especially ones with potential intelligence like fungi –
+
+raises profound ethical and philosophical questions. Unlike traditional computers,  living substrates
+
+have their own interests (survival, growth) and possibly some form of sentience or intrinsic value. Here
+
+we explore key considerations:
+
+• 
+
+Intrinsic Value and Rights of Fungal Agents: Should a fungal computer be treated merely as a
+
+piece of equipment, or as a form of life deserving ethical consideration? Traditionally, ethical
+
+frameworks in science cover animals (especially vertebrates) and sometimes plants, but fungi
+
+have   rarely   been   considered   –   they   were   seen   as   insensate.   However,   emerging   research
+
+13
+
+suggests fungi possess a kind of proto-mind. As biologist Nicholas Money argues, fungi “operate
+
+as   individuals,   engage   in   decision-making,   are   capable   of   learning,   and   possess   short-term
+
+memory”
+
+37
+
+. If we accept that fungi have a rudimentary consciousness or at least awareness
+
+77
+
+,
+
+38
+
+, it implies they exist on a continuum of cognitive life. This challenges the ethics of using
+
+them   purely   as   tools.   One   might   ask:   is   it  exploitation  to   wire   up   a   fungus   and   force   it   to
+
+compute? Of course, fungi don’t have a nervous system to feel pain in the way animals do, but
+
+they   do   respond   to   stress.   For   example,   if   a   fungal   computer   is   repeatedly   shocked   with
+
+electricity to stimulate it, is that causing harm? The notion of  consent  is not applicable in the
+
+human sense, but it urges scientists to consider minimizing unnecessary harm or stress to the
+
+organism.   In   practice,   researchers   are   beginning   to   discuss   treating   the   fungi   in   computing
+
+experiments with a level of care beyond that for inert materials – ensuring they have proper
+
+nourishment, avoiding lethal levels of stimulation, and providing rest periods. Some even speak
+
+of a “duty of care” for one’s experimental fungi, analogous to lab animal care, albeit at a simpler
+
+level.   These   ideas   are   not   mainstream   yet,   but   as   fungal   computing   grows,   we   may   see
+
+guidelines akin to bioethics for fungi.
+
+• 
+
+Identity and Dignity: A philosophical question arises: when we integrate fungi into our devices
+
+(say a fungal building or a fungal wearable), are we  instrumentalizing  a potentially intelligent
+
+being? There is a parallel to debates about AI and sentience – except here the “AI” is a living
+
+creature. Does a fungal network that is part of a building have any identity or dignity of its own?
+
+One   interesting   concept   is  co-design   with   the   organism:   architects   in   the   FUNGAR   project
+
+considered the fungi as a design partner, not just a material
+
+78
+
+79
+
+. They talk about a “living and
+
+thinking house made of fungi”
+
+78
+
+  – implicitly acknowledging the fungus’s role as more than a
+
+passive component. Philosophically, this touches on embodied cognition and panpsychist ideas
+
+that mind-like properties might be ubiquitous in life. If one subscribes to those theories, then
+
+computing with fungi is essentially harnessing a mind. Some ethicists might argue this demands
+
+a   new   framework   of   respect,   perhaps   drawing   from   environmental   ethics   (valuing   all   living
+
+things) or from animal research guidelines (avoid suffering, use only when necessary, etc.). It’s a
+
+novel intersection: computing research and ethics of life.
+
+• 
+
+Laboratory   Ethics   and   Regulations:  Currently,   fungi   are   not   protected   by   animal   research
+
+regulations. They are typically covered by biosafety rules (to prevent pathogens, etc.) but not by
+
+ethics boards regarding treatment. This could change if evidence of sentience mounts. We might
+
+imagine   a   future   where   causing   undue   harm   to   a   complex   fungal   colony   could   be   seen   as
+
+ethically questionable, especially if the colony exhibits clear problem-solving or communication
+
+(signs of intelligence). On the flip side, some critics might view this as overreach – after all, we
+
+regularly  harvest  and  eat  mushrooms   without  ethical   qualms.   One   could   argue   that  using   a
+
+fungus to compute is no more unethical than baking bread with yeast (which are fungi) or using
+
+bacteria to produce insulin. The counterpoint is that in computing we may be pushing these
+
+organisms   to   their   limits   in   unnatural   environments,   effectively  creating   a   new   class   of   lab
+
+organism. There’s also the consideration of what happens when a fungal computer’s “job” is done
+
+– do we simply discard the living substrate (throwing away a life)? Or should there be some
+
+protocol (like reintroducing it to soil)? These are largely open questions awaiting societal and
+
+philosophical discourse.
+
+• 
+
+Consent and Agency: Obviously, fungi cannot give consent. But the notion of agency is worth
+
+pondering   –   the   fungal   network   will   be   making   decisions   (computations)   in   the   service   of
+
+human-defined   goals.   Is   there   any   sense   in   which   the   fungus   has   agency   or   is   it   entirely
+
+“programmed” by stimuli? Some philosophers like to explore whether by constraining a living
+
+being   to   perform   computations,   we   are   undermining   its   agency   (like   trapping   an   animal   to
+
+perform tricks). While a fungus isn’t conscious in the animal sense, it does have a natural agenda
+
+14
+
+(seek nutrients, grow). We are co-opting that agenda when we use it for our computing tasks.
+
+Ensuring   that   the   fungus   can   still   carry   out   some   of   its   natural   behaviors   (like   growth   and
+
+resource cycling) might be seen as respecting its agency in some minimal way. In practical terms,
+
+a well-fed fungus allowed to occasionally branch out might be a happier (and ironically, more
+
+reliable) computer than one kept starved in a tiny electrode grid purely for logic outputs.
+
+• 
+
+Ethical Use-Cases: We should also consider the ethics of what we use fungal computers for. For
+
+example, using fungal biocomputers in a sustainable environmental monitoring context (e.g.
+
+a network of fungal sensors that help protect a forest by detecting pollutants or fires) could be
+
+seen   as   an   ethical   positive   –   a   symbiosis   between   technology   and   nature   that   benefits
+
+ecosystems. On the other hand, using fungi in a closed loop to optimize, say, high-frequency
+
+trading algorithms (a far-fetched scenario, but hypothetically) would be both impractical and
+
+ethically odd – repurposing life for a very artificial end. The most compelling vision, espoused by
+
+FUNGAR researchers, is  cohabitation: intelligent buildings where humans and fungal networks
+
+live together symbiotically
+
+80
+
+12
+
+. In such a scenario, ethical design might ensure the fungi get
+
+something   out   of   the   deal   (nutrients,   habitat)   while   humans   get   sensing   and   computing
+
+functions. It becomes a partnership rather than exploitation.
+
+• 
+
+Public   Perception   and   Biosecurity:  Another   ethical   aspect   is   how   society   perceives   living
+computers. Some people may have an instinctual discomfort with the idea of living creatures
+
+inside their walls or devices (“my phone has a fungus brain!”). Transparent communication will be
+
+necessary to ensure public understanding and consent for technologies like fungal bio-buildings.
+
+There’s also a biosecurity angle: could engineered fungal networks pose environmental risks if
+
+they escape the lab? For instance, if we breed fungi for better electrical properties, we must
+
+ensure   they’re   not   invasive   or   pathogenic   if   released.   This   is   akin   to   GMO   considerations.
+
+However,   most   fungi   used   (oyster,   reishi)   are   common   species   and   non-toxic,   and   likely   the
+
+modifications are physical (embedding particles) rather than genetic at this stage. Still, careful
+
+thought   is   needed   to   not   disrupt   ecosystems   –   e.g.   we   wouldn’t   want   to   unintentionally
+
+introduce a nanomaterial-laden fungus into wild populations.
+
+• 
+
+Philosophical Insights: On a more philosophical note, fungal computing challenges the mind-
+
+body   dichotomy   and   anthropocentric   views   of   intelligence.   It   invites   questions   like:  What   is
+
+computation?  –   If   a   colony   of   hyphae   passing   ions   and   nutrients   around   can   compute,   then
+
+computation is clearly an abstract process not limited to human-made devices. It also resonates
+
+with concepts of embodied cognition and distributed mind: the fungus processes information
+
+by being in the world (in soil, etc.), not by isolating itself from it. This could provide a model for
+
+“embodied AI” where intelligence isn’t just in a CPU but in the physical interaction of a system
+
+with its environment. Some have drawn parallels to the idea of the  “Wood Wide Web”  – the
+
+natural mycelial networks connecting forests – suggesting that fungal computers blur into the
+
+environment such that perhaps  the forest itself could one day be a computer. If so, do we then
+
+attribute   a   form   of   consciousness   or   rights   to   an   entire   forest-network   that   we   utilize   for
+
+computing? These almost spiritual or eco-philosophical questions show how fungal computing
+
+links   to  consciousness   studies:   it   expands   the   spectrum   of   systems   we   consider   when
+
+pondering what consciousness is. If a mycelium can have a memory and adapt, is it a tiny bit
+
+conscious? What might that consciousness (or “fungal perspective”) be like? Some philosophers
+
+and scientists (e.g. those influenced by panpsychism or Whitehead’s process philosophy) might
+
+embrace fungal computing as evidence that  mind-like processes pervade nature, just usually at
+
+slower, subtler scales. On a practical level, engaging with these questions ensures that as we
+
+develop bio-computers, we remain reflective about the implications.
+
+15
+
+In short, the ethics of fungal computing is nascent but multifaceted. It spans welfare ethics (treating
+
+the organism well),  environmental ethics  (doing it sustainably and safely), and  philosophical ethics
+
+(respecting possibly conscious processes). As Andrew Adamatzky mused, we might have to learn to
+
+“work in harmony with wetware” rather than dominate it
+
+81
+
+. This could mean designing computing
+
+systems that accommodate the fungi’s needs and rhythms – a mindset shift from treating them as just
+
+components.   Such   a   paradigm   is   more  biocentric,   aligning   with   growing   calls   in   technology   for
+
+sustainability and respect for life. While we are far from according fungi legal rights (as we do animals in
+
+research),   it   is   conceivable   that   guidelines   will   emerge   (perhaps   informed   by   fields   like   animal
+
+neuroscience ethics or plant ethics). For now, the focus is on awareness: researchers openly discuss
+
+these issues in their publications and outreach
+
+82
+
+83
+
+, priming both the scientific community and the
+
+public   to   approach   fungal   computing   with   a   sense   of   responsibility   and   wonder.   The   philosophical
+
+insight we gain by literally building a computer out of a living being is that intelligence and computation
+
+might   not   be  ours  alone   –   they   might   be   properties   of   life   at   large,   inviting   a   more   humble   and
+
+interconnected view of technology.
+
+7. Future Outlook and Emerging Directions
+
+Fungal computing sits at the intersection of biology, computer science, and materials engineering – and
+
+its future will be shaped by advances in all three, as well as some far-out speculative ideas. Here are
+
+some expected and imagined developments beyond 2024:
+
+Enhanced Fungal Strains and Synthetic Bio-Networks:  One near-term direction is  bioengineering
+
+fungi for computing. Just as researchers genetically tweak bacteria for logic gates, we may see efforts
+
+to   modify   fungi   to   improve   their   electrical   properties   or   responsiveness.   For   example,   one   could
+
+engineer a fungus to express ion channels that make its spikes more pronounced or faster, thereby
+
+boosting its signal-to-noise ratio and speed. There’s precedent in other systems: scientists have made
+
+“turbocharged”  neurons   via   gene   editing;   similarly,   a   fungus   could   be   edited   to   overexpress   certain
+
+membrane transporters to increase its electrical oscillation frequency. Another approach is to create
+
+synthetic   symbioses   or   biofilms  that   combine   organisms   for   better   computing.   Fungi   naturally
+
+partner   with   algae   (lichens)   or   plants   (mycorrhizae)   –   perhaps   a   hybrid   network   of   fungus   +
+
+photosynthetic bacteria could compute in a way that’s self-powered (the bacteria provide energy from
+
+light,   the   fungus   processes   signals).   There’s   also   interest   in  mycelium-material   composites  with
+
+embedded electronics (functional nanoparticles). If the FUNGAR doping experiments are extended, we
+
+might  achieve  a  kind  of  cyborg  mycelium  –   fungal   tissue   reinforced  with   conductive  nanowires   or
+
+graphene that enhance internal communication. This could produce a  “mycelium circuit board”  where
+
+the biological and artificial conductors intertwine at the microscopic level. By carefully patterning these
+
+additives, one could guide the formation of logic circuits within the living substrate (e.g. laying down a
+
+graphene grid that encourages the fungus to grow in specific pathways corresponding to electronic
+
+components).   Such   engineered   networks   blur   the   line   between   living   and   nonliving   computing
+
+elements   and   might   greatly   improve   performance   while   preserving   self-healing   and   self-growing
+
+capabilities.
+
+Quantum-Biological Links: In the far speculative realm, some researchers wonder if biological systems
+
+like fungi could interface with  quantum computing  or exploit quantum phenomena. It’s known that
+
+certain biological processes (photosynthesis, bird navigation, possibly even microtubule function) show
+
+quantum effects like coherence. Fungi have extensive  cytoskeletal networks (microtubules)  in their
+
+hyphae, which some theorists (in the spirit of Penrose and Hameroff) have proposed could support
+
+quantum computations or serve as biological qubits
+
+84
+
+. While this is unproven, one could imagine a
+
+future where engineered fungal cells have arrays of molecules that can exist in quantum superposition
+
+states,   essentially   acting   as   living   qubits   coupled   to   classical   fungal   electrical   activity.   This   is   highly
+
+speculative, but not entirely outlandish as the field of  quantum biology  grows. On a more practical
+
+16
+
+note, quantum sensors (like NV centers in diamonds) might be used to  monitor  fungal signals at the
+
+nanoscale,   potentially   reading   single-ion   channel   activities.   If   we   ever   marry   quantum   computing
+
+hardware with a living network, we might get a hybrid quantum-bio computer where, say, a quantum
+
+processor handles certain calculations and passes results to a fungal network for analog processing or
+
+memory storage, leveraging the strengths of each (quantum speed vs. fungal memory). 
+
+Scale   and   Complexity   –   Toward   Conscious   Machines?:  As   we   connect   more   living   units   together,
+
+questions arise about emergent complexity. A single mycelium has a sort of mind of its own – what
+
+happens if we network many mycelia? Do we get a “meta-intelligence” or just a larger substrate? Some
+
+futurists speculate about planetary-scale computing using living networks: for instance, augmenting
+
+the   natural   mycorrhizal   networks   in   forests   with   sensors   and   communication   nodes   to   create   a
+
+distributed   Earth-wide   computer   (literally   Gaia   as   a   computer).   Even   nearer   term,   a   building   with
+
+integrated fungal computing in all its walls and floors could act like a brain for the building, potentially
+
+exhibiting complex behaviors. Could such a system achieve a form of  consciousness? This ties into
+
+embodied cognition theory – a building with sensory mycelium throughout might “feel” and adapt in a
+
+way that appears sentient (responding to occupants, weather, etc. in a learned manner). Whether that
+
+counts as consciousness is philosophical, but it certainly would challenge our current notions. Some
+
+draw parallels to the science-fiction concept of  living ships or habitats  – except here, it’s grounded in
+
+fungal computing networks rather than neural tissue per se.
+
+Contemplative Intelligence and AI Synergies: There is growing interest in AI systems that incorporate
+
+slower,   more  contemplative   processes.   Modern   AI   (deep   learning)   is   data-hungry   and   energy-
+
+intensive;   incorporating   living   processors   might   offer   a   route   to   more   efficient   and   perhaps   more
+
+cognitively interesting  AI. For example, one could imagine an AI that has a dual nature: a fast silicon-
+
+based   module   for   rapid   response   and   a   slow   fungal-based   module   for   long-term   deliberation.   The
+
+fungal module, with its analog memory and gradual adaptation, could act as a kind of reflective memory
+
+or novel recurrent network that adds robustness. Already, reservoir computing is used in AI to handle
+
+temporal patterns – a fungal reservoir could imbue an AI with a kind of long-term intuition (albeit hard to
+
+interpret). There’s also an angle of  creative computing: artists and composers have used slime mold
+
+and   plant   signals   to   generate   music   or   visuals.   Fungal   rhythms   might   be   tapped   for   creative   AI,
+
+producing   “organic”   patterns   that   a   purely   digital   algorithm   might   not.   The   term  “contemplative
+
+intelligence”  might   also   refer   to   AI   that   operates   on   human   timescales   or   encourages   human-like
+
+reflection.   A   fungal   computer,   by   necessity,   enforces   patience   and   slower   interaction,   which   could
+
+paradoxically be beneficial in certain AI contexts (for instance, encouraging an AI to gather more data
+
+over   time   instead   of   making   a   snap   decision   –   something   a   fungus   naturally   does   as   it   integrates
+
+conditions   over   hours).   Such   a   system   might   interface   better   with   human   modes   of   thinking,   even
+
+potentially facilitating a more meditative human-computer interaction. It’s speculative, but some envision
+
+technologies where working with a slow bio-computer becomes a form of mindfulness – you must slow
+
+down to its pace, leading to a more thoughtful use of tech (a counterpoint to today’s frenetic gadgets).
+
+This ties to philosophical movements in technology that advocate for “slow tech” or more humane tech
+
+experiences.
+
+Beyond Fungi – Multi-Organism and Chimera Computers:  Fungal computing might integrate with
+
+other unconventional platforms. We’ve discussed some (plants, slime, neurons, bacteria). A particularly
+
+intriguing direction is making chimera systems: for instance, coupling a fungal network with a silicon
+
+neural network or a cultured neuronal network to create a bio-hybrid computer that has multiple types
+
+of “intelligence.” Each part could handle what it’s best at – fungi for chemical sensing and memory,
+
+neurons for rapid computation, silicon for precise arithmetic – forming a symbiotic computing cluster.
+
+Imagine   a   robot   whose   control   system   includes   a   microprocessor   for   motor   control,   a   small   brain
+
+organoid for learning/adaptation, and a fungal mycelium for sensing the environment’s humidity and
+
+maintaining   homeostasis.   This   robot   might   have   capabilities   and   resilience   unmatched   by   purely
+
+17
+
+engineered   systems.   We   already   see   first   steps:   the   slime   mold   smartwatch   and   fungal   robots
+
+mentioned show we can plug these living pieces into functional devices. In the longer term, synthetic
+
+biology   may   produce   entirely   new   network-like   organisms   specifically   for   computing.   Think   of   a
+
+designed organism that grows like mycelium but with the fast electrical signals of neural tissue – a
+
+synthetic   neuromycelial   network.   This   could   be   the   ultimate   wetware:   engineered   life   optimized   for
+
+information   processing,   effectively   a  living   computer   species.   While   that   sounds   like   science   fiction,
+
+projects like  Physarum-based computing and “fungal machines”  (the title of a 2023 book
+
+85
+
+) are
+
+steps in that direction – exploring what a life form built for computing would look like.
+
+Application   Prospects:  On   the   practical   side,   what   applications   might   fungal   (and   related)
+
+biocomputers find? In the medium term, likely environmental monitoring and sensor networks will
+
+be the first real use. Fungal sensors could continuously monitor soil health, pollutants, structural strain
+
+in   buildings,   etc.,   with   minimal   maintenance.   For   example,   a  mycelium-based   structural   health
+
+monitor embedded in a bridge could detect cracks or stress (the fungus responds to new microcracks
+
+by changed electrical patterns
+
+66
+
+) and signal an alert. Because the fungus is self-repairing, it could
+
+survive   harsh   conditions   better   than   electronic   sensors   that   break.   Another   area   is  medical   or
+
+wearable biosensors: since fungal mycelium can respond to chemicals, a small wearable with a living
+
+fungus   might   detect   certain   metabolites   in   sweat   or   the   environment   (some   fungi   react   to   specific
+
+airborne   toxins   by   changing   spikes   frequency
+
+13
+
+).   Mycelium   materials   are   already   being   used   for
+
+wound dressings and skins; integrating computing into them could yield smart biomaterials that, say,
+
+sense   infection   and   release   a   drug   in   response   (the   fungus   could   be   engineered   to   produce   an
+
+antibiotic when its electrical activity indicates the presence of pathogenic bacteria). 
+
+In the far future,  biocomputers  might be integrated into  ecosystems  for planetary-scale computing
+
+that assists in climate adaptation – for instance, guiding forest management by sensing and computing
+
+within the forest via fungal networks, essentially turning ecosystems into giant computers that help
+
+regulate themselves. This veers into the realm of  Gaian computing  and almost mysticism, but with
+
+climate change, such radical ideas of harnessing nature’s own networks for monitoring and response
+
+could gain traction.
+
+Finally,   from   a   scientific   standpoint,   pursuing   fungal   and   bio   computing   will   likely   feed   back   into
+
+fundamental science: we will learn much more about how fungi communicate, make decisions, and
+
+maybe even how cognition could work in non-neural systems. It could influence consciousness studies
+
+by   providing   alternate   models   of   sentience   (e.g.   a   “fungal   mind”   vs   an   animal   mind)   and   support
+
+theories that cognition does not require a brain or rapid spikes, only a network with feedback and
+
+adaptation. It also resonates with  embodied cognition: intelligence as a process of the entire body
+
+interacting   with   environment,   not   just   a   central   brain   computing   abstractly.   Mycelial   intelligence   is
+
+exactly that – the whole network in the environment  is  the mind. Understanding it could lead to new
+
+computational paradigms that are more context-aware and resilient by design.
+
+In summary, the future of fungal computing is richly interdisciplinary. We will see improvements in
+
+performance   through   bioengineering   and   hybridization   with   other   tech   (possibly   even   quantum
+
+elements). There will be increasingly practical deployments in environmental sensing and architecture,
+
+perhaps   within   this   decade,   given   the   momentum   of   projects   like   FUNGAR.   Speculatively,   the   line
+
+between computing hardware and living systems will continue to blur – raising prospects of semi-living
+
+buildings,   robots,   and   devices.   This   forces   a   rethinking   of   technology:   rather   than   devices   we
+
+manufacture   and   discard,   they   might   be   things   we  grow,   nurture,   and   even   co-evolve   with.   The
+
+journey   of   fungal   computing   from   quirky   lab   demos   to   robust   technology   will   undoubtedly   bring
+
+surprises.  As  Karen  Emslie  wrote  in  2023,   breakthroughs   are   ranging   “from   bacteria-driven   logic   to
+
+disruptive technologies based on fungal mycelium – and even human brain cells”
+
+86
+
+. The convergence
+
+of these could herald a new paradigm where “the computer is alive” – not just metaphorically (as in AI)
+
+18
+
+but literally composed of living cells. With that comes incredible potential for sustainability and novel
+
+capabilities, but also the deep responsibility of creating and caring for computational systems that are,
+
+in a sense, our living partners. The next decade will test our ingenuity in engineering and perhaps our
+
+wisdom in handling this new form of technology.
+
+Leading   Researchers   and   Labs:  It’s   worth   noting   a   few   key   players   driving   these   developments.
+
+Professor  Andrew   Adamatzky  and   the  Unconventional   Computing   Lab  at   UWE   Bristol   remain
+
+pioneers, with prolific outputs on fungal, slime mold, and other biocomputers
+
+87
+
+13
+
+. Collaborators
+
+like Han Wösten (Utrecht University) bring mycology expertise to engineering fungi
+
+9
+
+. The FUNGAR
+
+consortium  united architects (Phil Ayres at CITA, Copenhagen
+
+10
+
+), computer scientists, biophysicists,
+
+and industry (mycelium material companies like MOGU) – that cross-disciplinary team set a template for
+
+future projects. In the reservoir computing arena, groups like Yuriy Kalinin’s lab (Boston) and European
+
+teams are blending live tissues with ML techniques.  Martyn Dade-Robertson  at Newcastle University
+
+has been exploring fungal architecture and synthetic biology integration (e.g. the Living Architecture
+
+(LIAR) project predated FUNGAR and looked at microbial fuel cells and computing in buildings). On the
+
+philosophical   end,   thinkers   like  Nicholas   Money  are   expanding   the   view   of   cognition   to   fungi
+
+88
+
+.
+
+Startups such as  MycoSoft Inc  are emerging, showing entrepreneurial interest in fungal electronics.
+
+And not to forget, the work on neural organoids (Thomas Hartung at JHU and others) ties into the
+
+broader field of biocomputing that fungal research is now part of
+
+53
+
+. It’s a small but rapidly growing
+
+community scattered across computing, biology, and design departments.
+
+In Closing: Fungal computing began as a fringe curiosity – “mushroom logic gates? how peculiar!” – but
+
+from   2023   onward   it   is   clearly   maturing   into   a   rigorous   field   with   practical   aspirations.   The
+
+developments of the last two years have expanded fungal logic from a handful of gates to hundreds,
+
+integrated   mycelium   into   architectural   materials,   improved   interfaces,   and   even   spun   off   nascent
+
+technologies. We can expect new datasets (for example, an update to Adamatzky’s 470 logic functions
+
+library is anticipated as experiments continue – perhaps soon we’ll see thousands of Boolean mappings
+
+catalogued under different conditions, shared as open data for the community). As leading labs refine
+
+techniques, we may get a “blueprint” of how to program a fungal network for a desired function, much
+
+like   electronic   circuit   design.   What   was   the   stuff   of   science   fiction   –   living   computers,   intelligent
+
+buildings – is increasingly supported by scientific evidence and prototypes
+
+80
+
+8
+
+. The future will likely
+
+not replace silicon chips with fungi in your laptop (fear not, your computer won’t sprout mushrooms),
+
+but it will augment our technological landscape with  living, evolving computational media. These
+
+media will excel in areas where conventional tech struggles: adaptability, integration with nature, and
+
+sustainable intelligence. Fungal computing is thus both a technological innovation and a paradigm shift
+
+– a reminder that intelligence and computation need not be confined to the machines we build, but can
+
+grow from the fabric of life itself.
+
+Sources:
+
+• 
+
+Roberts, N. & Adamatzky, A. (2022). Mining logical circuits in fungi. Scientific Reports, 12, 15930.
+
+(Demonstrates 4-input fungal logic gates and reports 470 unique Boolean functions)
+
+1
+
+4
+
+• 
+
+Adamatzky, A. et al. (2023). Electrical response of fungi to changing moisture content. Fungal Biol. &
+
+Biotech., 10, 8. (Shows how moisture and environment affect fungal spiking activity and the
+
+importance of maintaining conditions for fungal electronics)
+
+43
+
+46
+
+• 
+
+CORDIS EU Report (2023).  Fungi could be the foundation of intelligent and sustainable buildings –
+
+FUNGAR   results.  (Summarizes   FUNGAR   project   achievements:   fungal   sensors,   oscillators,
+
+memristors; intelligent building materials with Ganoderma and Pleurotus mycelium)
+
+8
+
+9
+
+19
+
+• 
+
+Emslie, K. (2023).  Fungal Architectures and Logical Bacteria.  Communications of the ACM News
+
+(June   15,   2023).   (Overview   of   biocomputing   advances   including   fungal   computing;   quotes
+
+Adamatzky   on   fungi’s   fault   tolerance,   self-repair,   etc.,   and   mentions   2021   fungal   electronics
+
+paper with photosensors and oscillators)
+
+89
+
+13
+
+• 
+
+Fisher   Scientific   Lab   Reporter   (2023).  Fungal   Future:   Exploring   the   Potential   of   Mushroom
+
+Computing. (Popular article describing UWE’s mushroom computer, with quotes about increased
+
+conductivity from stimulation and comparisons to brain habit formation)
+
+33
+
+90
+
+• 
+
+TechSpot   News   (Mar   6,   2023).  Scientists   have   developed   a   'living   PC'   made   from   mushrooms.
+
+(Highlights the UWE demonstration, quotes Adamatzky on fungal spikes being like neurons and
+
+on stimulating two points to establish memory, “the same way the human brain forms habits”)
+
+91
+
+33
+
+• 
+
+Money, N. (2021).  The fungal mind: on the evidence for mushroom intelligence.  Psyche Magazine
+
+(summarized in MSSF article). (Discusses experiments showing decision-making, learning, and
+
+memory in fungi, and philosophizes on fungal consciousness)
+
+37
+
+34
+
+• 
+
+MycoSoft (2024).  Fungal Computer Interface (FCI) White Paper.  Medium/@mycosoft.inc  (Dec 13,
+2024). (Introduces the Mushroom 1 device, Hypha Programming Language, and vision for open-
+
+source   fungal   computing   platform;   describes   specialized   probe   and   nature-integrated
+
+computing)
+
+68
+
+73
+
+• 
+
+Pieters, O. et al. (2022). Leveraging plant physiological dynamics using physical reservoir computing. 
+
+Scientific   Reports,   12,   12594.   (First   demonstration   of   plant   (strawberry)   used   as   a   reservoir
+
+computer; outlines criteria for physical RC and shows plants solving environmental tasks)
+
+56
+
+59
+
+• 
+
+Adamatzky, A. (2021). Adaptive Fungal Architectures. LINKs-series 5-6, pp. 66–77. (Concept paper
+
+from   FUNGAR   team   discussing   producing   a   living   ‘thinking’   house   of   fungi;   outlines   unique
+
+fungal properties like sensing and proto-intelligence)
+
+92
+
+93
+
+• 
+
+Phillips, N. et al. (2023). Living mycelium composites discern weights via patterns of electrical activity. 
+
+J. Bioresources and Bioproducts, 7(1): 26–32. (Demonstrates fungal material sensing weight
+
+loads via electrical signals, indicating functional use of mycelium in sensors)
+
+47
+
+.
+
+• 
+
+Browner, D. et al. (2023).  Tuning electrical spiking of Schizophyllum commune with light. (bioRxiv
+
+preprint). (Finds that light stimuli can modulate fungal spike patterns, suggesting a method to
+
+externally synchronize/entrain fungal activity).
+
+• 
+
+Various authors (2020–2022) – arXiv preprints by Beasley et al. on fungal capacitors, memristors,
+
+and photosensors
+
+94
+
+95
+
+; these provided early evidence that fungi exhibit memristive (memory)
+
+electrical behavior and can act as analog electronic components.
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+15
+
+20
+
+22
+
+23
+
+27
+
+28
+
+29
+
+45
+
+67
+
+75
+
+s41598-022-20080-3.pdf
+
+file://file-3pyNsXGYyo7Xv5jFAyjZwu
+
+8
+
+9
+
+10
+
+11
+
+80
+
+Fungi could be the foundation of intelligent and sustainable buildings | FUNGAR
+
+Project | Results in Brief | H2020 | CORDIS | European Commission
+
+https://cordis.europa.eu/article/id/446827-fungi-could-be-the-foundation-of-intelligent-and-sustainable-buildings
+
+20
+
+12
+
+13
+
+14
+
+32
+
+50
+
+51
+
+52
+
+53
+
+54
+
+55
+
+60
+
+86
+
+89
+
+Fungal Architectures and Logical Bacteria –
+
+Communications of the ACM
+
+https://cacm.acm.org/news/fungal-architectures-and-logical-bacteria/
+
+16
+
+17
+
+18
+
+19
+
+24
+
+25
+
+26
+
+41
+
+42
+
+43
+
+44
+
+46
+
+47
+
+64
+
+65
+
+66
+
+84
+
+94
+
+95
+
+Electrical response of fungi to
+
+changing moisture content | Fungal Biology and Biotechnology | Full Text
+
+https://fungalbiolbiotech.biomedcentral.com/articles/10.1186/s40694-023-00155-0
+
+21
+
+38
+
+82
+
+Fungal Future: Exploring the Potential of Mushroom Computing | Fisher Scientific
+
+https://www.fishersci.se/se/en/scientific-products/publications/lab-reporter/2023/issue-3/fungal-future-exploring-the-
+
+potential-of-mushroom-computing.html
+
+30
+
+Language of fungi derived from their electrical spiking activity ...
+
+https://www.facebook.com/PaulStamets/posts/language-of-fungi-derived-from-their-electrical-spiking-activitymushrooms-
+
+commun/511898056971800/
+
+31
+
+Tuning electrical spiking of Schizophyllum commune with light
+
+https://www.biorxiv.org/content/10.1101/2023.09.26.559269v1
+
+33
+
+90
+
+91
+
+Scientists have developed a 'living PC' made from mushrooms | TechSpot
+
+https://www.techspot.com/news/97836-scientist-have-developed-living-pc-made-mushrooms.html
+
+34
+
+35
+
+36
+
+37
+
+48
+
+49
+
+76
+
+77
+
+The fungal mind: on the evidence for mushroom intelligence
+
+https://www.mssf.org/v_newsletters/article_235265229.htm
+
+39
+
+40
+
+Fungal electronics
+
+https://uwe-repository.worktribe.com/OutputFile/9567166
+
+56
+
+57
+
+58
+
+59
+
+Leveraging plant physiological dynamics using physical reservoir computing | Scientific
+
+Reports
+
+https://www.nature.com/articles/s41598-022-16874-0?error=cookies_not_supported&code=68a9d4c3-c74e-4cde-
+
+be35-24f5b7714b08
+
+61
+
+These robots move through the magic of mushrooms - Engadget
+
+https://www.engadget.com/science/these-robots-move-through-the-magic-of-mushrooms-171612639.html
+
+62
+
+63
+
+68
+
+69
+
+Fungal Computer Interface (FCI). – A Gateway to Mycelium Computing | by Mycosoft Labs
+
+| Medium
+
+https://medium.com/@mycosoft.inc/fungal-computer-interface-fci-c0c444611cc1
+
+70
+
+71
+
+72
+
+73
+
+Mushroom 1 | Mycosoft
+
+https://mycosoft.org/mushroom-1
+
+74
+
+Morgan Rockwell - X
+
+https://x.com/NODEfather/status/1878180292198113390
+
+78
+
+79
+
+92
+
+93
+
+Adaptive Fungal Architectures - Architecture, Design and Conservation - Danish Portal for
+
+Artistic and Scientific Research
+
+https://adk.elsevierpure.com/en/publications/adaptive-fungal-architectures
+
+81
+
+87
+
+Researchers Likely to Engage with the Mychainos Paradigm.pdf
+
+file://file-HpBnSfedyesBJMSYFwSb38
+
+83
+
+88
+
+New theories expand cognition to fungi - Research Outreach
+
+https://researchoutreach.org/articles/new-theories-expand-cognition-fungi/
+
+85
+
+Towards Fungal Computer | Request PDF - ResearchGate
+
+https://www.researchgate.net/publication/373975897_Towards_Fungal_Computer
+
+21
+
+
