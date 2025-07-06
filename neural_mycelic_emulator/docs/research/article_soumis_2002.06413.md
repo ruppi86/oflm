@@ -992,9 +992,9 @@ IP2(t) = a(cid:48)
 
 1
 
-2
-
 3
+
+2
 
 5
 
@@ -1095,11 +1095,11 @@ IP3(t) = b0t + b1
 IP4(t) = b(cid:48)
 Step 3: Following the same calculus as before with (4), one obtains
 
-3 t3 + b3
-3 t3 + b(cid:48)
-
 4 t4 + b4
 4 t4 + b(cid:48)
+
+3 t3 + b3
+3 t3 + b(cid:48)
 
 2 t2 + b2
 2 t2 + b(cid:48)
@@ -1108,16 +1108,16 @@ q(t) =
 
 1
 
+5
+
+4
+
 2
 
 3
 
-4
-
 6 t6, for 0 ≤ t ≤ T
 6 t6, for T ≤ t < 171
-
-5
 
 for 0 ≤ t ≤ T , F α1,α2
 

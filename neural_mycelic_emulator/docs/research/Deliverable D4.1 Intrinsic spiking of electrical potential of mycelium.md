@@ -880,10 +880,10 @@ w];
 e · · · r2
 e];
 
+w · · · r2
+
 chunkw ← [r1
 switch chunkw, chunke do
-
-w · · · r2
 
 3
 
