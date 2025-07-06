@@ -67,63 +67,31 @@ def _parse_tables(md_lines: List[str]) -> pd.DataFrame:
     # Clean numeric columns
     for col in ["Silence ratio", "ISI KS p-value", "Cohen's d (ISI)", "Glyph L1-diff"]:
         df[col] = pd.to_numeric(df[col].str.replace("%", ""), errors="coerce")
+       
     return df
 
 
 def plot_glyph_l1(df: pd.DataFrame, outfile: Path):
-    # Define size bucket order
-    size_order = {
-        "small": 0,
-        "medium": 1,
-        "large": 2,
-        "xlarge": 3,
-    }
+    # 1) Sort: L1-diff DESCENDING
+    df_sorted = df.sort_values("Glyph L1-diff", ascending=False)
 
-    def _size_key(tag: str) -> int:
-        for key in size_order:
-            if key in tag:
-                return size_order[key]
-        return 99  # unseen
-
-    df["_size_rank"] = df["Model tag"].str.lower().apply(_size_key)
-
-    df_sorted = (
-        df.sort_values(["species", "_size_rank", "Model tag"], ascending=[True, True, True])
-        .drop(columns=["_size_rank"])
-    )
-
-    # Colour by context length encoded in model tag
-    def ctx_color(tag: str) -> str:
-        if "ctx192" in tag:
-            return "#ff7f0e"  # orange
-        if "ctx128" in tag:
-            return "#1f77b4"  # blue
-        return "#2ca02c"      # green (baseline ctx64)
-
-    colors = [ctx_color(t) for t in df_sorted["Model tag"]]
-
+    # 2) draw bars
     fig, ax = plt.subplots(figsize=(10, max(4, len(df_sorted) * 0.3)))
+    colors = ["#1f77b4" if "ctx128" in t else
+              "#ff7f0e" if "ctx192" in t else
+              "#2ca02c"
+              for t in df_sorted["Model tag"]]
     ax.barh(df_sorted["Model tag"], df_sorted["Glyph L1-diff"], color=colors)
+
     ax.set_xlabel("Glyph distribution error (L1 distance)")
     ax.set_title("Neural-Mycelic Emulator – Glyph L1-diff by model (lower is better)")
+    # 3) DO NOT invert axis – highest L1 already at the top
 
-    # Invert y-axis so first model appears at top
-    ax.invert_yaxis()
-
-    # Annotate bars
+    # annotate bars
     for idx, val in enumerate(df_sorted["Glyph L1-diff"]):
         ax.text(val + 0.005, idx, f"{val:.3f}", va="center")
 
-    # Add species section labels
-    species_counts = df_sorted["species"].value_counts(sort=False)
-    cum = 0
-    for spec in df_sorted["species"].unique():
-        count = species_counts[spec]
-        # Because y-axis is inverted, calculate position from top
-        y_line = cum + count - 0.5
-        ax.axhline(y_line, color="grey", linewidth=0.5)
-        ax.text(0.0, y_line - 0.25, spec, fontsize=9, color="grey", weight="bold")
-        cum += count
+    # no species separators – flat list
 
     plt.tight_layout()
     fig.savefig(outfile, dpi=300)
