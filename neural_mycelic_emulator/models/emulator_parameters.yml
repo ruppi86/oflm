@@ -94,6 +94,22 @@ models:
     learning_rate:    0.0007
     batch_size:       28         # fits 24 GB GPU
     epochs:           45         # dataset is smaller; longer training helps
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
+
+  # --- NEW: Cordyceps ultra-context 192 ----------------------------------
+  cordyceps_xlarge_ctx192:
+    species: cordyceps_militaris
+    embed_dim:        32
+    hidden_dim:       384
+    num_layers:       4
+    window:           192        # longer window than 128 variant
+    dropout:          0.3
+    label_smoothing:  0.05
+    aux_isi_loss:     0.15
+    learning_rate:    0.0007
+    batch_size:       28         # fits 24-GB GPU comfortably
+    epochs:           45         # extra epochs for smaller dataset
+    dataset: neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
 
   # ENOKI flammulina_velutipes
   
@@ -161,7 +177,7 @@ models:
     label_smoothing: 0.05
     dataset: neural_mycelic_emulator/dataset/Enoki_fungi_Flammulina_velutipes/Enoki_fungi_Flammulina_velutipes.txt
 
-  enoki_xlarge_ctx192
+  enoki_xlarge_ctx192:
     embed_dim:        32
     hidden_dim:       384
     num_layers:       4
@@ -172,7 +188,8 @@ models:
     learning_rate:    0.0007
     batch_size:       28         # fits 24 GB GPU
     epochs:           45         # dataset is smaller; longer training helps
-    
+    dataset: neural_mycelic_emulator/dataset/Enoki_fungi_Flammulina_velutipes/Enoki_fungi_Flammulina_velutipes.txt
+  
 
   # GHOST omphalotus_nidiformis
 

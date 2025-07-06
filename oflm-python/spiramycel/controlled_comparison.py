@@ -114,6 +114,13 @@ def log_model_architecture(logger, model_path: str):
                 else:
                     scale_config = load_spiramycel_parameters("ecological_600k")
                     paradigm = "ecological_600k"
+            elif "800k" in model_path:
+                if "abstract" in model_path:
+                    scale_config = load_spiramycel_parameters("abstract_800k")
+                    paradigm = "abstract_800k"
+                else:
+                    scale_config = load_spiramycel_parameters("ecological_800k")
+                    paradigm = "ecological_800k"
             elif "6m" in model_path:
                 if "abstract" in model_path:
                     scale_config = load_spiramycel_parameters("abstract_6m")
@@ -257,6 +264,8 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
         ecological_dir = Path("ecological_models_400k")
     elif scale_name == "600k":
         ecological_dir = Path("ecological_models_600k")
+    elif scale_name == "800k":
+        ecological_dir = Path("ecological_models_800k")
     elif scale_name == "6m":
         ecological_dir = Path("ecological_models_6m")
     else:
@@ -273,6 +282,8 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
         scale_suffix = "balanced"
     elif scale_name == "600k":
         scale_suffix = "nano"
+    elif scale_name == "800k":
+        scale_suffix = "balanced800k"
     elif scale_name == "6m":
         scale_suffix = "mili"
     else:
@@ -291,6 +302,9 @@ def run_ecological_training(chaos_mode: bool = True, suffix: str = "", no_prompt
             elif hasattr(args, 'scale') and args.scale == "600k":
                 config = load_spiramycel_parameters("ecological_600k")
                 print(f"🚀 Loading ecological (600K nano-scale) config")
+            elif hasattr(args, 'scale') and args.scale == "800k":
+                config = load_spiramycel_parameters("ecological_800k")
+                print(f"🚀 Loading ecological (800K balanced-scale) config")
             elif hasattr(args, 'scale') and args.scale == "6m":
                 config = load_spiramycel_parameters("ecological_6m")
                 print(f"🌟 Loading ecological (6M mili-scale) config")
@@ -405,6 +419,8 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
         abstract_dir = Path("abstract_models_400k")
     elif scale_name == "600k":
         abstract_dir = Path("abstract_models_600k")
+    elif scale_name == "800k":
+        abstract_dir = Path("abstract_models_800k")
     elif scale_name == "6m":
         abstract_dir = Path("abstract_models_6m")
     else:
@@ -421,6 +437,8 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
         scale_suffix = "balanced"
     elif scale_name == "600k":
         scale_suffix = "nano"
+    elif scale_name == "800k":
+        scale_suffix = "balanced800k"
     elif scale_name == "6m":
         scale_suffix = "mili"
     else:
@@ -439,6 +457,9 @@ def run_abstract_training(chaos_mode: bool = False, suffix: str = "", no_prompt:
             elif hasattr(args, 'scale') and args.scale == "600k":
                 config = load_spiramycel_parameters("abstract_600k")
                 print(f"🚀 Loading abstract (600K nano-scale) config")
+            elif hasattr(args, 'scale') and args.scale == "800k":
+                config = load_spiramycel_parameters("abstract_800k")
+                print(f"🚀 Loading abstract (800K balanced-scale) config")
             elif hasattr(args, 'scale') and args.scale == "6m":
                 config = load_spiramycel_parameters("abstract_6m")
                 print(f"🌟 Loading abstract (6M mili-scale) config")
@@ -746,8 +767,8 @@ def main():
     parser = argparse.ArgumentParser(description="Controlled Spiramycel Comparison Experiment")
     parser.add_argument("--no-prompt", action="store_true", 
                         help="Skip interactive prompts (useful for automation)")
-    parser.add_argument("--scale", choices=["25k", "200k", "400k", "600k", "6m"], default="25k",
-                       help="Model scale: 25k (femto), 200k (piko), 400k (balanced), 600k (nano), or 6m (mili) parameters")
+    parser.add_argument("--scale", choices=["25k", "200k", "400k", "600k", "800k", "6m"], default="25k",
+                       help="Model scale: 25k (femto), 200k (piko), 400k (balanced), 600k (nano), 800k (balanced), or 6m (mili) parameters")
     parser.add_argument("--loadmodel", 
                        choices=["all", "ecological_calm", "ecological_chaotic", "abstract_calm", "abstract_chaotic"],
                        default="all",
@@ -771,6 +792,7 @@ def main():
         "200k": "piko-scale (40K examples each)",
         "400k": "balanced-scale (120K examples each)",
         "600k": "nano-scale (60K examples each)", 
+        "800k": "balanced-scale (120K examples each)",
         "6m": "mili-scale (300K examples each)"
     }
     
@@ -779,6 +801,7 @@ def main():
         "200k": "25-35 minutes total (8x more data)",
         "400k": "45-60 minutes total (24x more data)",
         "600k": "1-2 hours total (10x more data)",
+        "800k": "1-2 hours total (10x more data)",
         "6m": "4-8 hours total (60x more data)"
     }
     
@@ -789,6 +812,7 @@ def main():
             "200k": "6-9 minutes",
             "400k": "12-18 minutes",
             "600k": "15-30 minutes",
+            "800k": "15-30 minutes",
             "6m": "1-2 hours"
         }
         duration_estimate = single_model_duration.get(args.scale, "unknown")

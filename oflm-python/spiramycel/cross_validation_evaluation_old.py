@@ -102,7 +102,7 @@ def load_trained_models(preferred_scale=None):
     """Load all 4 trained contemplative AI models
     
     Args:
-        preferred_scale: Specific scale to load ('25k', '200k', '600k', '6m', 'auto')
+        preferred_scale: Specific scale to load ('25k', '200k', '400k', '600k', '800k', '6m', 'auto')
                         If None or 'auto', automatically discovers best available scale
     """
     models = {}
@@ -114,6 +114,8 @@ def load_trained_models(preferred_scale=None):
     all_scale_candidates = [
         ("6m", ["ecological_models_6m", "abstract_models_6m"]),
         ("600k", ["ecological_models_600k", "abstract_models_600k"]),
+        ("800k", ["ecological_models_800k", "abstract_models_800k"]),
+        ("400k", ["ecological_models_400k", "abstract_models_400k"]),
         ("200k", ["ecological_models_200k", "abstract_models_200k"]),
         ("25k", ["ecological_models_25k", "abstract_models_25k"]),  # Explicit 25k folders
         ("25k", ["ecological_models", "abstract_models"])  # Default/fallback for 25k
@@ -124,7 +126,7 @@ def load_trained_models(preferred_scale=None):
         # Filter to only the preferred scale candidates
         scale_candidates = [(scale, dirs) for scale, dirs in all_scale_candidates if scale == preferred_scale]
         if not scale_candidates:
-            logging.warning(f"⚠ Requested scale '{preferred_scale}' not recognized. Available: 25k, 200k, 600k, 6m")
+            logging.warning(f"⚠ Requested scale '{preferred_scale}' not recognized. Available: 25k, 200k,400k, 600k, 800k, 6m")
             scale_candidates = all_scale_candidates
         else:
             logging.info(f"🎯 Looking for {preferred_scale} scale models as requested")
@@ -173,22 +175,20 @@ def load_trained_models(preferred_scale=None):
                 if NEURAL_AVAILABLE:
                     import torch
                     
-                    # Determine model scale based on file size
-                    file_size_mb = Path(path).stat().st_size / (1024 * 1024)
-                    
-                    # Scale detection based on file size (refined thresholds)
-                    if file_size_mb > 3.5:  # 1.2M+ models are ~4.3MB, 6M models would be ~25MB+
-                        scale = "6m"
-                        scale_name = "mili-scale"
-                    elif file_size_mb > 1.0:  # 600K models are ~2.8MB, 25K models are ~0.1MB
-                        scale = "600k"
-                        scale_name = "nano-scale"
-                    elif file_size_mb > 0.5:  # 200K models should be ~0.8-1.0MB  
-                        scale = "200k"
-                        scale_name = "piko-scale"
+                    # Determine model scale from filename tokens (more reliable on multiple OSes)
+                    lowered = path.lower()
+                    if "6m" in lowered:
+                        scale, scale_name = "6m", "mili-scale"
+                    elif "600k" in lowered:
+                        scale, scale_name = "600k", "nano-scale"
+                    elif "800k" in lowered:
+                        scale, scale_name = "800k", "balanced-scale"
+                    elif "400k" in lowered:
+                        scale, scale_name = "400k", "balanced-scale"
+                    elif "200k" in lowered:
+                        scale, scale_name = "200k", "piko-scale"
                     else:
-                        scale = "25k"  # Small models default to femto-scale
-                        scale_name = "femto-scale"
+                        scale, scale_name = "25k", "femto-scale"
                     
                     # Load appropriate configuration with robust fallback
                     paradigm = "ecological" if "ecological" in condition else "abstract"
@@ -205,8 +205,12 @@ def load_trained_models(preferred_scale=None):
                         # Robust fallback: Determine config from model path
                         if "200k" in path:
                             fallback_config = f"{paradigm}_200k"
+                        elif "400k" in path:
+                            fallback_config = f"{paradigm}_400k"
                         elif "600k" in path:
                             fallback_config = f"{paradigm}_600k"
+                        elif "800k" in path:
+                            fallback_config = f"{paradigm}_800k"
                         elif "6m" in path:
                             fallback_config = f"{paradigm}_6m"
                         else:
@@ -229,7 +233,7 @@ def load_trained_models(preferred_scale=None):
 
                     model = SpiramycelNeuralModel(config=config, paradigm=paradigm, force_cpu_mode=True)
                     models[condition] = model
-                    logging.info(f"✅ Loaded {condition} model: {path} ({file_size_mb:.1f}MB)")
+                    logging.info(f"✅ Loaded {condition} model: {path} ({scale_name})")
                 else:
                     models[condition] = "mock_model"
                     logging.info(f"📝 Mocked {condition} model: {path}")
@@ -813,6 +817,12 @@ def perform_statistical_analysis(all_results):
             eco_vals = paradigm_data["ecological"]
             abs_vals = paradigm_data["abstract"]
             
+            # ▼ BEGIN new always-defined stats --------------------------------
+            eco_mean = float(np.mean(eco_vals)) if eco_vals else 0.0
+            abs_mean = float(np.mean(abs_vals)) if abs_vals else 0.0
+            difference = abs(eco_mean - abs_mean)
+            # ▲ END  ----------------------------------------------------------
+
             print(f"\n🎯 {scenario.replace('_', ' ').title()}:")
             print(f"   Ecological: {eco_vals} → avg {np.mean(eco_vals):.1%}")
             print(f"   Abstract:   {abs_vals} → avg {np.mean(abs_vals):.1%}")
@@ -1608,8 +1618,8 @@ def main():
     parser = argparse.ArgumentParser(description="Enhanced OOD cross-validation with statistical analysis")
     parser.add_argument("--environment", choices=["same", "switch"], default="same",
                        help="Test environment mode: 'same' for stress-level crossover testing (default), 'switch' for alien environments")
-    parser.add_argument("--scale", choices=["25k", "200k", "600k", "6m", "auto"], default="auto",
-                       help="Model scale to test: '25k' (femto), '200k' (piko), '600k' (nano), '6m' (mili), or 'auto' for best available (default)")
+    parser.add_argument("--scale", choices=["25k", "200k", "400k", "600k", "800k", "6m", "auto"], default="auto",
+                       help="Model scale to test: '25k' (femto), '200k' (piko), '400k' (balanced), '600k' (nano), '800k' (balanced), '6m' (mili), or 'auto' for best available (default)")
     parser.add_argument("--no-plots", action="store_true", help="Disable creation of visualizations (overrides missing matplotlib)")
     args = parser.parse_args()
     
@@ -1781,6 +1791,10 @@ def filter_scenarios_for_model(model_name: str, examples: dict):
 
     filtered = {}
     for scen, exs in examples.items():
+        # Enforce paradigm-consistency: ecological_* models see only ecological_* scenarios, etc.
+        paradigm_required = "ecological" if "ecological" in model_name else "abstract"
+        if paradigm_required not in scen:
+            continue
         keep = []
         for entry in exs:
             level = entry.get("stress_level")

@@ -265,6 +265,11 @@ neural_mycelic_emulator/dataset/Cordyceps_militari/Cordyceps_militari.txt
 neural_mycelic_emulator/dataset/Ghost_Fungi_Omphalotus_nidiformis/Ghost_Fungi_Omphalotus_nidiformis.txt
 neural_mycelic_emulator/dataset/Schizophyllum_commune/Schizophyllum_commune.txt
 neural_mycelic_emulator/dataset/Enoki_fungi_Flammulina_velutipes/Enoki_fungi_Flammulina_velutipes.txt
+neural_mycelic_emulator/dataset/Pletorus/*/*.csv
+neural_mycelic_emulator/dataset/Pletorus/*/*.json
+neural_mycelic_emulator/dataset/Pletorus/*/*.png
+neural_mycelic_emulator/dataset/Pletorus/*/*.jpg
+
 
 # models (could be big)
 oflm-python/spiramycel/abstract_models/abstract_calm_model.pt
