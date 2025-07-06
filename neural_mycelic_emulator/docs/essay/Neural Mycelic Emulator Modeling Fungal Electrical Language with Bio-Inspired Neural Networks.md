@@ -28,7 +28,7 @@ This paper introduces the neural mycelic emulator, a system that applies languag
 
 Electrical signaling in fungi has been documented in multiple species, with both spontaneous and stimulus-evoked spikes observed in Pleurotus, Neurospora, and Armillaria [1,2]. These spikes are thought to mediate long-distance communication, coordinate physiological processes, and respond to environmental changes [3,4].
 
-The FUNGAR project (EU-H2020 FET grant 858132) established protocols for recording and analyzing fungal electrical activity, and developed experimental platforms for studying sensorial fusion and decision-making in mycelium [9]. Adamatzky et al. have demonstrated the use of mycelium as a substrate for logic gates, memristors, and unconventional computing devices [5,6,10]. Recent work has also explored the mem-fractive properties of mushrooms, showing that fruit bodies can exhibit memristive, mem-capacitive, and mem-inductive behaviors [7].
+The FUNGAR project (EU-H2020 FET grant 858132) established protocols for recording and analyzing fungal electrical activity, and developed experimental platforms for studying sensorial fusion and decision-making in mycelium [9]. Adamatzky et al. have demonstrated the use of mycelium as a substrate for logic gates, memristors, and unconventional computing devices [5,6,11]. Recent work has also explored the mem-fractive properties of mushrooms, showing that fruit bodies can exhibit memristive, mem-capacitive, and mem-inductive behaviors [7].
 
 Language modeling approaches have been applied to biological sequences in genomics and neuroscience, but their application to fungal electrical data is novel. The neural mycelic emulator builds on these advances, using LSTM-based models to capture the statistical and temporal structure of spike glyph sequences.
 
@@ -38,11 +38,11 @@ Language modeling approaches have been applied to biological sequences in genomi
 
 ### 3.1 System Overview
 
-The neural mycelic emulator trains LSTM language models on real multi-channel voltage recordings from living mycelia[13]. Each glyph in the vocabulary represents either a bio-electrical activity (8 tokens) or a channel prefix (up to 8). By generating glyph sequences, the emulator simulates the statistical "language" of different fungal species and enables the study of model capacity, silence ratio, and inter-spike-interval (ISI) dynamics.
+The neural mycelic emulator trains LSTM language models on real multi-channel voltage recordings from living mycelia[9]. Each glyph in the vocabulary represents either a bio-electrical activity (8 tokens) or a channel prefix (up to 8). By generating glyph sequences, the emulator simulates the statistical "language" of different fungal species and enables the study of model capacity, silence ratio, and inter-spike-interval (ISI) dynamics.
 
 ### 3.2 Datasets
 
-Datasets were collected from multiple fungal species, including *Cordyceps militaris*, *Flammulina velutipes* (Enoki), *Omphalotus nidiformis* (Ghost Fungus), and *Schizophyllum commune*. Each dataset consists of multi-channel voltage recordings, preprocessed into glyph sequences using a custom spike-to-glyph pipeline. Data sources and preprocessing protocols follow those established in the FUNGAR project [9].
+Datasets were collected from multiple fungal species, including *Cordyceps militaris*, *Flammulina velutipes* (Enoki), *Omphalotus nidiformis* (Ghost Fungus), and *Schizophyllum commune*. Each dataset consists of multi-channel voltage recordings, preprocessed into glyph sequences using a custom spike-to-glyph pipeline. Data sources and preprocessing protocols follow those established in the FUNGAR project [10].
 
 ### 3.3 Model Architecture and Parameters
 
@@ -78,7 +78,7 @@ Models are evaluated on:
 | cordyceps_small  |  ~35 k | 0.04 | 0.003 | 0.083 | 0.224 |
 | cordyceps_medium | ~140 k | 0.04 | 0.193 | 0.047 | 0.841 |
 | cordyceps_medium_ctx128 | ~140 k | 0.04 | 0.000 | -0.116 | 0.425 |
-| cordyceps_large  | ~550 k | 0.04 | 0.000 | 0.120 | **0.266** |
+| cordyceps_large  | ~550 k | 0.04 | 0.000 | 0.120 | 0.266 |
 | cordyceps_large_ctx128 | ~550 k | 0.11 | 0.060 | 0.058 | 0.591 |
 | cordyceps_xlarge | ~3.5 M | 0.04 | 0.000 | 0.140 | 0.270 |
 | cordyceps_xlarge_ctx128 | ~3.5 M | 0.04 | 1.000 | -0.001 | 0.900 |
@@ -140,19 +140,23 @@ Models are evaluated on:
 - Context extension significantly improves glyph error without affecting silence or rhythm.
 - xlarge_ctx128 is the new top performer for Schizophyllum.
 
+**Glyph L1-diff by model:**
+
+![Horizontal glyph L1-diff by model](glyph_l1_by_model.png)
+
 ## 5. Discussion
 
 The neural mycelic emulator demonstrates that language modeling techniques can effectively capture the statistical and temporal properties of fungal electrical activity. Results reveal species-specific effects of model scaling and context extension: longer context windows benefit Enoki and Schizophyllum, are neutral for Ghost, and detrimental for Cordyceps at large scale. Medium models suffice for Ghost and Cordyceps, while context-extended variants are necessary for high precision in Enoki and Schizophyllum.
 
 The emulator's ability to match silence ratios and ISI distributions within biological ranges suggests its utility for simulating fungal communication and designing bio-digital interfaces. However, persistent temporal mismatches in some species (e.g., Enoki) indicate the need for improved loss functions and data balancing. Future work should explore context sweeps, ISI-matching losses, and unified training protocols across species.
 
-A notable complementary development is the Spirida-Mycelic system [11], which extends the principles of neural mycelic emulation into the domain of bio-digital interfaces and contemplative AI. Spirida-Mycelic implements real-time translation between fungal spike patterns and contemplative glyphs, supports species-specific breathing and mood cycles, and provides a platform for interactive, trust-based progression with living computational substrates. This integration of bioelectrical modeling with contemplative and ethical frameworks exemplifies the potential for interdisciplinary research at the intersection of mycology, AI, and digital humanities.
+A notable complementary development is the Spirida-Mycelic system [12], which extends the principles of neural mycelic emulation into the domain of bio-digital interfaces and contemplative AI. Spirida-Mycelic implements real-time translation between fungal spike patterns and contemplative glyphs, supports species-specific breathing and mood cycles, and provides a platform for interactive, trust-based progression with living computational substrates. This integration of bioelectrical modeling with contemplative and ethical frameworks exemplifies the potential for interdisciplinary research at the intersection of mycology, AI, and digital humanities.
 
 ## 6. Conclusion
 
 This work presents the neural mycelic emulator as a flexible, bio-inspired platform for modeling fungal electrical language. By leveraging LSTM-based language models and real spike data, the emulator advances our ability to simulate, analyze, and interface with living mycelium. The results highlight both the promise and the challenges of bio-digital emulation, and lay the groundwork for future research in fungal computing, bioinformatics, and adaptive architectures.
 
-Looking forward, the greater aspiration of this project is to realize the vision set forth in "Beyond a Piktun" and the Mychainos system [12]: to foster a resilient, symbiotic partnership between humans and mycelium, creating computational systems that are not only technically advanced but also ecologically attuned, distributed, and capable of supporting long-term human and planetary flourishing. The neural mycelic emulator is a step on this path, with the hope that future developments will bring us closer to a truly symbiotic, mycelic intelligence.
+Looking forward, the greater aspiration of this project is to realize the vision set forth in "Beyond a Piktun" and the Mychainos system [13]: to foster a resilient, symbiotic partnership between humans and mycelium, creating computational systems that are not only technically advanced but also ecologically attuned, distributed, and capable of supporting long-term human and planetary flourishing. The neural mycelic emulator is a step on this path, with the hope that future developments will bring us closer to a truly symbiotic, mycelic intelligence.
 
 
 ## Acknowledgements
@@ -194,7 +198,11 @@ Intent: Support open research and safe distribution; prevent bio-lockdown or pri
 
 This licensing structure is designed to ensure openness, stewardship, and ethical development for all current and future technologies related to this work.
 
----
+## Reproducibility
+
+The code and data for this project are available on GitHub at [Ruppi86/oflm](https://github.com/Ruppi86/oflm) or at [Zenodo](https://zenodo.org/records/15817265).
+
+
 
 ## References
 
@@ -206,10 +214,11 @@ This licensing structure is designed to ensure openness, stewardship, and ethica
 6. Adamatzky, A. (2021). Adaptive Fungal Architectures. LINKs-series 5-6, pp. 66–77.
 7. Beasley, A.E. et al. (2020). Mem-fractive Properties of Mushrooms. Preprint.
 8. CORDIS EU Report (2023). Fungi could be the foundation of intelligent and sustainable buildings – FUNGAR results.
-9. FUNGAR Project Consortium. (2019–2023). https://fungar.eu/
-10. Adamatzky, A. et al. (2023). Fungal Computing and Bio‑Digital Interfaces: A 2023–2024 Research Survey.
-11. Langell, R. et al. (2025). Spirida-Mycelic: Bio-Digital Bridges Between Fungal Logic and Contemplative AI. Zenodo. https://zenodo.org/records/15792166
-12. Langell, R. (2025). Beyond a Piktun: Remembering in the Age of Restart through a Resilient Mycelic Operating System. Zenodo. https://zenodo.org/records/15792167
-13. Adamatzky A. (2021). Recordings of electrical activity of four species of fungi [Data set]. Zenodo. https://doi.org/10.5281/zenodo.5790768
+9. Adamatzky A. (2021). Recordings of electrical activity of four species of fungi [Data set]. Zenodo. https://doi.org/10.5281/zenodo.5790768
+10. FUNGAR Project Consortium. (2019–2023). https://fungar.eu/
+11. Adamatzky, A. et al. (2023). Fungal Computing and Bio‑Digital Interfaces: A 2023–2024 Research Survey.
+12. Langell, R. et al. (2025). Spirida-Mycelic: Bio-Digital Bridges Between Fungal Logic and Contemplative AI. Zenodo. https://zenodo.org/records/15792166
+13. Langell, R. (2025). Beyond a Piktun: Remembering in the Age of Restart through a Resilient Mycelic Operating System. Zenodo. https://zenodo.org/records/15792167
+
 
 ---
