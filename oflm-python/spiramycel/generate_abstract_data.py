@@ -233,10 +233,11 @@ class AbstractDataGenerator:
                         echoes_generated += 1
                         
                         # Improved progress reporting (less frequent, more informative)
-                        if (i + 1) % 500 == 0:
+                        progress_step = max(1, int(num_echoes * 0.10))
+                        if (i + 1) % progress_step == 0:
                             progress_pct = ((i + 1) / num_echoes) * 100
-                            print(f"  Generated {i + 1}/{num_echoes} abstract spore echoes ({progress_pct:.1f}%)...")
-                            
+                            print(f"  Generated {i + 1}/{num_echoes} spore echoes ({progress_pct:.0f}%)…")
+
                     except Exception as e:
                         print(f"⚠ Error generating echo {i+1}: {e}")
                         continue

@@ -77,7 +77,7 @@ def main() -> None:  # pragma: no cover
         description="Modular OOD cross-validation smoke test",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--scale", default="auto", choices=["25k", "200k", "600k", "6m", "auto"],
+    parser.add_argument("--scale", default="auto", choices=["25k", "200k","400k", "600k","800k", "6m", "auto"],
                         help="Model scale to evaluate")
     parser.add_argument("--environment", default="same", choices=["same", "switch"],
                         help="Stress-level crossover ('same') or alien environments ('switch')")

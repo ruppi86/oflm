@@ -244,6 +244,55 @@ models:
       calm_model: "ecological_calm_600k_model.pt"
       chaotic_model: "ecological_chaotic_600k_model.pt"
 
+  # 600K Parameter Scale Models (NANO-scale)
+  ecological_800k:
+    # Ecological paradigm - bioregional, adaptive, environmental relationship (600K scale)
+    description: "Ecological paradigm optimized for deep bioregional adaptation (800K scale)"
+    target_device: "gpu"  # GPU-optimized for larger scale
+    paradigm: "ecological"
+    
+    # Scaled model architecture (targeting ~600K parameters)
+    parameter_count: 600.0   # In thousands (24x scale-up from 25K)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (unchanged)
+    embed_dim: 128           # 4x scale-up from 32
+    hidden_dim: 256          # 4x scale-up from 64
+    num_layers: 2            # 2x scale-up from 1 (two GRU layers)
+    condition_dim: 8         # NetworkConditions: unchanged
+    max_sequence_length: 24  # Longer sequences for richer patterns
+    
+    # Training parameters (FIXED: Data density crisis resolved)
+    training:
+      epochs: 16             # ↑ More passes (4 → 8) for sparse corpus
+      batch_size: 2          # Keep – GPU memory bound (set 4 if resources allow)
+      learning_rate: 0.0007 # ↓ Slightly lower LR for additional epochs
+      weight_decay: 1e-5
+      gradient_clip_norm: 1.0
+      scheduler_patience: 4
+      scheduler_factor: 0.8
+      silence_aux_loss_weight: 0.1
+      num_training_examples: 360000
+      
+      # Ecological-specific training
+      crisis_adaptation_weight: 1.5
+      bioregional_memory_cycles: 75
+      environment_stress_testing: true
+      
+    # Contemplative generation parameters
+    generation:
+      silence_probability: 0.875
+      calm_silence_boost: 1.0
+      chaos_activation_threshold: 0.3
+      temperature_base: 0.6
+      rate_limit: 3.0
+      max_tokens: 16         # Longer contemplative sequences
+      
+    # Model persistence
+    save_paths:
+      model_dir: "ecological_models_800k"
+      latest_model: "ecological_spiramycel_800k_latest.pt"
+      calm_model: "ecological_calm_800k_model.pt"
+      chaotic_model: "ecological_chaotic_800k_model.pt"      
+
   abstract_600k:
     # Abstract paradigm - systematic, philosophical stability (600K scale)
     description: "Abstract paradigm optimized for deep systematic stability (600K scale)"
@@ -292,6 +341,55 @@ models:
       latest_model: "abstract_spiramycel_600k_latest.pt"
       calm_model: "abstract_calm_600k_model.pt"
       chaotic_model: "abstract_chaotic_600k_model.pt"
+
+  abstract_800k:
+    # Abstract paradigm - systematic, philosophical stability (600K scale)
+    description: "Abstract paradigm optimized for deep systematic stability (600K scale)"
+    target_device: "gpu"  # GPU-optimized for larger scale
+    paradigm: "abstract"
+    
+    # Scaled model architecture (targeting ~600K parameters)
+    parameter_count: 600.0   # In thousands (24x scale-up from 25K)
+    vocab_size: 67           # 64 glyphs + START + END + PAD (unchanged)
+    embed_dim: 128           # 4x scale-up from 32
+    hidden_dim: 256          # 4x scale-up from 64
+    num_layers: 2            # 2x scale-up from 1 (two GRU layers)
+    condition_dim: 8         # NetworkConditions: unchanged
+    max_sequence_length: 24  # Longer sequences for richer patterns
+    
+    # Training parameters (FIXED: Data density crisis resolved)
+    training:
+      epochs: 16             # ↑ More passes (4 → 8)
+      batch_size: 2          # Keep
+      learning_rate: 0.0007 # 
+      weight_decay: 2e-5     # More regularization for systematic patterns
+      gradient_clip_norm: 0.8
+      scheduler_patience: 5
+      scheduler_factor: 0.9
+      silence_aux_loss_weight: 0.1
+      num_training_examples: 360000  #
+      
+      # Abstract-specific training
+      philosophical_consistency_weight: 1.2
+      systematic_pattern_emphasis: true
+      stress_resilience_training: true
+      
+    # Contemplative generation parameters  
+    generation:
+      silence_probability: 0.875
+      calm_silence_boost: 1.0
+      chaos_balance_threshold: 0.5
+      temperature_base: 0.5
+      rate_limit: 4.0
+      max_tokens: 14         # Longer contemplative sequences
+      
+    # Model persistence
+    save_paths:
+      model_dir: "abstract_models_800k"
+      latest_model: "abstract_spiramycel_800k_latest.pt"
+      calm_model: "abstract_calm_800k_model.pt"
+      chaotic_model: "abstract_chaotic_800k_model.pt"
+
 
   # 400K Parameter Scale Models (FIX #4: Optimal Density Balance)
   ecological_400k:
