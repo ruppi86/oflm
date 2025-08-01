@@ -37,3 +37,19 @@ Code is **prototype-level**: ideal for experimentation, not production.  Contrib
 ## License
 
 See top-level project LICENSE for multi-layered licensing (CC BY-SA 4.0 for theory, GPLv3 for software, etc.).
+
+### New experimental utilities
+
+* `utils/rhythmic_loss.py` – wraps any criterion so its gradient strength follows breath phases.
+* `utils/memory_decay.py` – FIFO memory buffer that decays only during *pause*.
+* `tools/generate.py` – demo of phase-aligned glyph generation logic.
+
+### Future roadmap (inspired by Letters)
+
+1. Rhythmic loss & optimiser cycles ✔️
+2. Breath-synchronised memory decay ✔️ (prototype)
+3. Spore-level fine-tuning (parameter-efficient adapters TBD)
+4. Phase-aligned generation ✔️ (demo)
+5. Glyph-focused attention visualisation (TODO in `docs/`)
+
+Letters live in `docs/letters.md` — feel free to respond or propose new invitations!
